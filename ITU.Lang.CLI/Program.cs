@@ -13,11 +13,14 @@ namespace ITU.Lang.CLI
                 Console.WriteLine("You need to provide the (relative) path to your file as an argument.");
                 return;
             }
+
             string fileName = args[0];
-            string csFileName = Path.ChangeExtension(fileName, ".cs");
             string fileContent = File.ReadAllText(fileName);
+
             var transpiler = new Transpiler();
             string transpiledCode = transpiler.fromString(fileContent);
+
+            string csFileName = Path.ChangeExtension(fileName, ".cs");
             File.WriteAllText(csFileName, transpiledCode);
         }
     }
