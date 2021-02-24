@@ -1,0 +1,5 @@
+// Times before add
+5 + 2 * 3;
+
+// Div before sub
+5 - 2 / 3;

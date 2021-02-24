@@ -15,13 +15,14 @@ semiStatement: (expr | vardec) Semi;
 expr:
 	expr (Star | Div) expr
 	| expr (Plus | Minus) expr
-	| Int
-	| Boolean
-	| Name
-	| function
+	| term
 	| LeftParen expr RightParen;
 
+term: Int | bool | Name | function;
+
 vardec: (Const | Let) typedName Eq expr;
+
+bool: False | True;
 
 function:
 	LeftParen functionArguments RightParen FatArrow (
@@ -70,7 +71,6 @@ RightBrace: '}';
 WhiteSpace: [ \r\t\n]+ -> skip;
 
 /* KEYWORDS */
-Boolean: False | True;
 False: 'false';
 True: 'true';
 
