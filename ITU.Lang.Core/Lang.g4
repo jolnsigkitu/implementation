@@ -1,4 +1,94 @@
 grammar Lang;
-r: 'hello' ID;
-ID: [a-z]+;
-WHITE: [ \t\r\n]+ -> skip;
+
+/* RULES */
+
+prog: statements? EOF;
+
+// Statements
+statements: (statement)+;
+
+statement: semiStatement | ifStatement;
+
+semiStatement: (expr | vardec) Semi;
+
+// Values/Expressions
+expr:
+	expr (Star | Div) expr
+	| expr (Plus | Minus) expr
+	| Int
+	| Boolean
+	| Name
+	| function
+	| LeftParen expr RightParen;
+
+vardec: (Const | Let) typedName Eq expr;
+
+function:
+	LeftParen functionArguments RightParen FatArrow (
+		block
+		| expr
+	);
+
+functionArguments:
+	| typedName Comma functionArguments
+	| typedName;
+
+typedName: Name;
+
+// Concrete statements
+block: LeftBrace statements? RightBrace;
+ifStatement:
+	If LeftParen expr RightParen block elseIfStatement* elseStatement?;
+elseIfStatement: Elseif LeftParen expr RightParen block;
+elseStatement: Else block;
+
+/* SYMBOLS */
+
+Semi: ';';
+Comma: ',';
+
+// Algebraic operators
+Plus: '+';
+PlusPlus: '++';
+Minus: '-';
+MinusMinus: '--';
+Star: '*';
+Div: '/';
+Mod: '%';
+Eq: '=';
+
+FatArrow: '=>';
+
+LeftParen: '(';
+RightParen: ')';
+LeftBracket: '[';
+RightBracket: ']';
+LeftBrace: '{';
+RightBrace: '}';
+
+// NewLine: [\r\n];
+WhiteSpace: [ \r\t\n]+ -> skip;
+
+/* KEYWORDS */
+Boolean: False | True;
+False: 'false';
+True: 'true';
+
+Const: 'const';
+Let: 'let';
+
+While: 'while';
+Do: 'do';
+For: 'for';
+
+If: 'if';
+Else: 'else';
+Elseif: Else ' '? If;
+
+Int: [0-9]+;
+Name: [a-zA-Z_]+;
+
+/* COMMENTS */
+
+MultiLineComment: '/*' .*? '*/' -> channel(HIDDEN);
+SingleLineComment: '//' ~[\r\n]* -> channel(HIDDEN);

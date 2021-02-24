@@ -40,3 +40,4 @@ hs_err_pid*
 *.interp
 *.tokens
 Lang*.cs
+AntlrDebug

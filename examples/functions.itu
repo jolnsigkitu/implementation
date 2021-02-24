@@ -1,0 +1,6 @@
+let f = (yeet) => 3;
+let f = () => 3;
+let f = (yeet,yote,wonk) => 3;
+let f = (wonk,) => {
+    let x = 8723;
+};

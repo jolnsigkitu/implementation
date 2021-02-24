@@ -1,0 +1,16 @@
+if(true) {
+    let f = 1;
+}
+
+if(false) {
+    let f = 2;
+}
+else {
+    1;
+}
+
+const pred = false;
+if(pred) {}
+elseif(pred) {}
+else if(pred) {}
+else {}

@@ -1,0 +1,13 @@
+1;
+1+1;
+name;
+true;
+false;
+// This is a comment. 💩
+/*
+multi
+line
+const a = 5;
+*/
+const a = 5;
+let a = 5;
