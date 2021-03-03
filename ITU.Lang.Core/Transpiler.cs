@@ -16,14 +16,19 @@ namespace ITU.Lang.Core
             var parser = new LangParser(tokens);
             parser.BuildParseTree = true;
 
-            IParseTree tree = parser.prog();
+            var tree = parser.prog();
 
-            // ILangListener translator = new CSharpASTTranslator();
-
-            // ParseTreeWalker.Default.Walk(translator, tree);
-
-            return "wip";
+            try
+            {
+                var visitor = new CSharpASTTranslator();
+                return visitor.VisitProg(tree);
+            }
+            catch (TranspilationException ex)
+            {
+                Console.Error.WriteLine("An error occoured during transpilation: \n\t" + ex.Message);
+                Environment.Exit(1);
+                return "";
+            }
         }
     }
 }
-// LexParse -[Lang.g4]-> AbsynTree -[CSharpASTTranslator]-> CSAbsynTree -[]-> C#

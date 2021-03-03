@@ -12,13 +12,17 @@ statement: semiStatement | ifStatement;
 semiStatement: (expr | vardec) Semi;
 
 // Values/Expressions
-expr:
-	expr (Star | Div) expr
-	| expr (Plus | Minus) expr
-	| term
+expr: term
+	| expr operator expr
 	| LeftParen expr RightParen;
 
-term: Int | bool | Name | function;
+operator: Star | Div | Plus | Minus;
+
+term: literal | access | function;
+
+literal: Int | bool;
+
+access: Name;
 
 vardec: (Const | Let) typedName Eq expr;
 

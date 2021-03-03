@@ -1,5 +1,11 @@
 1;
+let name = 7;
 1+1;
+1-1;
+1*1;
+1/1;
+1*(1+2);
+1*1+2;
 name;
 true;
 false;
@@ -9,5 +15,5 @@ multi
 line
 const a = 5;
 */
-const a = 5;
-let a = 5;
+const b = 5;
+let c = 5;

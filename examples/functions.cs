@@ -1,0 +1,1 @@
+using System; namespace App { public class Entrypoint { static void Main(string[] args) {var f=stuffstuff;var f=stuffstuff;var f=stuffstuff;var f=stuffvar x=stuff;;}}}

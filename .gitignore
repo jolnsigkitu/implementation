@@ -41,3 +41,6 @@ hs_err_pid*
 *.tokens
 Lang*.cs
 AntlrDebug
+
+.fake
+.ionide

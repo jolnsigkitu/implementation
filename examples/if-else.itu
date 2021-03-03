@@ -4,6 +4,7 @@ if(true) {
 
 if(false) {
     let f = 2;
+    let f = 3;
 }
 else {
     1;
