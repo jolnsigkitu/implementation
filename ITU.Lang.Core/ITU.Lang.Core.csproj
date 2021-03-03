@@ -8,9 +8,9 @@
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.1" />
   </ItemGroup>
 
-  <Target Name="Antlr4" BeforeTargets="Build">
+  <Target Name="Antlr4" BeforeTargets="Compile;Link">
     <Message Importance="high" Text="Compiling Antlr4 Parser" />
-    <Exec Command="java -Xmx500M org.antlr.v4.Tool -visitor -Dlanguage=CSharp Lang.g4" />
+    <Exec Command="java -Xmx500M org.antlr.v4.Tool -visitor -no-listener -Dlanguage=CSharp Lang.g4" />
   </Target>
 
   <PropertyGroup>
