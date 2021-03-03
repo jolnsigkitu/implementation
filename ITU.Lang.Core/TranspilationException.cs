@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace ITU.Lang.Core
 {
     [Serializable]
-    internal class TranspilationException : Exception
+    public class TranspilationException : Exception
     {
         public TranspilationException(string message) : base(message) { }
 

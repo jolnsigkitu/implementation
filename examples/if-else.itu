@@ -1,10 +1,9 @@
 if(true) {
     let f = 1;
 }
-
+let f = 7;
 if(false) {
     let f = 2;
-    let f = 3;
 }
 else {
     1;

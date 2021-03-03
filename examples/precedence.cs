@@ -1,0 +1,1 @@
+using System; namespace App { public class Entrypoint { static void Main(string[] args) {5+2*3;5-2/3;}}}

@@ -8,33 +8,11 @@ namespace ITU.Lang.Core
 {
     public class CSharpASTTranslator : LangBaseVisitor<string>
     {
-        private Stack<Dictionary<string, string>> scopes = new Stack<Dictionary<string, string>>();
-        // private Dictionary<string, string> variableBindings = new Dictionary<string, string>();
-        Dictionary<string, string> variableBindings
-        {
-            get
-            {
-                return scopes.Peek();
-            }
-        }
-
-        public CSharpASTTranslator()
-        {
-            pushScope();
-        }
-
-        private void pushScope()
-        {
-            scopes.Push(new Dictionary<string, string>());
-        }
-
-        private void popScope()
-        {
-            scopes.Pop();
-        }
+        private Scope<string> scopes = new Scope<string>();
 
         public override string VisitProg([NotNull] LangParser.ProgContext context)
         {
+            scopes.Push();
             var res = VisitStatements(context.statements());
             return "using System; namespace App { public class Entrypoint { static void Main(string[] args) {" + res + "}}}";
         }
@@ -60,9 +38,9 @@ namespace ITU.Lang.Core
 
         public override string VisitBlock([NotNull] LangParser.BlockContext context)
         {
-            pushScope();
+            scopes.Push();
             var subTree = base.VisitBlock(context);
-            popScope();
+            scopes.Pop();
 
             return "{" + subTree + "}";
         }
@@ -92,17 +70,14 @@ namespace ITU.Lang.Core
         public override string VisitVardec([NotNull] LangParser.VardecContext context)
         {
             var name = context.typedName()?.Name()?.GetText();
+            var expr = VisitExpr(context.expr());
 
-            if (variableBindings.ContainsKey(name))
-            {
-                throw new TranspilationException("Variable '" + name + "' has already been declared!");
-            }
-            variableBindings.Add(name, "stuff");
+            scopes.Bind(name, expr);
 
             // Const does not work with var :/
             // TODO: Add const when types are being output correctly
 
-            return "var " + name + "=" + VisitExpr(context.expr());
+            return "var " + name + "=" + expr;
         }
 
         public override string VisitExpr([NotNull] LangParser.ExprContext context)
@@ -125,14 +100,18 @@ namespace ITU.Lang.Core
         public override string VisitAccess([NotNull] LangParser.AccessContext context)
         {
             var name = context.GetText();
-
-            if (!variableBindings.ContainsKey(name))
+            var res = scopes.GetBinding(name);
+            if (!scopes.HasBinding(name))
             {
                 throw new TranspilationException("Variable '" + name + "' was not declared before accessing!");
             }
 
-            return name;
+            return res;
         }
 
+        // public override string VisitFunction([NotNull] LangParser.FunctionContext context)
+        // {
+
+        // }
     }
 }
