@@ -1,8 +1,7 @@
-using System;
 using System.Text;
-using System.Collections.Generic;
 using System.Linq;
 using Antlr4.Runtime.Misc;
+using static LangParser;
 
 namespace ITU.Lang.Core
 {
@@ -10,7 +9,7 @@ namespace ITU.Lang.Core
     {
         private Scope<string> scopes = new Scope<string>();
 
-        public override string VisitProg([NotNull] LangParser.ProgContext context)
+        public override string VisitProg([NotNull] ProgContext context)
         {
             scopes.Push();
             var res = VisitStatements(context.statements());
@@ -31,12 +30,12 @@ namespace ITU.Lang.Core
             return buf.ToString();
         }
 
-        public override string VisitSemiStatement([NotNull] LangParser.SemiStatementContext context)
+        public override string VisitSemiStatement([NotNull] SemiStatementContext context)
         {
             return VisitChildren(context) + ";";
         }
 
-        public override string VisitBlock([NotNull] LangParser.BlockContext context)
+        public override string VisitBlock([NotNull] BlockContext context)
         {
             scopes.Push();
             var subTree = base.VisitBlock(context);
@@ -45,7 +44,7 @@ namespace ITU.Lang.Core
             return "{" + subTree + "}";
         }
 
-        public override string VisitIfStatement([NotNull] LangParser.IfStatementContext context)
+        public override string VisitIfStatement([NotNull] IfStatementContext context)
         {
             var expr = this.VisitExpr(context.expr());
             var block = this.VisitBlock(context.block());
@@ -54,7 +53,7 @@ namespace ITU.Lang.Core
             return "if(" + expr + ")" + block + elseIf + elseRes;
         }
 
-        public override string VisitElseIfStatement([NotNull] LangParser.ElseIfStatementContext context)
+        public override string VisitElseIfStatement([NotNull] ElseIfStatementContext context)
         {
             var expr = this.VisitExpr(context.expr());
             var block = this.VisitBlock(context.block());
@@ -62,12 +61,12 @@ namespace ITU.Lang.Core
             return "else if(" + expr + ")" + block;
         }
 
-        public override string VisitElseStatement([NotNull] LangParser.ElseStatementContext context)
+        public override string VisitElseStatement([NotNull] ElseStatementContext context)
         {
             return "else" + base.VisitElseStatement(context);
         }
 
-        public override string VisitVardec([NotNull] LangParser.VardecContext context)
+        public override string VisitVardec([NotNull] VardecContext context)
         {
             var name = context.typedName()?.Name()?.GetText();
             var expr = VisitExpr(context.expr());
@@ -80,24 +79,24 @@ namespace ITU.Lang.Core
             return "var " + name + "=" + expr;
         }
 
-        public override string VisitExpr([NotNull] LangParser.ExprContext context)
+        public override string VisitExpr([NotNull] ExprContext context)
         {
             var leftParen = context.LeftParen()?.GetText() ?? "";
             var rightParen = context.RightParen()?.GetText() ?? "";
             return leftParen + VisitChildren(context) + rightParen;
         }
 
-        public override string VisitOperator([NotNull] LangParser.OperatorContext context)
+        public override string VisitOperator([NotNull] OperatorContext context)
         {
             return context.GetText();
         }
 
-        public override string VisitLiteral([NotNull] LangParser.LiteralContext context)
+        public override string VisitLiteral([NotNull] LiteralContext context)
         {
             return context.GetText();
         }
 
-        public override string VisitAccess([NotNull] LangParser.AccessContext context)
+        public override string VisitAccess([NotNull] AccessContext context)
         {
             var name = context.GetText();
             var res = scopes.GetBinding(name);
@@ -109,7 +108,7 @@ namespace ITU.Lang.Core
             return res;
         }
 
-        // public override string VisitFunction([NotNull] LangParser.FunctionContext context)
+        // public override string VisitFunction([NotNull] FunctionContext context)
         // {
 
         // }

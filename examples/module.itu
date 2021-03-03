@@ -1,0 +1,5 @@
+namespace ITULang.Examples;
+
+using System;
+
+let a = 1+2;
