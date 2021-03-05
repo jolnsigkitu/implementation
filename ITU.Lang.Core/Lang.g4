@@ -12,21 +12,21 @@ statement: semiStatement | ifStatement;
 semiStatement: (expr | vardec) Semi;
 
 // Values/Expressions
-expr: term
-	| expr operator expr
-	| LeftParen expr RightParen;
+expr: term | expr operator expr | LeftParen expr RightParen;
 
 operator: Star | Div | Plus | Minus;
 
 term: literal | access | function;
 
-literal: Int | bool;
+literal: int | bool;
 
 access: Name;
 
 vardec: (Const | Let) typedName Eq expr;
 
-bool: False | True;
+bool: True | False;
+
+int: Int;
 
 function:
 	LeftParen functionArguments RightParen FatArrow (

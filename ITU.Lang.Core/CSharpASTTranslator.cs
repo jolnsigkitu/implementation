@@ -2,101 +2,178 @@ using System.Text;
 using System.Linq;
 using Antlr4.Runtime.Misc;
 using static LangParser;
+using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 
 namespace ITU.Lang.Core
 {
-    public class CSharpASTTranslator : LangBaseVisitor<string>
+    public class CSharpASTTranslator : LangBaseVisitor<CSharpASTNode>
     {
-        private Scope<string> scopes = new Scope<string>();
+        private Scope<CSharpASTNode> scopes = new Scope<CSharpASTNode>();
 
-        public override string VisitProg([NotNull] ProgContext context)
+        private ITokenStream tokenStream;
+
+        public CSharpASTTranslator(ITokenStream tokenStream)
+        {
+            this.tokenStream = tokenStream;
+        }
+
+        public override CSharpASTNode VisitProg([NotNull] ProgContext context)
         {
             scopes.Push();
             var res = VisitStatements(context.statements());
-            return "using System; namespace App { public class Entrypoint { static void Main(string[] args) {" + res + "}}}";
+
+            return new CSharpASTNode()
+            {
+                TranslatedValue = "using System; namespace App { public class Entrypoint { static void Main(string[] args) {" + res.TranslatedValue + "}}}",
+                Location = GetTokenLocation(context),
+            };
         }
 
-        public override string VisitChildren(Antlr4.Runtime.Tree.IRuleNode node)
+        public override CSharpASTNode VisitChildren(Antlr4.Runtime.Tree.IRuleNode node)
         {
             var buf = new StringBuilder();
+            string lastSeenType = null;
             for (var i = 0; i < node.ChildCount; i++)
             {
                 var child = node.GetChild(i);
-                if (child != null)
+                if (child == null) continue;
+
+                var res = Visit(child);
+                if (res == null) continue;
+
+                if (lastSeenType != null && res.TypeName != lastSeenType)
                 {
-                    buf.Append(Visit(child));
+                    var msg = $"Type mismatch: type '{res.TypeName}' is not '{lastSeenType}'\n'{res.TranslatedValue}'";
+                    throw new TranspilationException(msg, GetTokenLocation(child));
                 }
+
+                buf.Append(res.TranslatedValue);
+                lastSeenType = res.TypeName;
             }
-            return buf.ToString();
+
+            return new CSharpASTNode()
+            {
+                TranslatedValue = buf.ToString(),
+                TypeName = lastSeenType,
+                Location = GetTokenLocation(node),
+            };
         }
 
-        public override string VisitSemiStatement([NotNull] SemiStatementContext context)
+        #region Statements
+        public override CSharpASTNode VisitSemiStatement([NotNull] SemiStatementContext context)
         {
-            return VisitChildren(context) + ";";
+            var children = VisitChildren(context);
+
+            return new CSharpASTNode()
+            {
+                TranslatedValue = children.TranslatedValue + ";",
+                Location = GetTokenLocation(context),
+            };
         }
 
-        public override string VisitBlock([NotNull] BlockContext context)
+        public override CSharpASTNode VisitBlock([NotNull] BlockContext context)
         {
             scopes.Push();
             var subTree = base.VisitBlock(context);
             scopes.Pop();
 
-            return "{" + subTree + "}";
+            return new CSharpASTNode()
+            {
+                TranslatedValue = "{" + subTree.TranslatedValue + "}",
+                Location = GetTokenLocation(context),
+            };
         }
 
-        public override string VisitIfStatement([NotNull] IfStatementContext context)
+        public override CSharpASTNode VisitIfStatement([NotNull] IfStatementContext context)
         {
             var expr = this.VisitExpr(context.expr());
-            var block = this.VisitBlock(context.block());
-            var elseIf = string.Join("", context.elseIfStatement().Select(VisitElseIfStatement));
-            var elseRes = context.elseStatement() != null ? this.VisitElseStatement(context.elseStatement()) : "";
-            return "if(" + expr + ")" + block + elseIf + elseRes;
+            expr.AssertType("boolean");
+
+            var block = this.VisitBlock(context.block()).TranslatedValue;
+            var elseIf = string.Join("", context.elseIfStatement().Select(x => VisitElseIfStatement(x).TranslatedValue));
+            var elseRes = context.elseStatement() != null ? this.VisitElseStatement(context.elseStatement()).TranslatedValue : "";
+
+            return new CSharpASTNode()
+            {
+                TranslatedValue = "if(" + expr.TranslatedValue + ")" + block + elseIf + elseRes,
+                Location = GetTokenLocation(context),
+            };
         }
 
-        public override string VisitElseIfStatement([NotNull] ElseIfStatementContext context)
+        public override CSharpASTNode VisitElseIfStatement([NotNull] ElseIfStatementContext context)
         {
             var expr = this.VisitExpr(context.expr());
+
+            expr.AssertType("boolean");
+
             var block = this.VisitBlock(context.block());
 
-            return "else if(" + expr + ")" + block;
+            return new CSharpASTNode()
+            {
+                TranslatedValue = "else if(" + expr.TranslatedValue + ")" + block.TranslatedValue,
+                Location = GetTokenLocation(context),
+            };
         }
 
-        public override string VisitElseStatement([NotNull] ElseStatementContext context)
+        public override CSharpASTNode VisitElseStatement([NotNull] ElseStatementContext context)
         {
-            return "else" + base.VisitElseStatement(context);
+            return new CSharpASTNode()
+            {
+                TranslatedValue = "else" + base.VisitElseStatement(context).TranslatedValue,
+                Location = GetTokenLocation(context),
+            };
         }
 
-        public override string VisitVardec([NotNull] VardecContext context)
+        public override CSharpASTNode VisitVardec([NotNull] VardecContext context)
         {
             var name = context.typedName()?.Name()?.GetText();
             var expr = VisitExpr(context.expr());
+            var constPrefix = context.Const() != null ? "const " : "";
 
-            scopes.Bind(name, expr);
+            var binding = new CSharpASTNode()
+            {
+                TranslatedValue = name,
+                TypeName = expr.TypeName,
+            };
 
-            // Const does not work with var :/
-            // TODO: Add const when types are being output correctly
+            scopes.Bind(name, binding);
 
-            return "var " + name + "=" + expr;
+            return new CSharpASTNode()
+            {
+                TranslatedValue = $"{constPrefix}{expr.TypeName} {name} = {expr.TranslatedValue}",
+                Location = GetTokenLocation(context),
+            };
         }
 
-        public override string VisitExpr([NotNull] ExprContext context)
+        #endregion
+
+        #region Expressions
+        public override CSharpASTNode VisitExpr([NotNull] ExprContext context)
         {
             var leftParen = context.LeftParen()?.GetText() ?? "";
             var rightParen = context.RightParen()?.GetText() ?? "";
-            return leftParen + VisitChildren(context) + rightParen;
+            var children = VisitChildren(context);
+
+            return new CSharpASTNode()
+            {
+                TranslatedValue = leftParen + children.TranslatedValue + rightParen,
+                TypeName = children.TypeName,
+                Location = GetTokenLocation(context),
+            };
         }
 
-        public override string VisitOperator([NotNull] OperatorContext context)
+        public override CSharpASTNode VisitOperator([NotNull] OperatorContext context)
         {
-            return context.GetText();
+            return new CSharpASTNode()
+            {
+                TranslatedValue = context.GetText(),
+                TypeName = "int",
+                Location = GetTokenLocation(context),
+            };
         }
 
-        public override string VisitLiteral([NotNull] LiteralContext context)
-        {
-            return context.GetText();
-        }
-
-        public override string VisitAccess([NotNull] AccessContext context)
+        public override CSharpASTNode VisitAccess([NotNull] AccessContext context)
         {
             var name = context.GetText();
             var res = scopes.GetBinding(name);
@@ -108,9 +185,40 @@ namespace ITU.Lang.Core
             return res;
         }
 
+        public override CSharpASTNode VisitBool([NotNull] BoolContext context)
+        {
+            return new CSharpASTNode()
+            {
+                TranslatedValue = (context.False() ?? context.True()).GetText(),
+                TypeName = "boolean",
+                Location = GetTokenLocation(context),
+            };
+        }
+
+        public override CSharpASTNode VisitInt([NotNull] IntContext context)
+        {
+            return new CSharpASTNode()
+            {
+                TranslatedValue = context.Int().GetText(),
+                TypeName = "int",
+                Location = GetTokenLocation(context),
+            };
+        }
+
         // public override string VisitFunction([NotNull] FunctionContext context)
         // {
 
         // }
+        #endregion
+
+        #region Helpers
+        private TokenLocation GetTokenLocation(ISyntaxTree node)
+        {
+            var interval = node.SourceInterval;
+            var start = tokenStream.Get(interval.a);
+            var end = tokenStream.Get(interval.b);
+            return new TokenLocation(start, end);
+        }
+        #endregion
     }
 }

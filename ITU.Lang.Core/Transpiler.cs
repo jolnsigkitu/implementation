@@ -20,12 +20,12 @@ namespace ITU.Lang.Core
 
             try
             {
-                var visitor = new CSharpASTTranslator();
-                return visitor.VisitProg(tree);
+                var visitor = new CSharpASTTranslator(tokens);
+                return visitor.VisitProg(tree).TranslatedValue;
             }
             catch (TranspilationException ex)
             {
-                Console.Error.WriteLine("An error occoured during transpilation: \n\t" + ex.Message);
+                Console.Error.WriteLine(ex.Message);
                 Environment.Exit(1);
                 return "";
             }
