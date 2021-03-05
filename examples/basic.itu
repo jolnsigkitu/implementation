@@ -13,7 +13,7 @@ false;
 /*
 multi
 line
-const a = 5;
+const a: int = 5;
 */
 const b = 5;
 let c = 5;

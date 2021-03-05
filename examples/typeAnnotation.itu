@@ -1,0 +1,3 @@
+const num: int = 1;
+const truePred: boolean = true;
+const falsePred: boolean = false;

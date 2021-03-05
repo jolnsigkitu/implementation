@@ -1,0 +1,1 @@
+using System; namespace App { public class Entrypoint { static void Main(string[] args) {const int num = 1;const boolean truePred = true;const boolean falsePred = false;}}}

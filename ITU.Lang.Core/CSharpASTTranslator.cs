@@ -44,7 +44,7 @@ namespace ITU.Lang.Core
 
                 if (lastSeenType != null && res.TypeName != lastSeenType)
                 {
-                    var msg = $"Type mismatch: type '{res.TypeName}' is not '{lastSeenType}'\n'{res.TranslatedValue}'";
+                    var msg = $"Type mismatch: Expected type '{res.TypeName}' to be of type '{lastSeenType}'\n'{res.TranslatedValue}'";
                     throw new TranspilationException(msg, GetTokenLocation(child));
                 }
 
@@ -127,14 +127,20 @@ namespace ITU.Lang.Core
 
         public override CSharpASTNode VisitVardec([NotNull] VardecContext context)
         {
-            var name = context.typedName()?.Name()?.GetText();
+            var typedName = context.typedName();
+            var name = typedName.Name().GetText();
+            var typeAnnotation = typedName.typeAnnotation()?.Name()?.GetText();
+
             var expr = VisitExpr(context.expr());
             var constPrefix = context.Const() != null ? "const " : "";
+
+            if (typeAnnotation != null)
+                expr.AssertType(typeAnnotation);
 
             var binding = new CSharpASTNode()
             {
                 TranslatedValue = name,
-                TypeName = expr.TypeName,
+                TypeName = typeAnnotation ?? expr.TypeName,
             };
 
             scopes.Bind(name, binding);

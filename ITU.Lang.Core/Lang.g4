@@ -38,7 +38,8 @@ functionArguments:
 	| typedName Comma functionArguments
 	| typedName;
 
-typedName: Name;
+typedName: Name typeAnnotation?;
+typeAnnotation: Colon Name;
 
 // Concrete statements
 block: LeftBrace statements? RightBrace;
@@ -50,6 +51,7 @@ elseStatement: Else block;
 /* SYMBOLS */
 
 Semi: ';';
+Colon: ':';
 Comma: ',';
 
 // Algebraic operators
