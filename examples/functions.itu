@@ -4,3 +4,6 @@ let h = (yeet,yote,wonk) => 3;
 let i = (wonk,) => {
     let x = 8723;
 };
+let j = (yeet: int,yote: int,wonk: bool): int => 3;
+let k: (int, int, bool) => int = (yeet,yote,wonk) => 3;
+let k: typeof h = (yeet,yote,wonk) => 3;

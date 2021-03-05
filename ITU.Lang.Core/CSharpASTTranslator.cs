@@ -4,6 +4,7 @@ using Antlr4.Runtime.Misc;
 using static LangParser;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using ITU.Lang.Core.Types;
 
 namespace ITU.Lang.Core
 {
@@ -16,11 +17,12 @@ namespace ITU.Lang.Core
         public CSharpASTTranslator(ITokenStream tokenStream)
         {
             this.tokenStream = tokenStream;
+
+            MakeGlobalScope();
         }
 
         public override CSharpASTNode VisitProg([NotNull] ProgContext context)
         {
-            scopes.Push();
             var res = VisitStatements(context.statements());
 
             return new CSharpASTNode()
@@ -33,7 +35,7 @@ namespace ITU.Lang.Core
         public override CSharpASTNode VisitChildren(Antlr4.Runtime.Tree.IRuleNode node)
         {
             var buf = new StringBuilder();
-            string lastSeenType = null;
+            Type lastSeenType = null;
             for (var i = 0; i < node.ChildCount; i++)
             {
                 var child = node.GetChild(i);
@@ -42,20 +44,20 @@ namespace ITU.Lang.Core
                 var res = Visit(child);
                 if (res == null) continue;
 
-                if (lastSeenType != null && res.TypeName != lastSeenType)
+                if (lastSeenType != null && !res.Type.Equals(lastSeenType))
                 {
-                    var msg = $"Type mismatch: Expected type '{res.TypeName}' to be of type '{lastSeenType}'\n'{res.TranslatedValue}'";
+                    var msg = $"Type mismatch: Expected type '{res.Type}' to be of type '{lastSeenType}'\n'{res.TranslatedValue}'";
                     throw new TranspilationException(msg, GetTokenLocation(child));
                 }
 
                 buf.Append(res.TranslatedValue);
-                lastSeenType = res.TypeName;
+                lastSeenType = res.Type;
             }
 
             return new CSharpASTNode()
             {
                 TranslatedValue = buf.ToString(),
-                TypeName = lastSeenType,
+                Type = lastSeenType,
                 Location = GetTokenLocation(node),
             };
         }
@@ -88,7 +90,7 @@ namespace ITU.Lang.Core
         public override CSharpASTNode VisitIfStatement([NotNull] IfStatementContext context)
         {
             var expr = this.VisitExpr(context.expr());
-            expr.AssertType("boolean");
+            expr.AssertType(new BooleanType());
 
             var block = this.VisitBlock(context.block()).TranslatedValue;
             var elseIf = string.Join("", context.elseIfStatement().Select(x => VisitElseIfStatement(x).TranslatedValue));
@@ -105,7 +107,7 @@ namespace ITU.Lang.Core
         {
             var expr = this.VisitExpr(context.expr());
 
-            expr.AssertType("boolean");
+            expr.AssertType(new BooleanType());
 
             var block = this.VisitBlock(context.block());
 
@@ -129,25 +131,29 @@ namespace ITU.Lang.Core
         {
             var typedName = context.typedName();
             var name = typedName.Name().GetText();
-            var typeAnnotation = typedName.typeAnnotation()?.Name()?.GetText();
+            var typeAnnotationName = typedName.typeAnnotation()?.Name()?.GetText();
+            Type typeAnnotation = null;
 
             var expr = VisitExpr(context.expr());
-            var constPrefix = context.Const() != null ? "const " : "";
 
             if (typeAnnotation != null)
+            {
+                typeAnnotation = scopes.GetBinding(typeAnnotationName).Type;
                 expr.AssertType(typeAnnotation);
+            }
 
             var binding = new CSharpASTNode()
             {
                 TranslatedValue = name,
-                TypeName = typeAnnotation ?? expr.TypeName,
+                Type = typeAnnotation ?? expr.Type,
+                IsConst = context.Const() != null,
             };
 
             scopes.Bind(name, binding);
-
+            var constPrefix = binding.IsConst ? "const " : "";
             return new CSharpASTNode()
             {
-                TranslatedValue = $"{constPrefix}{expr.TypeName} {name} = {expr.TranslatedValue}",
+                TranslatedValue = $"{constPrefix}{binding.Type.AsTranslatedName()} {name} = {expr.TranslatedValue}",
                 Location = GetTokenLocation(context),
             };
         }
@@ -164,7 +170,7 @@ namespace ITU.Lang.Core
             return new CSharpASTNode()
             {
                 TranslatedValue = leftParen + children.TranslatedValue + rightParen,
-                TypeName = children.TypeName,
+                Type = children.Type,
                 Location = GetTokenLocation(context),
             };
         }
@@ -174,7 +180,7 @@ namespace ITU.Lang.Core
             return new CSharpASTNode()
             {
                 TranslatedValue = context.GetText(),
-                TypeName = "int",
+                Type = new IntType(),
                 Location = GetTokenLocation(context),
             };
         }
@@ -196,7 +202,7 @@ namespace ITU.Lang.Core
             return new CSharpASTNode()
             {
                 TranslatedValue = (context.False() ?? context.True()).GetText(),
-                TypeName = "boolean",
+                Type = new BooleanType(),
                 Location = GetTokenLocation(context),
             };
         }
@@ -206,7 +212,7 @@ namespace ITU.Lang.Core
             return new CSharpASTNode()
             {
                 TranslatedValue = context.Int().GetText(),
-                TypeName = "int",
+                Type = new IntType(),
                 Location = GetTokenLocation(context),
             };
         }
@@ -224,6 +230,24 @@ namespace ITU.Lang.Core
             var start = tokenStream.Get(interval.a);
             var end = tokenStream.Get(interval.b);
             return new TokenLocation(start, end);
+        }
+
+        private void MakeGlobalScope()
+        {
+            scopes.Push();
+
+            scopes.Bind("int", new CSharpASTNode()
+            {
+                TranslatedValue = "int",
+                Type = new IntType(),
+                IsConst = true,
+            });
+            scopes.Bind("boolean", new CSharpASTNode()
+            {
+                TranslatedValue = "bool",
+                Type = new BooleanType(),
+                IsConst = true,
+            });
         }
         #endregion
     }
