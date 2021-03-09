@@ -25,9 +25,10 @@ namespace ITU.Lang.Core
             }
             catch (TranspilationException ex)
             {
-                Console.Error.WriteLine(ex.Message);
-                Environment.Exit(1);
-                return "";
+                throw ex;
+                // Console.Error.WriteLine(ex.Message);
+                // Environment.Exit(1);
+                // return "";
             }
         }
     }

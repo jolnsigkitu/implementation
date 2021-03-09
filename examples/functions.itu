@@ -15,10 +15,11 @@ let k = (): void => {
     let x = 8723;
     let y = 123;
 };
-let q = (arg1: void): void => {
-    let x = 8723;
-    let y = 123;
-};
 let l = (yeet: int,yote: int,wonk: boolean): int => 3;
 // let m: (int, int, boolean) => int = (yeet,yote,wonk) => 3;
 // let n: typeof h = (yeet,yote,wonk) => 3;
+
+f(3);
+g();
+h(1,2,true);
+i(true);

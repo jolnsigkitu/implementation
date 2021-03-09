@@ -14,7 +14,11 @@ semiStatement: (expr | vardec) Semi;
 returnStatement: Return expr Semi;
 
 // Values/Expressions
-expr: term | expr operator expr | LeftParen expr RightParen;
+expr:
+	term
+	| invokeFunction
+	| expr operator expr
+	| LeftParen expr RightParen;
 
 operator: Star | Div | Plus | Minus;
 
@@ -38,10 +42,9 @@ function:
 
 functionArguments:
 	| (Name typeAnnotation Comma)* (Name typeAnnotation)?;
-// TODO: Replace with typedName, when we will attempt to infer types of function arguments
 
-// functionArguments: | Name Colon typeAnnotation Comma functionArguments // TODO: Replace with
-// typedName, when we will attempt to infer types of function arguments | Name Colon typeAnnotation;
+invokeFunction:
+	Name LeftParen (expr Comma)* (expr)? RightParen; // f(), LONG_FUNCTION_NAME(a,37, 4+9)
 
 typedName: Name typeAnnotation?;
 typeAnnotation: Colon Name;

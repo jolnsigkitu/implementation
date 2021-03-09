@@ -35,7 +35,6 @@ namespace ITU.Lang.Core
         public override CSharpASTNode VisitChildren(Antlr4.Runtime.Tree.IRuleNode node)
         {
             var buf = new StringBuilder();
-            Type lastSeenType = null;
             for (var i = 0; i < node.ChildCount; i++)
             {
                 var child = node.GetChild(i);
@@ -44,23 +43,44 @@ namespace ITU.Lang.Core
                 var res = Visit(child);
                 if (res == null) continue;
 
-                if (lastSeenType != null && !res.Type.Equals(lastSeenType))
-                {
-                    var msg = $"Type mismatch: Expected type '{res.Type}' to be of type '{lastSeenType}'\n'{res.TranslatedValue}'";
-                    throw new TranspilationException(msg, GetTokenLocation(child));
-                }
-
                 buf.Append(res.TranslatedValue);
-                lastSeenType = res.Type;
             }
 
             return new CSharpASTNode()
             {
                 TranslatedValue = buf.ToString(),
-                Type = lastSeenType,
                 Location = GetTokenLocation(node),
             };
         }
+        // public override CSharpASTNode VisitChildren(Antlr4.Runtime.Tree.IRuleNode node)
+        // {
+        //     var buf = new StringBuilder();
+        //     Type lastSeenType = null;
+        //     for (var i = 0; i < node.ChildCount; i++)
+        //     {
+        //         var child = node.GetChild(i);
+        //         if (child == null) continue;
+
+        //         var res = Visit(child);
+        //         if (res == null) continue;
+
+        //         if (lastSeenType != null && !res.Type.Equals(lastSeenType))
+        //         {
+        //             var msg = $"Type mismatch: Expected type '{res.Type.AsNativeName()}' to be of type '{lastSeenType?.AsNativeName()}'\n'{res.TranslatedValue}'";
+        //             throw new TranspilationException(msg, GetTokenLocation(child));
+        //         }
+
+        //         buf.Append(res.TranslatedValue);
+        //         lastSeenType = res.Type;
+        //     }
+
+        //     return new CSharpASTNode()
+        //     {
+        //         TranslatedValue = buf.ToString(),
+        //         Type = lastSeenType,
+        //         Location = GetTokenLocation(node),
+        //     };
+        // }
 
         #region Statements
         public override CSharpASTNode VisitSemiStatement([NotNull] SemiStatementContext context)
@@ -192,7 +212,8 @@ namespace ITU.Lang.Core
         {
             var leftParen = context.LeftParen()?.GetText() ?? "";
             var rightParen = context.RightParen()?.GetText() ?? "";
-            var children = VisitChildren(context);
+            var buf = new StringBuilder();
+            // TODO: Move lastseen from old VisitChildren to here
 
             return new CSharpASTNode()
             {
@@ -262,7 +283,7 @@ namespace ITU.Lang.Core
                     throw new TranspilationException("Cannot use void as a parameter type", GetTokenLocation(x));
                 }
                 throw new TranspilationException("Type '" + name + "' was not declared before used in function argument!", GetTokenLocation(context));
-            });
+            }).ToList();
 
             var body = Visit(((IParseTree)context.expr()) ?? context.block());
 
@@ -283,7 +304,7 @@ namespace ITU.Lang.Core
             var functionType = new FunctionType()
             {
                 ReturnType = returnType,
-                ParameterTypes = paramTypes.Select(p => p.Type),
+                ParameterTypes = paramTypes.Select(p => p.Type).ToList(),
             };
 
             return new CSharpASTNode()
@@ -291,6 +312,55 @@ namespace ITU.Lang.Core
                 TranslatedValue = $"({string.Join(",", paramNames)}) => {body.TranslatedValue}",
                 Location = GetTokenLocation(context),
                 Type = functionType,
+            };
+        }
+
+        public override CSharpASTNode VisitInvokeFunction([NotNull] InvokeFunctionContext context)
+        {
+            var name = context.Name().GetText();
+
+            var function = scopes.GetBinding(name);
+
+            if (!(function?.Type is FunctionType))
+            {
+                throw new TranspilationException($"Cannot call non-invokable '{name}'", GetTokenLocation(context));
+            }
+
+            var exprs = context.expr().Select(expr => VisitExpr(expr));
+
+            var exprTypes = exprs.Select(expr => expr.Type).ToList();
+            var funcType = (FunctionType)function.Type;
+            var paramTypes = funcType.ParameterTypes;
+
+            if (!exprTypes.Equals(paramTypes))
+            {
+                var exprCount = exprTypes.Count;
+                var paramCount = paramTypes.Count;
+
+                if (exprCount != paramCount)
+                {
+                    throw new TranspilationException($"Function '{name}' takes {paramCount} parameters, got {exprCount}", GetTokenLocation(context));
+                }
+
+                for (int i = 0; i > exprCount; i++)
+                {
+                    var expr = exprTypes[i];
+                    var param = paramTypes[i];
+                    if (!expr.Equals(param))
+                    {
+                        throw new TranspilationException($"Function '{name}' could not be invoked: parameter {i} must be of type '{param}', but was '{expr}'", GetTokenLocation(context));
+                    }
+                }
+            }
+
+            var exprText = string.Join(",", exprs.Select(expr => expr.TranslatedValue));
+
+            // Construct type of what the call would be, so that we can compare it to the variable in scope of Name
+            return new CSharpASTNode()
+            {
+                TranslatedValue = $"{name}({exprText})",
+                Type = funcType.ReturnType,
+                Location = GetTokenLocation(context),
             };
         }
 

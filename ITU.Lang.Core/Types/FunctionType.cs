@@ -7,7 +7,7 @@ namespace ITU.Lang.Core.Types
     {
         public Type ReturnType { get; set; }
 
-        public IEnumerable<Type> ParameterTypes = new List<Type>();
+        public IList<Type> ParameterTypes = new List<Type>();
 
         public string AsTranslatedName()
         {
