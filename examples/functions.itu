@@ -1,9 +1,24 @@
-let f = (yeet) => 3;
-let g = () => 3;
-let h = (yeet,yote,wonk) => 3;
-let i = (wonk,) => {
+let f = (yeet: int) => 3;
+let g = (): int => 3;
+let h = (yeet: int,yote: int,wonk: boolean): int => 3;
+let i = (wonk: boolean,) => {
     let x = 8723;
+    let y = 123;
+    return x + y;
 };
-let j = (yeet: int,yote: int,wonk: bool): int => 3;
-let k: (int, int, bool) => int = (yeet,yote,wonk) => 3;
-let k: typeof h = (yeet,yote,wonk) => 3;
+let j = (): int => {
+    let x = 8723;
+    let y = 123;
+    return x - y;
+};
+let k = (): void => {
+    let x = 8723;
+    let y = 123;
+};
+let q = (arg1: void): void => {
+    let x = 8723;
+    let y = 123;
+};
+let l = (yeet: int,yote: int,wonk: boolean): int => 3;
+// let m: (int, int, boolean) => int = (yeet,yote,wonk) => 3;
+// let n: typeof h = (yeet,yote,wonk) => 3;

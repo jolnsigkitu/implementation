@@ -5,5 +5,6 @@ namespace ITU.Lang.Core.Types
     public interface Type : IEquatable<Type>
     {
         string AsTranslatedName();
+        string AsNativeName();
     }
 }

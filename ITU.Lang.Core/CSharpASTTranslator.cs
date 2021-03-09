@@ -71,19 +71,46 @@ namespace ITU.Lang.Core
             {
                 TranslatedValue = children.TranslatedValue + ";",
                 Location = GetTokenLocation(context),
+                Type = children.Type,
             };
         }
 
         public override CSharpASTNode VisitBlock([NotNull] BlockContext context)
         {
+            Type blockType = null;
+            var hasReturnStatement = false;
+            var buf = new StringBuilder();
+
             scopes.Push();
-            var subTree = base.VisitBlock(context);
+
+            foreach (var statement in context.statements().statement())
+            {
+                if (hasReturnStatement) throw new TranspilationException("Statements after return will be ignored");
+
+                var returnStatement = statement.returnStatement();
+
+                CSharpASTNode res;
+                if (returnStatement != null)
+                {
+                    res = VisitReturnStatement(returnStatement);
+                    blockType = res.Type;
+                    hasReturnStatement = true;
+                }
+                else
+                {
+                    res = Visit(statement);
+                }
+
+                buf.Append(res.TranslatedValue);
+            }
+
             scopes.Pop();
 
             return new CSharpASTNode()
             {
-                TranslatedValue = "{" + subTree.TranslatedValue + "}",
+                TranslatedValue = "{" + buf.ToString() + "}",
                 Location = GetTokenLocation(context),
+                Type = blockType,
             };
         }
 
@@ -207,7 +234,7 @@ namespace ITU.Lang.Core
             };
         }
 
-        public override CSharpASTNode VisitInt([NotNull] IntContext context)
+        public override CSharpASTNode VisitInteger([NotNull] IntegerContext context)
         {
             return new CSharpASTNode()
             {
@@ -217,10 +244,67 @@ namespace ITU.Lang.Core
             };
         }
 
-        // public override string VisitFunction([NotNull] FunctionContext context)
-        // {
+        public override CSharpASTNode VisitFunction([NotNull] FunctionContext context)
+        {
+            var args = context.functionArguments();
 
-        // }
+            var paramNames = args.Name().Select(p => p.GetText());
+            var paramTypes = args.typeAnnotation().Select(x =>
+            {
+                var name = x.Name().GetText();
+                if (scopes.HasBinding(name))
+                {
+                    return scopes.GetBinding(name);
+                }
+
+                if (name == "void")
+                {
+                    throw new TranspilationException("Cannot use void as a parameter type", GetTokenLocation(x));
+                }
+                throw new TranspilationException("Type '" + name + "' was not declared before used in function argument!", GetTokenLocation(context));
+            });
+
+            var body = Visit(((IParseTree)context.expr()) ?? context.block());
+
+            var returnTypeName = context?.typeAnnotation()?.Name()?.GetText();
+
+            var returnType = body.Type;
+
+            if (returnTypeName != null)
+            {
+                returnType = returnTypeName == "void" ? new VoidType() : scopes.GetBinding(returnTypeName).Type;
+            }
+
+            if (body.Type != null)
+            {
+                body.AssertType(returnType);
+            }
+
+            var functionType = new FunctionType()
+            {
+                ReturnType = returnType,
+                ParameterTypes = paramTypes.Select(p => p.Type),
+            };
+
+            return new CSharpASTNode()
+            {
+                TranslatedValue = $"({string.Join(",", paramNames)}) => {body.TranslatedValue}",
+                Location = GetTokenLocation(context),
+                Type = functionType,
+            };
+        }
+
+        public override CSharpASTNode VisitReturnStatement([NotNull] ReturnStatementContext context)
+        {
+            var expr = Visit(context.expr());
+
+            return new CSharpASTNode()
+            {
+                TranslatedValue = $"return {expr.TranslatedValue};",
+                Location = GetTokenLocation(context),
+                Type = expr.Type,
+            };
+        }
         #endregion
 
         #region Helpers

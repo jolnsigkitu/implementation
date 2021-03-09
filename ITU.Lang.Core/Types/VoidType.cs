@@ -1,20 +1,20 @@
 namespace ITU.Lang.Core.Types
 {
-    public class IntType : Type
+    public class VoidType : Type
     {
         public string AsNativeName()
         {
-            return "int";
+            return "void";
         }
 
         public string AsTranslatedName()
         {
-            return "int";
+            return "void";
         }
 
         public bool Equals(Type other)
         {
-            return other is IntType;
+            return other is VoidType;
         }
     }
 }

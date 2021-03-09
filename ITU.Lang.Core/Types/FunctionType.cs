@@ -5,16 +5,29 @@ namespace ITU.Lang.Core.Types
 {
     public class FunctionType : Type
     {
-        Type ReturnType { get; set; }
-        // de skal have navne!
-        IList<Type> ParameterTypes = new List<Type>();
+        public Type ReturnType { get; set; }
+
+        public IEnumerable<Type> ParameterTypes = new List<Type>();
 
         public string AsTranslatedName()
         {
             var paramTypes = ParameterTypes.Select((t) => t.AsTranslatedName());
             var paramStr = string.Join(",", paramTypes);
 
-            return ReturnType == null ? $"Action<{paramStr}>" : $"Func<{paramStr},{ReturnType.AsTranslatedName()}>";
+            if (ReturnType is VoidType)
+            {
+                return $"Action{(paramStr != "" ? $"<{paramStr}>" : "")}";
+            }
+
+            return $"Func<{(paramStr != "" ? paramStr + "," : "")}{ReturnType.AsTranslatedName()}>";
+        }
+
+        public string AsNativeName()
+        {
+            var paramTypes = ParameterTypes.Select((t) => t.AsNativeName());
+            var paramStr = string.Join(",", paramTypes);
+
+            return $"({paramStr}) => {ReturnType.AsNativeName()}";
         }
 
         public bool Equals(Type other)

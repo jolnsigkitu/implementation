@@ -7,9 +7,11 @@ prog: statements? EOF;
 // Statements
 statements: (statement)+;
 
-statement: semiStatement | ifStatement;
+statement: semiStatement | ifStatement | returnStatement;
 
 semiStatement: (expr | vardec) Semi;
+
+returnStatement: Return expr Semi;
 
 // Values/Expressions
 expr: term | expr operator expr | LeftParen expr RightParen;
@@ -18,7 +20,7 @@ operator: Star | Div | Plus | Minus;
 
 term: literal | access | function;
 
-literal: int | bool;
+literal: integer | bool;
 
 access: Name;
 
@@ -26,17 +28,20 @@ vardec: (Const | Let) typedName Eq expr;
 
 bool: True | False;
 
-int: Int;
+integer: Int;
 
 function:
-	LeftParen functionArguments RightParen FatArrow (
+	LeftParen functionArguments RightParen typeAnnotation? FatArrow (
 		block
 		| expr
 	);
 
 functionArguments:
-	| typedName Comma functionArguments
-	| typedName;
+	| (Name typeAnnotation Comma)* (Name typeAnnotation)?;
+// TODO: Replace with typedName, when we will attempt to infer types of function arguments
+
+// functionArguments: | Name Colon typeAnnotation Comma functionArguments // TODO: Replace with
+// typedName, when we will attempt to infer types of function arguments | Name Colon typeAnnotation;
 
 typedName: Name typeAnnotation?;
 typeAnnotation: Colon Name;
@@ -87,12 +92,14 @@ While: 'while';
 Do: 'do';
 For: 'for';
 
+Return: 'return';
+
 If: 'if';
 Else: 'else';
 Elseif: Else ' '? If;
 
 Int: [0-9]+;
-Name: [a-zA-Z_]+;
+Name: [a-zA-Z_@$][a-zA-Z_@$0-9]*;
 
 /* COMMENTS */
 
