@@ -7,7 +7,7 @@ using Antlr4.Runtime.Tree;
 using ITU.Lang.Core.Types;
 using System.Collections.Generic;
 
-namespace ITU.Lang.Core
+namespace ITU.Lang.Core.Translator
 {
     public class CSharpASTTranslator : LangBaseVisitor<CSharpASTNode>
     {
@@ -218,6 +218,11 @@ namespace ITU.Lang.Core
         #region Expressions
         public override CSharpASTNode VisitExpr([NotNull] ExprContext context)
         {
+            if (context.@operator() != null)
+            {
+                return HandleOperatorExpr(context);
+            }
+
             var leftParen = context.LeftParen()?.GetText() ?? "";
             var rightParen = context.RightParen()?.GetText() ?? "";
 
@@ -260,13 +265,32 @@ namespace ITU.Lang.Core
             };
         }
 
-        public override CSharpASTNode VisitOperator([NotNull] OperatorContext context)
+        private CSharpASTNode HandleOperatorExpr(ExprContext context)
         {
-            return new CSharpASTNode()
+            var op = context.@operator().GetText();
+
+            var exprs = context.expr().Select(Visit).ToArray();
+
+            var children = context.children;
+
+            var node = getNode();
+
+            node.Location = GetTokenLocation(context);
+
+            return node;
+
+            CSharpASTNode getNode()
             {
-                TranslatedValue = context.GetText(),
-                Type = new IntType(),
-                Location = GetTokenLocation(context),
+                return new CSharpASTNode()
+                {
+                    TranslatedValue = "",
+                };
+                // if (children[0] is OperatorContext) // unary pre
+                //     return operators.GetUnaryPrefix(op, exprs[0]);
+                // else if (exprs.Length == 1) // unary post
+                //     return operators.GetUnaryPostfix(op, exprs[0]);
+                // else // binary
+                //     return operators.GetBinary(op, exprs[0], exprs[1]);
             };
         }
 

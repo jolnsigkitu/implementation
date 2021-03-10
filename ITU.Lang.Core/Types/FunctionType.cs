@@ -36,5 +36,10 @@ namespace ITU.Lang.Core.Types
                 return ReturnType.Equals(f.ReturnType) && ParameterTypes.Equals(f.ParameterTypes);
             return false;
         }
+
+        public bool HasSameParameters(FunctionType other)
+        {
+
+        }
     }
 }

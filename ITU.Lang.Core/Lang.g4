@@ -18,9 +18,22 @@ expr:
 	term
 	| invokeFunction
 	| expr operator expr
+	| operator expr
+	| expr operator
 	| LeftParen expr RightParen;
 
-operator: Star | Div | Plus | Minus;
+operator:
+	(
+		Star
+		| Slash
+		| Percent
+		| Plus
+		| Minus
+		| And
+		| Pipe
+		| Hat
+		| ExPoint
+	)+;
 
 term: literal | access | function;
 
@@ -63,20 +76,22 @@ elseIfStatement: Elseif LeftParen expr RightParen block;
 elseStatement: Else block;
 
 /* SYMBOLS */
-
 Semi: ';';
 Colon: ':';
 Comma: ',';
 
-// Algebraic operators
-Plus: '+';
-PlusPlus: '++';
-Minus: '-';
-MinusMinus: '--';
-Star: '*';
-Div: '/';
-Mod: '%';
 Eq: '=';
+
+// Operators
+Plus: '+';
+Minus: '-';
+Star: '*';
+Slash: '/';
+Percent: '%';
+And: '&';
+Pipe: '|';
+Hat: '^';
+ExPoint: '!';
 
 SingleQuote: '\'';
 DoubleQuote: '"';

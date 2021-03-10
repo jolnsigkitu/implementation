@@ -1,6 +1,5 @@
-﻿using System;
-using Antlr4.Runtime;
-using Antlr4.Runtime.Tree;
+﻿using Antlr4.Runtime;
+using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core
 {
