@@ -23,3 +23,4 @@ f(3);
 g();
 h(1,2,true);
 i(true);
+let x = j();

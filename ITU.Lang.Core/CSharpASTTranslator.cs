@@ -52,35 +52,6 @@ namespace ITU.Lang.Core
                 Location = GetTokenLocation(node),
             };
         }
-        // public override CSharpASTNode VisitChildren(Antlr4.Runtime.Tree.IRuleNode node)
-        // {
-        //     var buf = new StringBuilder();
-        //     Type lastSeenType = null;
-        //     for (var i = 0; i < node.ChildCount; i++)
-        //     {
-        //         var child = node.GetChild(i);
-        //         if (child == null) continue;
-
-        //         var res = Visit(child);
-        //         if (res == null) continue;
-
-        //         if (lastSeenType != null && !res.Type.Equals(lastSeenType))
-        //         {
-        //             var msg = $"Type mismatch: Expected type '{res.Type.AsNativeName()}' to be of type '{lastSeenType?.AsNativeName()}'\n'{res.TranslatedValue}'";
-        //             throw new TranspilationException(msg, GetTokenLocation(child));
-        //         }
-
-        //         buf.Append(res.TranslatedValue);
-        //         lastSeenType = res.Type;
-        //     }
-
-        //     return new CSharpASTNode()
-        //     {
-        //         TranslatedValue = buf.ToString(),
-        //         Type = lastSeenType,
-        //         Location = GetTokenLocation(node),
-        //     };
-        // }
 
         #region Statements
         public override CSharpASTNode VisitSemiStatement([NotNull] SemiStatementContext context)
@@ -183,6 +154,11 @@ namespace ITU.Lang.Core
 
             var expr = VisitExpr(context.expr());
 
+            if (expr.Type.Equals(new VoidType()))
+            {
+                throw new TranspilationException("Cannot assign variables to values of type 'void'!", GetTokenLocation(context));
+            }
+
             if (typeAnnotation != null)
             {
                 typeAnnotation = scopes.GetBinding(typeAnnotationName).Type;
@@ -212,13 +188,42 @@ namespace ITU.Lang.Core
         {
             var leftParen = context.LeftParen()?.GetText() ?? "";
             var rightParen = context.RightParen()?.GetText() ?? "";
+
             var buf = new StringBuilder();
-            // TODO: Move lastseen from old VisitChildren to here
+            Type lastSeenType = null;
+            var hasVisitedFirstChild = false;
+
+            foreach (var child in context.children)
+            {
+                if (child == null) continue;
+
+                var res = Visit(child);
+
+                if (res == null) continue;
+
+                if (!hasVisitedFirstChild)
+                {
+                    hasVisitedFirstChild = true;
+                    lastSeenType = res.Type;
+                }
+                else if (!lastSeenType.Equals(res.Type))
+                {
+                    var msg = $"Type mismatch: Expected expression '{res.TranslatedValue}' of type '{res.Type.AsNativeName()}' to be of type '{lastSeenType?.AsNativeName()}'";
+                    throw new TranspilationException(msg, GetTokenLocation(child));
+                }
+
+                buf.Append(res.TranslatedValue);
+            }
+
+            if (lastSeenType == null)
+            {
+                throw new TranspilationException("Could not derive type of expression", GetTokenLocation(context));
+            }
 
             return new CSharpASTNode()
             {
-                TranslatedValue = leftParen + children.TranslatedValue + rightParen,
-                Type = children.Type,
+                TranslatedValue = leftParen + buf.ToString() + rightParen,
+                Type = lastSeenType,
                 Location = GetTokenLocation(context),
             };
         }
@@ -362,6 +367,16 @@ namespace ITU.Lang.Core
                 Type = funcType.ReturnType,
                 Location = GetTokenLocation(context),
             };
+        }
+
+        public override CSharpASTNode VisitTerm([NotNull] TermContext context)
+        {
+            return Visit(context.GetRuleContext<ParserRuleContext>(0));
+        }
+
+        public override CSharpASTNode VisitLiteral([NotNull] LiteralContext context)
+        {
+            return Visit(context.GetRuleContext<ParserRuleContext>(0));
         }
 
         public override CSharpASTNode VisitReturnStatement([NotNull] ReturnStatementContext context)
