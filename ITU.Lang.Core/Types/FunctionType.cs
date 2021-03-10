@@ -5,7 +5,7 @@ namespace ITU.Lang.Core.Types
 {
     public class FunctionType : Type
     {
-        public Type ReturnType { get; set; }
+        public Type ReturnType { get; set; } = new VoidType();
 
         public IList<Type> ParameterTypes = new List<Type>();
 

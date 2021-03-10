@@ -5,6 +5,7 @@ using static LangParser;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using ITU.Lang.Core.Types;
+using System.Collections.Generic;
 
 namespace ITU.Lang.Core
 {
@@ -27,7 +28,7 @@ namespace ITU.Lang.Core
 
             return new CSharpASTNode()
             {
-                TranslatedValue = "using System; namespace App { public class Entrypoint { static void Main(string[] args) {" + res.TranslatedValue + "}}}",
+                TranslatedValue = "using System;" + res.TranslatedValue,
                 Location = GetTokenLocation(context),
             };
         }
@@ -418,7 +419,7 @@ namespace ITU.Lang.Core
             // Construct type of what the call would be, so that we can compare it to the variable in scope of Name
             return new CSharpASTNode()
             {
-                TranslatedValue = $"{name}({exprText})",
+                TranslatedValue = $"{function.TranslatedValue}({exprText})",
                 Type = funcType.ReturnType,
                 Location = GetTokenLocation(context),
             };
@@ -472,7 +473,30 @@ namespace ITU.Lang.Core
                 Type = new BooleanType(),
                 IsConst = true,
             });
-            scopes.Bind("print", new CSharpASTNode)
+            scopes.Bind("println", new CSharpASTNode()
+            {
+                TranslatedValue = "Console.WriteLine",
+                Type = new FunctionType()
+                {
+                    ParameterTypes = new List<Type>()
+                    {
+                        new StringType(),
+                    }
+                },
+                IsConst = true,
+            });
+            scopes.Bind("print", new CSharpASTNode()
+            {
+                TranslatedValue = "Console.Write",
+                Type = new FunctionType()
+                {
+                    ParameterTypes = new List<Type>()
+                    {
+                        new StringType(),
+                    }
+                },
+                IsConst = true,
+            });
         }
         #endregion
     }
