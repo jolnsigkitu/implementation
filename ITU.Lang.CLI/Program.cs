@@ -10,18 +10,29 @@ namespace ITU.Lang.CLI
         {
             if (args.Length == 0)
             {
-                Console.WriteLine("You need to provide the (relative) path to your file as an argument.");
+                Console.WriteLine("You need to provide the (relative) path to your file(s) as an argument.");
                 return;
             }
 
-            string fileName = args[0];
-            string fileContent = File.ReadAllText(fileName);
+            foreach (var fileName in args)
+            {
+                string fileContent = File.ReadAllText(fileName);
 
-            var transpiler = new Transpiler();
-            string transpiledCode = transpiler.fromString(fileContent);
+                var transpiler = new Transpiler();
 
-            string csFileName = Path.ChangeExtension(fileName, ".cs");
-            File.WriteAllText(csFileName, transpiledCode);
+                try
+                {
+                    string transpiledCode = transpiler.fromString(fileContent);
+
+                    string csFileName = Path.ChangeExtension(fileName, ".cs");
+                    File.WriteAllText(csFileName, transpiledCode);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"An error occured while transpiing {fileName}:\n" + ex.Message, ex);
+                }
+
+            }
         }
     }
 }

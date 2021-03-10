@@ -75,7 +75,7 @@ namespace ITU.Lang.Core
 
             scopes.Push();
 
-            foreach (var statement in context.statements().statement())
+            foreach (var statement in context.statements()?.statement() ?? new StatementContext[0])
             {
                 if (hasReturnStatement) throw new TranspilationException("Statements after return will be ignored");
 

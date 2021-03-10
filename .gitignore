@@ -45,4 +45,4 @@ AntlrDebug
 .fake
 .ionide
 
-/**/examples/*.cs
+/**/examples/**/*.cs
