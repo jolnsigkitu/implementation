@@ -1,0 +1,5 @@
+let a = "Hello, World";
+
+const f = "q34789ny234098nv§Ðª¥ ¼¢⅝ØИ’¢¼{ÅÅÞ§Ð>Ł}";
+
+let ch = 'a';

@@ -301,6 +301,30 @@ namespace ITU.Lang.Core
             };
         }
 
+        public override CSharpASTNode VisitStringLiteral([NotNull] StringLiteralContext context)
+        {
+            var content = context.StringLiteral().GetText();
+
+            return new CSharpASTNode()
+            {
+                TranslatedValue = content,
+                Type = new StringType(),
+                Location = GetTokenLocation(context),
+            };
+        }
+
+        public override CSharpASTNode VisitCharLiteral([NotNull] CharLiteralContext context)
+        {
+            var content = context.CharLiteral().GetText();
+
+            return new CSharpASTNode()
+            {
+                TranslatedValue = content,
+                Type = new CharType(),
+                Location = GetTokenLocation(context),
+            };
+        }
+
         public override CSharpASTNode VisitFunction([NotNull] FunctionContext context)
         {
             var args = context.functionArguments();
@@ -448,6 +472,7 @@ namespace ITU.Lang.Core
                 Type = new BooleanType(),
                 IsConst = true,
             });
+            scopes.Bind("print", new CSharpASTNode)
         }
         #endregion
     }
