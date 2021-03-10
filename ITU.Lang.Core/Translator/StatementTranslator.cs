@@ -3,8 +3,8 @@ using System.Linq;
 
 using Antlr4.Runtime.Misc;
 
-using static ITU.Lang.Core.Grammar.LangParser;
 using ITU.Lang.Core.Types;
+using static ITU.Lang.Core.Grammar.LangParser;
 
 namespace ITU.Lang.Core.Translator
 {

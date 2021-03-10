@@ -81,12 +81,12 @@ namespace ITU.Lang.Core.Translator
                 {
                     TranslatedValue = "",
                 };
-                // if (children[0] is OperatorContext) // unary pre
-                //     return operators.GetUnaryPrefix(op, exprs[0]);
-                // else if (exprs.Length == 1) // unary post
-                //     return operators.GetUnaryPostfix(op, exprs[0]);
-                // else // binary
-                //     return operators.GetBinary(op, exprs[0], exprs[1]);
+                if (children[0] is OperatorContext) // unary pre
+                    return operators.GetUnaryPrefix(op, exprs[0]);
+                else if (exprs.Length == 1) // unary post
+                    return operators.GetUnaryPostfix(op, exprs[0]);
+                else // binary
+                    return operators.GetBinary(op, exprs[0], exprs[1]);
             };
         }
 
