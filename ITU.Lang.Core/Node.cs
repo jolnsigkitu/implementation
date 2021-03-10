@@ -2,7 +2,7 @@ using ITU.Lang.Core.Types;
 
 namespace ITU.Lang.Core
 {
-    public class CSharpASTNode
+    public class Node
     {
         public string TranslatedValue { get; set; }
 
@@ -17,7 +17,7 @@ namespace ITU.Lang.Core
             return Type.Equals(v);
         }
 
-        public bool IsType(CSharpASTNode n)
+        public bool IsType(Node n)
         {
             return IsType(n.Type);
         }
@@ -33,7 +33,7 @@ namespace ITU.Lang.Core
                 throw new TranspilationException(msg);
         }
 
-        public void AssertType(CSharpASTNode n)
+        public void AssertType(Node n)
         {
             AssertType(n.Type);
         }

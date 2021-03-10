@@ -1,5 +1,4 @@
 ﻿using Antlr4.Runtime;
-using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core
 {
@@ -19,7 +18,7 @@ namespace ITU.Lang.Core
 
             try
             {
-                var visitor = new CSharpASTTranslator(tokens);
+                var visitor = new Translator.Translator(tokens);
                 return visitor.VisitProg(tree).TranslatedValue;
             }
             catch (TranspilationException ex)
