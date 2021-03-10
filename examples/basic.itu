@@ -17,3 +17,6 @@ const a: int = 5;
 */
 const b = 5;
 let c = 5;
+
+c = 6;
+name = 2;

@@ -181,6 +181,37 @@ namespace ITU.Lang.Core
             };
         }
 
+        public override CSharpASTNode VisitAssign([NotNull] AssignContext context)
+        {
+            var name = context.Name().GetText();
+            if (!scopes.HasBinding(name))
+            {
+                throw new TranspilationException($"Variable {name} was not declared!", GetTokenLocation(context.Name()));
+            }
+
+            var expr = VisitExpr(context.expr());
+            var cur = scopes.GetBinding(name);
+
+            if (cur.IsConst)
+            {
+                throw new TranspilationException($"Cannot update const variable '{name}'!", GetTokenLocation(context.Name()));
+            }
+
+            if (!cur.IsType(expr))
+            {
+                var msg = $"Cannot assign value of type '{expr.Type.AsNativeName()}' to variable '{name}' of type '{cur.Type.AsNativeName()}'";
+                throw new TranspilationException(msg, GetTokenLocation(context));
+            }
+
+            scopes.Rebind(name, expr);
+
+            return new CSharpASTNode()
+            {
+                TranslatedValue = $"{name} = {expr.TranslatedValue}",
+                Location = GetTokenLocation(context),
+            };
+        }
+
         #endregion
 
         #region Expressions

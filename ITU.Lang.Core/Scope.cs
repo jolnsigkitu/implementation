@@ -22,14 +22,20 @@ namespace ITU.Lang.Core
 
         public TValue GetBinding(string varName)
         {
+            var scope = GetScope(varName);
+            return scope == null ? default(TValue) : scope[varName];
+        }
+
+        private Dictionary<string, TValue> GetScope(string varName)
+        {
             foreach (var layer in scopes)
             {
                 if (layer.ContainsKey(varName))
                 {
-                    return layer[varName];
+                    return layer;
                 }
             }
-            return default(TValue);
+            return null;
         }
 
         public void Bind(string key, TValue value)
@@ -40,6 +46,16 @@ namespace ITU.Lang.Core
                 throw new ScopeException("Cannot redeclare variable '" + key + "'");
             }
             scope[key] = value;
+        }
+
+        public void Rebind(string key, TValue value)
+        {
+            var binding = GetScope(key);
+            if (binding == null)
+            {
+                throw new ScopeException("Cannot assign to undeclared variable '" + key + "'");
+            }
+            binding[key] = value;
         }
 
         public bool HasBinding(string varName)

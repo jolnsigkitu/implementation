@@ -12,15 +12,30 @@ namespace ITU.Lang.Core
 
         public bool IsConst = false;
 
+        public bool IsType(Type v)
+        {
+            return Type.Equals(v);
+        }
+
+        public bool IsType(CSharpASTNode n)
+        {
+            return IsType(n.Type);
+        }
+
         public void AssertType(Type v)
         {
-            if (Type.Equals(v)) return;
+            if (IsType(v)) return;
             var msg = $"Expected type '{(v.AsNativeName())}', got '{Type.AsNativeName()}'";
 
             if (Location != null)
                 throw new TranspilationException(msg, Location);
             else
                 throw new TranspilationException(msg);
+        }
+
+        public void AssertType(CSharpASTNode n)
+        {
+            AssertType(n.Type);
         }
     }
 }

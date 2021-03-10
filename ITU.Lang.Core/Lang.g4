@@ -9,7 +9,7 @@ statements: (statement)+;
 
 statement: semiStatement | ifStatement | returnStatement;
 
-semiStatement: (expr | vardec) Semi;
+semiStatement: (expr | vardec | assign) Semi;
 
 returnStatement: Return expr Semi;
 
@@ -29,6 +29,8 @@ literal: integer | bool;
 access: Name;
 
 vardec: (Const | Let) typedName Eq expr;
+
+assign: Name Eq expr;
 
 bool: True | False;
 
