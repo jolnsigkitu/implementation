@@ -1,11 +1,14 @@
 using System.Text;
-using System.Linq;
+using System.Collections.Generic;
+
 using Antlr4.Runtime.Misc;
-using static LangParser;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+
+
+using static ITU.Lang.Core.Grammar.LangParser;
 using ITU.Lang.Core.Types;
-using System.Collections.Generic;
+using ITU.Lang.Core.Grammar;
 
 namespace ITU.Lang.Core.Translator
 {

@@ -1,7 +1,9 @@
 using System.Text;
 using System.Linq;
+
 using Antlr4.Runtime.Misc;
-using static LangParser;
+
+using static ITU.Lang.Core.Grammar.LangParser;
 using ITU.Lang.Core.Types;
 
 namespace ITU.Lang.Core.Translator

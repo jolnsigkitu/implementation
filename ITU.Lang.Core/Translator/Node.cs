@@ -1,6 +1,6 @@
 using ITU.Lang.Core.Types;
 
-namespace ITU.Lang.Core
+namespace ITU.Lang.Core.Translator
 {
     public class Node
     {

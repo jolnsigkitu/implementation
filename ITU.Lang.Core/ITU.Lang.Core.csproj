@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project InitialTargets="Antlr4" Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -9,9 +9,9 @@
     <PackageReference Include="Antlr4.Runtime.Standard" Version="4.9.1" />
   </ItemGroup>
 
-  <Target Name="Antlr4" BeforeTargets="Compile;Link">
+  <Target Name="Antlr4">
     <Message Importance="high" Text="Compiling Antlr4 Parser" />
-    <Exec Command="java -Xmx500M org.antlr.v4.Tool -visitor -no-listener -Dlanguage=CSharp Lang.g4" />
+    <Exec Command="java -Xmx500M org.antlr.v4.Tool -visitor -no-listener -Dlanguage=CSharp -package ITU.Lang.Core.Grammar -o Grammar Lang.g4" />
   </Target>
 
   <PropertyGroup>

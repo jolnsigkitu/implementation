@@ -1,16 +1,17 @@
 using System.Text;
 using System.Linq;
+
 using Antlr4.Runtime.Misc;
-using static LangParser;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+
 using ITU.Lang.Core.Types;
+using static ITU.Lang.Core.Grammar.LangParser;
 
 namespace ITU.Lang.Core.Translator
 {
     public partial class Translator
     {
-
         public override Node VisitExpr([NotNull] ExprContext context)
         {
             if (context.@operator() != null)
