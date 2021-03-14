@@ -16,5 +16,10 @@ namespace ITU.Lang.Core.Types
         {
             return other is VoidType;
         }
+
+        public override int GetHashCode()
+        {
+            return 2;
+        }
     }
 }

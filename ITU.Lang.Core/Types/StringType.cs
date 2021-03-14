@@ -16,5 +16,10 @@ namespace ITU.Lang.Core.Types
         {
             return other is StringType;
         }
+
+        public override int GetHashCode()
+        {
+            return 5;
+        }
     }
 }

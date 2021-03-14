@@ -5,6 +5,7 @@ using Antlr4.Runtime.Misc;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 
+using ITU.Lang.Core.Operators;
 using ITU.Lang.Core.Types;
 using static ITU.Lang.Core.Grammar.LangParser;
 
@@ -12,6 +13,7 @@ namespace ITU.Lang.Core.Translator
 {
     public partial class Translator
     {
+        OperatorFactory operators = Operators.Operators.InitializeOperators(new OperatorFactory());
         public override Node VisitExpr([NotNull] ExprContext context)
         {
             if (context.@operator() != null)
@@ -65,7 +67,7 @@ namespace ITU.Lang.Core.Translator
         {
             var op = context.@operator().GetText();
 
-            var exprs = context.expr().Select(Visit).ToArray();
+            var exprs = context.expr().Select(VisitExpr).ToArray();
 
             var children = context.children;
 
@@ -77,16 +79,12 @@ namespace ITU.Lang.Core.Translator
 
             Node getNode()
             {
-                return new Node()
-                {
-                    TranslatedValue = "",
-                };
                 if (children[0] is OperatorContext) // unary pre
-                    return operators.GetUnaryPrefix(op, exprs[0]);
+                    return operators.UnaryPrefix.Get(op, exprs[0]);
                 else if (exprs.Length == 1) // unary post
-                    return operators.GetUnaryPostfix(op, exprs[0]);
+                    return operators.UnaryPostfix.Get(op, exprs[0]);
                 else // binary
-                    return operators.GetBinary(op, exprs[0], exprs[1]);
+                    return operators.Binary.Get(op, exprs[0], exprs[1]);
             };
         }
 
