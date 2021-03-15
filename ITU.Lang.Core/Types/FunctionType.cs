@@ -36,5 +36,21 @@ namespace ITU.Lang.Core.Types
                 return ReturnType.Equals(f.ReturnType) && ParameterTypes.Equals(f.ParameterTypes);
             return false;
         }
+
+        // Hash codes are needed for successful lookup in dictionaries
+        public override int GetHashCode()
+        {
+            const int seed = 103;
+            const int modifier = 23;
+
+            // We go unchecked in order to let the integer automatically overflow for better hashing chaos
+            unchecked
+            {
+                return ParameterTypes.Aggregate(
+                    (seed + ReturnType.GetHashCode()) * modifier,
+                    (cur, item) => (cur * modifier) + item.GetHashCode()
+                );
+            }
+        }
     }
 }

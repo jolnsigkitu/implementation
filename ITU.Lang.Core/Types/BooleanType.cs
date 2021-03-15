@@ -16,5 +16,11 @@ namespace ITU.Lang.Core.Types
         {
             return (other is BooleanType);
         }
+
+        public override int GetHashCode()
+        {
+            // We just choose a unique prime for our base types, probably shouldn't bring us many problems
+            return 11;
+        }
     }
 }
