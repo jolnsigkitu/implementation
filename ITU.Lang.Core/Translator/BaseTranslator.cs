@@ -31,7 +31,7 @@ namespace ITU.Lang.Core.Translator
 
             return new Node()
             {
-                TranslatedValue = "using System;" + res.TranslatedValue,
+                TranslatedValue = "using System; using ITU.Lang.StandardLib;" + res.TranslatedValue,
                 Location = GetTokenLocation(context),
             };
         }

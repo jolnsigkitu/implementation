@@ -1,0 +1,42 @@
+// In the future
+//import keyPresses from Signal.Native.IO;
+//import keyPresses from NativeSignals.IO; // Is this better?
+
+Signal.Native.IO.keyPresses()
+    .map((e) => e.key)
+    .filter((key) => key == 'a')
+    .forEach((_) => print("An A press is an A press."));
+
+Signal.Native.tick().reduce((acc) => acc + 1, 0).filter(i => i % 2 == 1).forEach(print)
+
+
+//ReadSensor().forEach((x,y) => print(x + ", " + y));
+
+WebRequests().map(req => "response").
+
+Signal.Native.Tick.reduce((acc) => acc + 1, 0).filter(i => i%sampleRate == 0).map(readValue)
+Signal.Native.Tick.every(sampleRate).map(() => readSensorValue())
+Signal.Native.timer(1000).map(() => readSensorValue())
+
+{
+    let sensor: PullSignal = PullSignal(() => readSensorDataFromRobot())
+                                .filter(rawValue => isValidValue(rawValue))
+                                .map(rawValue => normalizeValue());
+
+    // TimerSignal extends PushSignal
+    let timer: TimerSignal = Signal.Native.timer(1000).map(() => sensor.pull());
+    let timer: TimerSignal = Signal.Native.timer(1000).pullFrom(sensor);
+
+    let something = timer.map((normVal) => normVal.x);
+
+    let timer2 = Signal.Native.timer(10000).pullFrom(something).forEach(val => print(val.ToString()));
+}
+
+/*{
+    return new PushSignal((push) => {
+        var timer = new Timer(1000);
+        timer.OnTick(() => {
+            push();
+        });
+    });
+}*/
