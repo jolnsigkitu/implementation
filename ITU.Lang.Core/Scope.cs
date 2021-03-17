@@ -70,6 +70,11 @@ namespace ITU.Lang.Core
             return false;
         }
 
+        public IDisposable UseScope()
+        {
+            return new DisposableScope(this);
+        }
+
         public override string ToString()
         {
             var strBuilder = new StringBuilder();
@@ -85,6 +90,20 @@ namespace ITU.Lang.Core
             }
 
             return strBuilder.ToString();
+        }
+
+        public class DisposableScope : IDisposable
+        {
+            private Scope<TValue> scopes;
+            public DisposableScope(Scope<TValue> s)
+            {
+                this.scopes = s;
+                s.Push();
+            }
+            public void Dispose()
+            {
+                scopes.Pop();
+            }
         }
     }
 

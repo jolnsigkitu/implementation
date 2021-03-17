@@ -56,6 +56,10 @@ namespace ITU.Lang.Core.Translator
                 Location = GetTokenLocation(node),
             };
         }
+        private Node VisitIfExists(IParseTree ctx)
+        {
+            return ctx != null ? Visit(ctx) : null;
+        }
 
         #region Helpers
         private TokenLocation GetTokenLocation(ISyntaxTree node)

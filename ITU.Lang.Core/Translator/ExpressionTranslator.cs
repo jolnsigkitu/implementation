@@ -94,10 +94,15 @@ namespace ITU.Lang.Core.Translator
             var res = scopes.GetBinding(name);
             if (!scopes.HasBinding(name))
             {
-                throw new TranspilationException("Variable '" + name + "' was not declared before accessing!");
+                throw new TranspilationException("Variable '" + name + "' was not declared before accessing!", GetTokenLocation(context));
             }
 
-            return res;
+            return new Node()
+            {
+                TranslatedValue = name,
+                Type = res.Type,
+                Location = GetTokenLocation(context),
+            };
         }
 
         public override Node VisitBool([NotNull] BoolContext context)
@@ -146,9 +151,11 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitFunction([NotNull] FunctionContext context)
         {
+            using var _ = scopes.UseScope();
+
             var args = context.functionArguments();
 
-            var paramNames = args.Name().Select(p => p.GetText());
+            var paramNames = args.Name().Select(p => p.GetText()).ToList();
             var paramTypes = args.typeAnnotation().Select(x =>
             {
                 var name = x.Name().GetText();
@@ -163,6 +170,15 @@ namespace ITU.Lang.Core.Translator
                 }
                 throw new TranspilationException("Type '" + name + "' was not declared before used in function argument!", GetTokenLocation(context));
             }).ToList();
+
+            foreach (var (name, node) in paramNames.Zip(paramTypes, System.ValueTuple.Create))
+            {
+                scopes.Bind(name, new Node()
+                {
+                    TranslatedValue = name,
+                    Type = node.Type,
+                });
+            }
 
             var body = Visit(((IParseTree)context.expr()) ?? context.block());
 

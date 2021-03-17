@@ -1,0 +1,36 @@
+let i = 0;
+while (true) {
+    i++;
+}
+while (true) i++;
+while (true)
+    i++;
+
+do { let x: int = 5; } while (true);
+do { i = 5; } while (true);
+do {
+    let p = 5;
+    let q = 1;
+} while (true);
+
+loop {
+    print("no");
+}
+
+
+for(let b = 0; b < 5; b++)
+    if(b < 3) {
+        //
+    } else {
+        //
+    }
+
+for(let b = 0; b < 5; b++) {
+    if(b < 8) {
+        //
+    } else {
+        //
+    }
+}
+
+for(;;) i;

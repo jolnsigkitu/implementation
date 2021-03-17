@@ -109,88 +109,145 @@ namespace ITU.Lang.Core.Operators
             var integer = new IntType();
             var str = new StringType();
 
-            factory.UnaryPrefix.Bind("!", boolean, (node) => new Node() {
+            #region Unary boolean
+            factory.UnaryPrefix.Bind("!", boolean, (node) => new Node()
+            {
                 Type = boolean,
                 TranslatedValue = $"!{node.TranslatedValue}",
                 Location = node.Location,
             });
-            factory.UnaryPrefix.Bind("++", integer, (node) => new Node() {
+            #endregion
+
+            #region Unary algebraic
+            factory.UnaryPrefix.Bind("++", integer, (node) => new Node()
+            {
                 Type = integer,
                 TranslatedValue = $"++{node.TranslatedValue}",
                 Location = node.Location,
             });
-            factory.UnaryPrefix.Bind("--", integer, (node) => new Node() {
+            factory.UnaryPrefix.Bind("--", integer, (node) => new Node()
+            {
                 Type = integer,
                 TranslatedValue = $"--{node.TranslatedValue}",
                 Location = node.Location,
             });
-            factory.UnaryPrefix.Bind("+", integer, (node) => new Node() {
+            factory.UnaryPrefix.Bind("+", integer, (node) => new Node()
+            {
                 Type = integer,
                 TranslatedValue = $"+{node.TranslatedValue}",
                 Location = node.Location,
             });
-            factory.UnaryPrefix.Bind("-", integer, (node) => new Node() {
+            factory.UnaryPrefix.Bind("-", integer, (node) => new Node()
+            {
                 Type = integer,
                 TranslatedValue = $"-{node.TranslatedValue}",
                 Location = node.Location,
             });
 
-            factory.UnaryPostfix.Bind("++", integer, (node) => new Node() {
+            factory.UnaryPostfix.Bind("++", integer, (node) => new Node()
+            {
                 Type = integer,
                 TranslatedValue = $"{node.TranslatedValue}++",
                 Location = node.Location,
             });
-            factory.UnaryPostfix.Bind("--", integer, (node) => new Node() {
+            factory.UnaryPostfix.Bind("--", integer, (node) => new Node()
+            {
                 Type = integer,
                 TranslatedValue = $"{node.TranslatedValue}--",
                 Location = node.Location,
             });
+            #endregion
 
-            factory.Binary.Bind("+", (str, str), (n1, n2) => new Node() {
+            #region Binary algebraic
+            factory.Binary.Bind("+", (str, str), (n1, n2) => new Node()
+            {
                 Type = str,
                 TranslatedValue = $"{n1.TranslatedValue}+{n2.TranslatedValue}",
                 Location = n1.Location,
             });
-            factory.Binary.Bind("+", (integer, integer), (n1, n2) => new Node() {
+            factory.Binary.Bind("+", (integer, integer), (n1, n2) => new Node()
+            {
                 Type = integer,
                 TranslatedValue = $"{n1.TranslatedValue}+{n2.TranslatedValue}",
                 Location = n1.Location,
             });
-            factory.Binary.Bind("-", (integer, integer), (n1, n2) => new Node() {
+            factory.Binary.Bind("-", (integer, integer), (n1, n2) => new Node()
+            {
                 Type = integer,
                 TranslatedValue = $"{n1.TranslatedValue}-{n2.TranslatedValue}",
                 Location = n1.Location,
             });
-            factory.Binary.Bind("*", (integer, integer), (n1, n2) => new Node() {
+            factory.Binary.Bind("*", (integer, integer), (n1, n2) => new Node()
+            {
                 Type = integer,
                 TranslatedValue = $"{n1.TranslatedValue}*{n2.TranslatedValue}",
                 Location = n1.Location,
             });
-            factory.Binary.Bind("/", (integer, integer), (n1, n2) => new Node() {
+            factory.Binary.Bind("/", (integer, integer), (n1, n2) => new Node()
+            {
                 Type = integer,
                 TranslatedValue = $"{n1.TranslatedValue}/{n2.TranslatedValue}",
                 Location = n1.Location,
             });
-            factory.Binary.Bind("**", (integer, integer), (n1, n2) => new Node() {
-                Type = integer,
-                TranslatedValue = $"{n1.TranslatedValue}**{n2.TranslatedValue}",
+            #endregion
+
+            #region Binary Boolean
+            factory.Binary.Bind("==", (boolean, boolean), (n1, n2) => new Node()
+            {
+                Type = boolean,
+                TranslatedValue = $"{n1.TranslatedValue}=={n2.TranslatedValue}",
                 Location = n1.Location,
             });
-            factory.Binary.Bind("&&", (boolean, boolean), (n1, n2) => new Node() {
+            factory.Binary.Bind("&&", (boolean, boolean), (n1, n2) => new Node()
+            {
                 Type = boolean,
                 TranslatedValue = $"{n1.TranslatedValue}&&{n2.TranslatedValue}",
                 Location = n1.Location,
             });
-            factory.Binary.Bind("||", (boolean, boolean), (n1, n2) => new Node() {
+            factory.Binary.Bind("||", (boolean, boolean), (n1, n2) => new Node()
+            {
                 Type = boolean,
                 TranslatedValue = $"{n1.TranslatedValue}||{n2.TranslatedValue}",
                 Location = n1.Location,
             });
-            factory.Binary.Bind("^", (boolean, boolean), (n1, n2) => new Node() {
+            factory.Binary.Bind("^", (boolean, boolean), (n1, n2) => new Node()
+            {
                 Type = boolean,
                 TranslatedValue = $"{n1.TranslatedValue}^{n2.TranslatedValue}",
                 Location = n1.Location,
             });
+
+            factory.Binary.Bind("==", (integer, integer), (n1, n2) => new Node()
+            {
+                Type = boolean,
+                TranslatedValue = $"{n1.TranslatedValue}=={n2.TranslatedValue}",
+                Location = n1.Location,
+            });
+            factory.Binary.Bind("<", (integer, integer), (n1, n2) => new Node()
+            {
+                Type = boolean,
+                TranslatedValue = $"{n1.TranslatedValue}<{n2.TranslatedValue}",
+                Location = n1.Location,
+            });
+            factory.Binary.Bind(">", (integer, integer), (n1, n2) => new Node()
+            {
+                Type = boolean,
+                TranslatedValue = $"{n1.TranslatedValue}>{n2.TranslatedValue}",
+                Location = n1.Location,
+            });
+            factory.Binary.Bind("<=", (integer, integer), (n1, n2) => new Node()
+            {
+                Type = boolean,
+                TranslatedValue = $"{n1.TranslatedValue}<={n2.TranslatedValue}",
+                Location = n1.Location,
+            });
+            factory.Binary.Bind(">=", (integer, integer), (n1, n2) => new Node()
+            {
+                Type = boolean,
+                TranslatedValue = $"{n1.TranslatedValue}>={n2.TranslatedValue}",
+                Location = n1.Location,
+            });
+            #endregion
 
             return factory;
         }

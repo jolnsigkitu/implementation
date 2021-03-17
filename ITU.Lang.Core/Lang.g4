@@ -7,9 +7,17 @@ prog: statements? EOF;
 // Statements
 statements: (statement)+;
 
-statement: semiStatement | ifStatement | returnStatement;
+statement:
+	semiStatement
+	| ifStatement
+	| forStatement
+	| whileStatement
+	| doWhileStatement
+	| loopStatement
+	| returnStatement;
 
-semiStatement: (expr | vardec | assign) Semi;
+inlineStatement: assign | vardec | expr;
+semiStatement: inlineStatement Semi;
 
 returnStatement: Return expr Semi;
 
@@ -33,6 +41,9 @@ operator:
 		| Pipe
 		| Hat
 		| ExPoint
+		| Eq
+		| LessThan
+		| GreaterThan
 	)+;
 
 term: literal | access | function;
@@ -75,6 +86,22 @@ ifStatement:
 elseIfStatement: Elseif LeftParen expr RightParen block;
 elseStatement: Else block;
 
+forStatement:
+	For LeftParen forDecStatement? Semi forConExpression? Semi forIncStatement? RightParen (
+		block
+		| statement
+	);
+forDecStatement: inlineStatement;
+forConExpression: expr;
+forIncStatement: inlineStatement;
+
+whileStatement:
+	While LeftParen expr RightParen (block | statement);
+
+doWhileStatement: Do block While LeftParen expr RightParen Semi;
+
+loopStatement: Loop (block | statement);
+
 /* SYMBOLS */
 Semi: ';';
 Colon: ':';
@@ -82,8 +109,7 @@ Comma: ',';
 
 Eq: '=';
 
-// Operators
-Plus: '+';
+Plus: '+'; // Operators
 Minus: '-';
 Star: '*';
 Slash: '/';
@@ -92,6 +118,8 @@ And: '&';
 Pipe: '|';
 Hat: '^';
 ExPoint: '!';
+LessThan: '<';
+GreaterThan: '>';
 
 SingleQuote: '\'';
 DoubleQuote: '"';
@@ -115,6 +143,7 @@ Let: 'let';
 While: 'while';
 Do: 'do';
 For: 'for';
+Loop: 'loop';
 
 Return: 'return';
 

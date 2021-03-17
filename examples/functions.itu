@@ -1,3 +1,5 @@
+
+
 let f = (yeet: int) => 3;
 let g = (): int => 3;
 let h = (yeet: int,yote: int,wonk: boolean): int => 3;
@@ -16,8 +18,10 @@ let k = (): void => {
     let y = 123;
 };
 let l = (yeet: int,yote: int,wonk: boolean): int => 3;
-// let m: (int, int, boolean) => int = (yeet,yote,wonk) => 3;
-// let n: typeof h = (yeet,yote,wonk) => 3;
+let m = (a: int, b: int) => a + b;
+// let n: (int, int, boolean) => int = (yeet,yote,wonk) => 3;
+// let o: typeof h = (yeet,yote,wonk) => 3;
+
 
 f(3);
 g();

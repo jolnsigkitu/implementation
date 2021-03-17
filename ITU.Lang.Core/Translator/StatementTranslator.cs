@@ -5,6 +5,7 @@ using Antlr4.Runtime.Misc;
 
 using ITU.Lang.Core.Types;
 using static ITU.Lang.Core.Grammar.LangParser;
+using Antlr4.Runtime.Tree;
 
 namespace ITU.Lang.Core.Translator
 {
@@ -29,8 +30,6 @@ namespace ITU.Lang.Core.Translator
             var hasReturnStatement = false;
             var buf = new StringBuilder();
 
-            scopes.Push();
-
             foreach (var statement in context.statements()?.statement() ?? new StatementContext[0])
             {
                 if (hasReturnStatement) throw new TranspilationException("Statements after return will be ignored");
@@ -52,8 +51,6 @@ namespace ITU.Lang.Core.Translator
                 buf.Append(res.TranslatedValue);
             }
 
-            scopes.Pop();
-
             return new Node()
             {
                 TranslatedValue = "{" + buf.ToString() + "}",
@@ -64,10 +61,15 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitIfStatement([NotNull] IfStatementContext context)
         {
+            scopes.Push();
+
             var expr = this.VisitExpr(context.expr());
             expr.AssertType(new BooleanType());
 
             var block = this.VisitBlock(context.block()).TranslatedValue;
+
+            scopes.Pop();
+
             var elseIf = string.Join("", context.elseIfStatement().Select(x => VisitElseIfStatement(x).TranslatedValue));
             var elseRes = context.elseStatement() != null ? this.VisitElseStatement(context.elseStatement()).TranslatedValue : "";
 
@@ -80,6 +82,8 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitElseIfStatement([NotNull] ElseIfStatementContext context)
         {
+            using var _ = scopes.UseScope();
+
             var expr = this.VisitExpr(context.expr());
 
             expr.AssertType(new BooleanType());
@@ -95,9 +99,12 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitElseStatement([NotNull] ElseStatementContext context)
         {
+            using var _ = scopes.UseScope();
+
+            var val = "else" + base.VisitElseStatement(context).TranslatedValue;
             return new Node()
             {
-                TranslatedValue = "else" + base.VisitElseStatement(context).TranslatedValue,
+                TranslatedValue = val,
                 Location = GetTokenLocation(context),
             };
         }
@@ -168,5 +175,82 @@ namespace ITU.Lang.Core.Translator
                 Location = GetTokenLocation(context),
             };
         }
+
+        #region Loop statements
+        public override Node VisitWhileStatement([NotNull] WhileStatementContext context)
+        {
+            using var _ = scopes.UseScope();
+
+            var expr = VisitExpr(context.expr());
+
+            expr.AssertType(new BooleanType());
+
+            var block = VisitIfExists(context.block());
+            var statement = VisitIfExists(context.statement());
+            var body = block?.TranslatedValue ?? $"{{{statement.TranslatedValue}}}";
+
+            return new Node()
+            {
+                TranslatedValue = $"while({expr.TranslatedValue}){body}",
+                Location = GetTokenLocation(context),
+            };
+        }
+
+        public override Node VisitDoWhileStatement([NotNull] DoWhileStatementContext context)
+        {
+            using var _ = scopes.UseScope();
+
+            var exprContext = context.expr();
+            var expr = VisitExpr(exprContext);
+
+            expr.AssertType(new BooleanType());
+
+            return new Node()
+            {
+                TranslatedValue = $"do {VisitBlock(context.block()).TranslatedValue} while({expr.TranslatedValue});",
+                Location = GetTokenLocation(context),
+            };
+        }
+
+        public override Node VisitLoopStatement([NotNull] LoopStatementContext context)
+        {
+            using var _ = scopes.UseScope();
+
+            var block = VisitIfExists(context.block());
+            var statement = VisitIfExists(context.statement());
+            var body = block?.TranslatedValue ?? $"{{{statement.TranslatedValue}}}";
+
+            return new Node()
+            {
+                TranslatedValue = $"while(true){body}",
+                Location = GetTokenLocation(context),
+            };
+        }
+
+        public override Node VisitForStatement([NotNull] ForStatementContext context)
+        {
+            using var _ = scopes.UseScope();
+
+            var decExpr = VisitIfExists(context.forDecStatement()?.inlineStatement());
+            var conExpr = VisitIfExists(context.forConExpression()?.expr());
+            var incExpr = VisitIfExists(context.forIncStatement()?.inlineStatement());
+
+            conExpr?.AssertType(new BooleanType());
+
+            var decExprText = decExpr?.TranslatedValue ?? "";
+            var incExprText = incExpr?.TranslatedValue ?? "";
+            var conExprText = conExpr?.TranslatedValue ?? "";
+
+            var block = VisitIfExists(context.block());
+            var statement = VisitIfExists(context.statement());
+            var body = block?.TranslatedValue ?? $"{{{statement.TranslatedValue}}}";
+
+            return new Node()
+            {
+                TranslatedValue = $"for({decExprText};{conExprText};{incExprText}){body}",
+                Location = GetTokenLocation(context),
+            };
+        }
+        #endregion
     }
 }
