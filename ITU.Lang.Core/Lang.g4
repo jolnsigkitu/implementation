@@ -25,6 +25,7 @@ returnStatement: Return expr Semi;
 expr:
 	term
 	| invokeFunction
+	| instantiateObject
 	| expr operator expr
 	| operator expr
 	| expr operator
@@ -74,7 +75,11 @@ functionArguments:
 	| (Name typeAnnotation Comma)* (Name typeAnnotation)?;
 
 invokeFunction:
-	Name LeftParen (expr Comma)* (expr)? RightParen; // f(), LONG_FUNCTION_NAME(a,37, 4+9)
+	Name LeftParen arguments RightParen; // f(), LONG_FUNCTION_NAME(a,37, 4+9)
+
+instantiateObject: New Name (LeftParen arguments RightParen)?;
+
+arguments: (expr Comma)* (expr)?;
 
 typedName: Name typeAnnotation?;
 typeAnnotation: Colon Name;
@@ -106,6 +111,7 @@ loopStatement: Loop (block | statement);
 Semi: ';';
 Colon: ':';
 Comma: ',';
+Dot: '.';
 
 Eq: '=';
 
@@ -150,6 +156,8 @@ Return: 'return';
 If: 'if';
 Else: 'else';
 Elseif: Else ' '? If;
+
+New: 'new';
 
 Int: [0-9]+;
 // TODO: Investigate viability of using UnicodeChar/UnicodeAlpha here, to allow unicode variable names

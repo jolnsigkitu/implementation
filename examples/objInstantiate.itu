@@ -1,0 +1,7 @@
+const a = 1;
+const b = 2;
+const item1 = new Signal;
+const item2 = new Signal();
+const item3 = new Signal(a);
+const item4 = new Signal(a,b);
+const item5 = new Signal(a,b,);

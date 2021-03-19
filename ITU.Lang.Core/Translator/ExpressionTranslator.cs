@@ -221,7 +221,7 @@ namespace ITU.Lang.Core.Translator
                 throw new TranspilationException($"Cannot call non-invokable '{name}'", GetTokenLocation(context));
             }
 
-            var exprs = context.expr().Select(expr => VisitExpr(expr));
+            var exprs = context.arguments().expr().Select(expr => VisitExpr(expr));
 
             var exprTypes = exprs.Select(expr => expr.Type).ToList();
             var funcType = (FunctionType)function.Type;
@@ -278,6 +278,25 @@ namespace ITU.Lang.Core.Translator
                 TranslatedValue = $"return {expr.TranslatedValue};",
                 Location = GetTokenLocation(context),
                 Type = expr.Type,
+            };
+        }
+
+        public override Node VisitInstantiateObject([NotNull] InstantiateObjectContext context)
+        {
+            var name = context.Name().GetText();
+
+            var exprs = context.arguments()?.expr().Select(expr => VisitExpr(expr));
+
+            // TODO: Actually perform typechecking
+
+            var exprText = exprs != null ? string.Join(",", exprs.Select(expr => expr.TranslatedValue)) : "";
+
+            // Construct type of what the call would be, so that we can compare it to the variable in scope of Name
+            return new Node()
+            {
+                TranslatedValue = $"new {name}({exprText})",
+                Type = new ObjectType() { Name = name },
+                Location = GetTokenLocation(context),
             };
         }
     }
