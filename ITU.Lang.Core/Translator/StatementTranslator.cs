@@ -18,7 +18,7 @@ namespace ITU.Lang.Core.Translator
 
             return new Node()
             {
-                TranslatedValue = children.TranslatedValue + ";",
+                TranslatedValue = string.IsNullOrEmpty(children.TranslatedValue) ? "" : children.TranslatedValue + ";",
                 Location = GetTokenLocation(context),
                 Type = children.Type,
             };
@@ -61,14 +61,14 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitIfStatement([NotNull] IfStatementContext context)
         {
-            scopes.Push();
+            PushScope();
 
             var expr = this.VisitExpr(context.expr());
             expr.AssertType(new BooleanType());
 
             var block = this.VisitBlock(context.block()).TranslatedValue;
 
-            scopes.Pop();
+            PopScope();
 
             var elseIf = string.Join("", context.elseIfStatement().Select(x => VisitElseIfStatement(x).TranslatedValue));
             var elseRes = context.elseStatement() != null ? this.VisitElseStatement(context.elseStatement()).TranslatedValue : "";
@@ -113,8 +113,9 @@ namespace ITU.Lang.Core.Translator
         {
             var typedName = context.typedName();
             var name = typedName.Name().GetText();
-            var typeAnnotationName = typedName.typeAnnotation()?.Name()?.GetText();
-            Type typeAnnotation = null;
+            var typeAnnotation = typedName.typeAnnotation() != null
+                ? EvalTypeExpr(typedName.typeAnnotation().typeExpr())
+                : null;
 
             var expr = VisitExpr(context.expr());
 
@@ -125,7 +126,6 @@ namespace ITU.Lang.Core.Translator
 
             if (typeAnnotation != null)
             {
-                typeAnnotation = scopes.GetBinding(typeAnnotationName).Type;
                 expr.AssertType(typeAnnotation);
             }
 
@@ -145,12 +145,51 @@ namespace ITU.Lang.Core.Translator
             };
         }
 
-        public override Node VisitAssign([NotNull] AssignContext context)
+        public override Node VisitTypedec([NotNull] TypedecContext context)
         {
             var name = context.Name().GetText();
+
+            if (typeScopes.HasBinding(name))
+            {
+                throw new TranspilationException($"Cannot redeclare type '{name}'", GetTokenLocation(context));
+            }
+
+            var typeExpr = EvalTypeExpr(context.typeExpr());
+
+            typeScopes.Bind(name, typeExpr);
+
+            return new Node()
+            {
+                TranslatedValue = "", // TODO: Convert to class if defined as such
+                Location = GetTokenLocation(context),
+            };
+        }
+
+        private Type EvalTypeExpr([NotNull] TypeExprContext context)
+        {
+            // TODO: Expand when `typeExpr` is expanded
+            var name = context.Name().GetText();
+            // TODO: Fix void only being used in correct contexts
+            if (name == "void")
+            {
+                return new VoidType();
+            }
+            var boundType = typeScopes.GetBinding(name);
+
+            if (boundType == null)
+            {
+                throw new TranspilationException($"Type '{name}' is not yet bound", GetTokenLocation(context));
+            }
+
+            return boundType;
+        }
+
+        public override Node VisitAssign([NotNull] AssignContext context)
+        {
+            var name = context.nestedName().GetText(); // TODO: Cannot work for `.`-names yet
             if (!scopes.HasBinding(name))
             {
-                throw new TranspilationException($"Variable {name} was not declared!", GetTokenLocation(context.Name()));
+                throw new TranspilationException($"Variable {name} was not declared!", GetTokenLocation(context.nestedName()));
             }
 
             var expr = VisitExpr(context.expr());
@@ -158,7 +197,7 @@ namespace ITU.Lang.Core.Translator
 
             if (cur.IsConst)
             {
-                throw new TranspilationException($"Cannot update const variable '{name}'!", GetTokenLocation(context.Name()));
+                throw new TranspilationException($"Cannot update const variable '{name}'!", GetTokenLocation(context.nestedName()));
             }
 
             if (!cur.IsType(expr))

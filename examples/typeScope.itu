@@ -1,0 +1,6 @@
+type coolInt = int;
+
+let a: coolInt = 1;
+let b: int = 2;
+
+let c = a + b;

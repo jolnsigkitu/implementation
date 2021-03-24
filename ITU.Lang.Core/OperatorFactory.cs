@@ -189,6 +189,12 @@ namespace ITU.Lang.Core.Operators
                 TranslatedValue = $"{n1.TranslatedValue}/{n2.TranslatedValue}",
                 Location = n1.Location,
             });
+            factory.Binary.Bind("%", (integer, integer), (n1, n2) => new Node()
+            {
+                Type = integer,
+                TranslatedValue = $"{n1.TranslatedValue}%{n2.TranslatedValue}",
+                Location = n1.Location,
+            });
             #endregion
 
             #region Binary Boolean

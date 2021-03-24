@@ -156,39 +156,28 @@ namespace ITU.Lang.Core.Translator
             var args = context.functionArguments();
 
             var paramNames = args.Name().Select(p => p.GetText()).ToList();
-            var paramTypes = args.typeAnnotation().Select(x =>
-            {
-                var name = x.Name().GetText();
-                if (scopes.HasBinding(name))
-                {
-                    return scopes.GetBinding(name);
-                }
+            var paramTypes = args.typeAnnotation().Select(x => EvalTypeExpr(x.typeExpr())).ToList();
 
-                if (name == "void")
-                {
-                    throw new TranspilationException("Cannot use void as a parameter type", GetTokenLocation(x));
-                }
-                throw new TranspilationException("Type '" + name + "' was not declared before used in function argument!", GetTokenLocation(context));
-            }).ToList();
-
-            foreach (var (name, node) in paramNames.Zip(paramTypes, System.ValueTuple.Create))
+            foreach (var (name, type) in paramNames.Zip(paramTypes, System.ValueTuple.Create))
             {
                 scopes.Bind(name, new Node()
                 {
                     TranslatedValue = name,
-                    Type = node.Type,
+                    Type = type,
                 });
             }
 
             var body = Visit(((IParseTree)context.expr()) ?? context.block());
 
-            var returnTypeName = context?.typeAnnotation()?.Name()?.GetText();
-
             var returnType = body.Type;
 
-            if (returnTypeName != null)
+            if (context.Void() != null)
             {
-                returnType = returnTypeName == "void" ? new VoidType() : scopes.GetBinding(returnTypeName).Type;
+                returnType = new VoidType();
+            }
+            else if (context.typeAnnotation() != null)
+            {
+                returnType = EvalTypeExpr(context.typeAnnotation().typeExpr());
             }
 
             if (body.Type != null)
@@ -199,7 +188,7 @@ namespace ITU.Lang.Core.Translator
             var functionType = new FunctionType()
             {
                 ReturnType = returnType,
-                ParameterTypes = paramTypes.Select(p => p.Type).ToList(),
+                ParameterTypes = paramTypes,
             };
 
             return new Node()
@@ -212,7 +201,7 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitInvokeFunction([NotNull] InvokeFunctionContext context)
         {
-            var name = context.Name().GetText();
+            var name = context.nestedName().GetText(); // TODO: Cannot work for `.`-names yet
 
             var function = scopes.GetBinding(name);
 
@@ -283,7 +272,7 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitInstantiateObject([NotNull] InstantiateObjectContext context)
         {
-            var name = context.Name().GetText();
+            var name = context.nestedName().GetText(); // TODO: Cannot work for `.`-names yet
 
             var exprs = context.arguments()?.expr().Select(expr => VisitExpr(expr));
 

@@ -16,12 +16,12 @@ statement:
 	| loopStatement
 	| returnStatement;
 
-inlineStatement: assign | vardec | expr;
+inlineStatement: assign | vardec | typedec | expr;
 semiStatement: inlineStatement Semi;
 
 returnStatement: Return expr Semi;
 
-// Values/Expressions
+// Value Expressions
 expr:
 	term
 	| invokeFunction
@@ -51,11 +51,13 @@ term: literal | access | function;
 
 literal: integer | bool | stringLiteral | charLiteral;
 
-access: Name;
+nestedName: Name (Dot Name)*;
+
+access: nestedName;
 
 vardec: (Const | Let) typedName Eq expr;
 
-assign: Name Eq expr;
+assign: nestedName Eq expr;
 
 bool: True | False;
 
@@ -66,23 +68,29 @@ stringLiteral: StringLiteral;
 charLiteral: CharLiteral;
 
 function:
-	LeftParen functionArguments RightParen typeAnnotation? FatArrow (
-		block
-		| expr
-	);
+	LeftParen functionArguments RightParen (
+		Colon Void
+		| typeAnnotation
+	)? FatArrow (block | expr);
 
 functionArguments:
 	| (Name typeAnnotation Comma)* (Name typeAnnotation)?;
 
 invokeFunction:
-	Name LeftParen arguments RightParen; // f(), LONG_FUNCTION_NAME(a,37, 4+9)
+	nestedName LeftParen arguments RightParen; // f(), LONG_FUNCTION_NAME(a,37, 4+9)
 
-instantiateObject: New Name (LeftParen arguments RightParen)?;
+instantiateObject:
+	New nestedName (LeftParen arguments RightParen)?;
 
 arguments: (expr Comma)* (expr)?;
 
 typedName: Name typeAnnotation?;
-typeAnnotation: Colon Name;
+typeAnnotation: Colon typeExpr;
+
+// Type expressions
+typedec: Type Name Eq typeExpr;
+
+typeExpr: Name;
 
 // Concrete statements
 block: LeftBrace statements? RightBrace;
@@ -158,6 +166,9 @@ Else: 'else';
 Elseif: Else ' '? If;
 
 New: 'new';
+
+Type: 'type';
+Void: 'void';
 
 Int: [0-9]+;
 // TODO: Investigate viability of using UnicodeChar/UnicodeAlpha here, to allow unicode variable names

@@ -1,5 +1,6 @@
 using System.Text;
 using System.Collections.Generic;
+using System.Reflection;
 
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime;
@@ -9,12 +10,15 @@ using Antlr4.Runtime.Tree;
 using static ITU.Lang.Core.Grammar.LangParser;
 using ITU.Lang.Core.Types;
 using ITU.Lang.Core.Grammar;
+using ITU.Lang.StandardLib;
+using System.Linq;
 
 namespace ITU.Lang.Core.Translator
 {
     public partial class Translator : LangBaseVisitor<Node>
     {
         private Scope<Node> scopes = new Scope<Node>();
+        private Scope<Type> typeScopes = new Scope<Type>();
 
         private ITokenStream tokenStream;
 
@@ -70,22 +74,27 @@ namespace ITU.Lang.Core.Translator
             return new TokenLocation(start, end);
         }
 
-        private void MakeGlobalScope()
+        private void PushScope()
         {
             scopes.Push();
+            typeScopes.Push();
+        }
 
-            scopes.Bind("int", new Node()
-            {
-                TranslatedValue = "int",
-                Type = new IntType(),
-                IsConst = true,
-            });
-            scopes.Bind("boolean", new Node()
-            {
-                TranslatedValue = "bool",
-                Type = new BooleanType(),
-                IsConst = true,
-            });
+        private void PopScope()
+        {
+            scopes.Pop();
+            typeScopes.Pop();
+        }
+
+        private void MakeGlobalScope()
+        {
+            PushScope();
+
+            typeScopes.Bind("int", new IntType());
+            typeScopes.Bind("boolean", new BooleanType());
+            typeScopes.Bind("string", new StringType());
+            typeScopes.Bind("char", new CharType());
+
             scopes.Bind("println", new Node()
             {
                 TranslatedValue = "Console.WriteLine",
@@ -110,6 +119,14 @@ namespace ITU.Lang.Core.Translator
                 },
                 IsConst = true,
             });
+
+            /* var stdLib = typeof(PushSignal<int>).Assembly.DefinedTypes.Select(x => (x.Name, x.GetMethods()));
+
+
+            typeof(PushSignal<int>).Assembly.DefinedTypes.Select((ti) => {
+                var name = ti.Name;
+                var constructorArgs = ti.GetConstructor();
+            }); */
         }
         #endregion
     }
