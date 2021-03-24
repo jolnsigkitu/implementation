@@ -67,11 +67,14 @@ stringLiteral: StringLiteral;
 
 charLiteral: CharLiteral;
 
-function:
+functionParameterList:
 	LeftParen functionArguments RightParen (
 		Colon Void
 		| typeAnnotation
-	)? FatArrow (block | expr);
+	)?;
+blockFunction: functionParameterList block;
+lambdaFunction: functionParameterList FatArrow expr;
+function: blockFunction | lambdaFunction;
 
 functionArguments:
 	| (Name typeAnnotation Comma)* (Name typeAnnotation)?;
@@ -90,7 +93,15 @@ typeAnnotation: Colon typeExpr;
 // Type expressions
 typedec: Type Name Eq typeExpr;
 
-typeExpr: Name;
+typeExpr: Name | classExpr;
+
+classExpr: LeftBrace classMember* RightBrace;
+
+classMember:
+	Name ((typeAnnotation)? Eq)? blockFunction Semi?
+	| Name ((typeAnnotation)? Eq)? lambdaFunction Semi
+	| Name typeAnnotation (Eq expr)? Semi
+	| Name Eq expr Semi;
 
 // Concrete statements
 block: LeftBrace statements? RightBrace;

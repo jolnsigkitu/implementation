@@ -1,28 +1,22 @@
 using System.Collections.Generic;
 using System.Linq;
+using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core.Types
 {
-    public class ObjectType : Type
+    public class ClassType : Type
     {
-        public IDictionary<string, Type> FieldsAndMembers = new Dictionary<string, Type>();
+        public IDictionary<string, (Type, Node)> Members = new Dictionary<string, (Type, Node)>();
 
-        public string Name { get; init; }
+        public string Name { get; set; }
 
-        public string AsTranslatedName()
-        {
-            return Name;
-        }
-
-        public string AsNativeName()
-        {
-            return Name;
-        }
+        public string AsNativeName() => Name;
+        public string AsTranslatedName() => "";
 
         public bool Equals(Type other)
         {
-            if (other is ObjectType t)
-                return Name.Equals(t.Name) && FieldsAndMembers.Equals(t.FieldsAndMembers);
+            if (other is ClassType t)
+                return Name.Equals(t.Name) && Members.Equals(t.Members);
             return false;
         }
 
@@ -35,7 +29,7 @@ namespace ITU.Lang.Core.Types
             // We go unchecked in order to let the integer automatically overflow for better hashing chaos
             unchecked
             {
-                return FieldsAndMembers.Aggregate(
+                return Members.Aggregate(
                     (seed + Name.GetHashCode()) * modifier,
                     (cur, item) => ((cur * modifier) + item.Key.GetHashCode()) * modifier + item.Value.GetHashCode()
                 );

@@ -18,7 +18,7 @@ namespace ITU.Lang.Core.Translator
 
             return new Node()
             {
-                TranslatedValue = string.IsNullOrEmpty(children.TranslatedValue) ? "" : children.TranslatedValue + ";",
+                TranslatedValue = string.IsNullOrEmpty(children.TranslatedValue) ? "" : children.TranslatedValue + ";\n",
                 Location = GetTokenLocation(context),
                 Type = children.Type,
             };
@@ -82,7 +82,7 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitElseIfStatement([NotNull] ElseIfStatementContext context)
         {
-            using var _ = scopes.UseScope();
+            using var _ = UseScope();
 
             var expr = this.VisitExpr(context.expr());
 
@@ -99,7 +99,7 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitElseStatement([NotNull] ElseStatementContext context)
         {
-            using var _ = scopes.UseScope();
+            using var _ = UseScope();
 
             var val = "else" + base.VisitElseStatement(context).TranslatedValue;
             return new Node()
@@ -154,13 +154,26 @@ namespace ITU.Lang.Core.Translator
                 throw new TranspilationException($"Cannot redeclare type '{name}'", GetTokenLocation(context));
             }
 
-            var typeExpr = EvalTypeExpr(context.typeExpr());
+            if (context.typeExpr()?.classExpr() != null)
+            {
+                var classVar = VisitClassExpr(context.typeExpr().classExpr());
 
-            typeScopes.Bind(name, typeExpr);
+                var classType = (ClassType)classVar.Type;
+                classType.Name = name;
+
+                classes.Add(classType);
+                typeScopes.Bind(name, classType);
+            }
+            else
+            {
+                var typeExpr = EvalTypeExpr(context.typeExpr());
+
+                typeScopes.Bind(name, typeExpr);
+            }
 
             return new Node()
             {
-                TranslatedValue = "", // TODO: Convert to class if defined as such
+                TranslatedValue = "",
                 Location = GetTokenLocation(context),
             };
         }
@@ -218,7 +231,7 @@ namespace ITU.Lang.Core.Translator
         #region Loop statements
         public override Node VisitWhileStatement([NotNull] WhileStatementContext context)
         {
-            using var _ = scopes.UseScope();
+            using var _ = UseScope();
 
             var expr = VisitExpr(context.expr());
 
@@ -237,7 +250,7 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitDoWhileStatement([NotNull] DoWhileStatementContext context)
         {
-            using var _ = scopes.UseScope();
+            using var _ = UseScope();
 
             var exprContext = context.expr();
             var expr = VisitExpr(exprContext);
@@ -253,7 +266,7 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitLoopStatement([NotNull] LoopStatementContext context)
         {
-            using var _ = scopes.UseScope();
+            using var _ = UseScope();
 
             var block = VisitIfExists(context.block());
             var statement = VisitIfExists(context.statement());
@@ -268,7 +281,7 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitForStatement([NotNull] ForStatementContext context)
         {
-            using var _ = scopes.UseScope();
+            using var _ = UseScope();
 
             var decExpr = VisitIfExists(context.forDecStatement()?.inlineStatement());
             var conExpr = VisitIfExists(context.forConExpression()?.expr());

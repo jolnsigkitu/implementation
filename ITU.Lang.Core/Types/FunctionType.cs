@@ -5,14 +5,16 @@ namespace ITU.Lang.Core.Types
 {
     public class FunctionType : Type
     {
+        public bool IsLambda { get; init; }
+
         public Type ReturnType { get; set; } = new VoidType();
 
         public IList<Type> ParameterTypes = new List<Type>();
+        public IList<string> ParameterNames = new List<string>();
 
         public string AsTranslatedName()
         {
-            var paramTypes = ParameterTypes.Select((t) => t.AsTranslatedName());
-            var paramStr = string.Join(",", paramTypes);
+            var paramStr = GetTranslatedParameterList();
 
             if (ReturnType is VoidType)
             {
@@ -28,6 +30,12 @@ namespace ITU.Lang.Core.Types
             var paramStr = string.Join(",", paramTypes);
 
             return $"({paramStr}) => {ReturnType.AsNativeName()}";
+        }
+
+        public string GetTranslatedParameterList()
+        {
+            var paramTypes = ParameterTypes.Select((t) => t.AsTranslatedName());
+            return string.Join(",", paramTypes);
         }
 
         public bool Equals(Type other)

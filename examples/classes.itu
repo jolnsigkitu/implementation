@@ -1,0 +1,35 @@
+type User = {
+    // this: User; // Is 'hidden'
+    // Fields
+    firstName: string;
+    lastName: string;
+    age: int;
+    // Name typeAnnotation (Eq expr)?;
+
+    // Fields with initial default value
+    role = 1;
+    // Name Eq expr;
+
+    // Constructor
+
+    constructor(_firstName: string, _lastName: string) {
+        firstName = _firstName;
+        // this.lastName = lastName;
+    }
+
+
+    // Methods
+    fullName() => firstName + lastName;
+    fullName2 = () => firstName + lastName;
+    fullName3 = () {
+        return firstName + lastName;
+    };
+    // Name ((typeAnnotation)? Eq )? function;
+};
+
+type Nope = {};
+
+// Instantiation of userland classes
+// const john = new User("John", "Doe");
+
+const nope = new Nope();

@@ -8,6 +8,7 @@ using Antlr4.Runtime.Tree;
 using ITU.Lang.Core.Operators;
 using ITU.Lang.Core.Types;
 using static ITU.Lang.Core.Grammar.LangParser;
+using System.Collections.Generic;
 
 namespace ITU.Lang.Core.Translator
 {
@@ -151,9 +152,24 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitFunction([NotNull] FunctionContext context)
         {
-            using var _ = scopes.UseScope();
+            using var _ = UseScope();
 
-            var args = context.functionArguments();
+            var blockFun = context.blockFunction();
+            var lambdaFun = context.lambdaFunction();
+
+            return InnerVisitFunction(blockFun, lambdaFun);
+        }
+
+        private Node InnerVisitFunction(BlockFunctionContext blockFun, LambdaFunctionContext lambdaFun, bool isMember = false)
+        {
+            var functionParameterList = blockFun?.functionParameterList() ?? lambdaFun?.functionParameterList();
+
+            if (functionParameterList == null)
+            {
+                return null;
+            }
+
+            var args = functionParameterList.functionArguments();
 
             var paramNames = args.Name().Select(p => p.GetText()).ToList();
             var paramTypes = args.typeAnnotation().Select(x => EvalTypeExpr(x.typeExpr())).ToList();
@@ -167,17 +183,17 @@ namespace ITU.Lang.Core.Translator
                 });
             }
 
-            var body = Visit(((IParseTree)context.expr()) ?? context.block());
+            var body = Visit(((IParseTree)lambdaFun?.expr()) ?? blockFun.block());
 
             var returnType = body.Type;
 
-            if (context.Void() != null)
+            if (functionParameterList.Void() != null)
             {
                 returnType = new VoidType();
             }
-            else if (context.typeAnnotation() != null)
+            else if (functionParameterList.typeAnnotation() != null)
             {
-                returnType = EvalTypeExpr(context.typeAnnotation().typeExpr());
+                returnType = EvalTypeExpr(functionParameterList.typeAnnotation().typeExpr());
             }
 
             if (body.Type != null)
@@ -185,17 +201,21 @@ namespace ITU.Lang.Core.Translator
                 body.AssertType(returnType);
             }
 
-            var functionType = new FunctionType()
-            {
-                ReturnType = returnType,
-                ParameterTypes = paramTypes,
-            };
+            var signature = isMember ? "" : $"({string.Join(",", paramNames)})";
+            var seperator = !isMember || lambdaFun != null ? " =>" : "";
 
             return new Node()
             {
-                TranslatedValue = $"({string.Join(",", paramNames)}) => {body.TranslatedValue}",
-                Location = GetTokenLocation(context),
-                Type = functionType,
+
+                TranslatedValue = $"{signature}{seperator} {body.TranslatedValue}",
+                Location = GetTokenLocation(((ISyntaxTree)blockFun) ?? lambdaFun),
+                Type = new FunctionType()
+                {
+                    ReturnType = returnType,
+                    ParameterTypes = paramTypes,
+                    ParameterNames = paramNames,
+                    IsLambda = lambdaFun != null,
+                },
             };
         }
 
@@ -267,6 +287,57 @@ namespace ITU.Lang.Core.Translator
                 TranslatedValue = $"return {expr.TranslatedValue};",
                 Location = GetTokenLocation(context),
                 Type = expr.Type,
+            };
+        }
+
+        public override Node VisitClassExpr([NotNull] ClassExprContext context)
+        {
+            using var _ = UseScope();
+            var members = new Dictionary<string, (Type, Node)>();
+
+            context.classMember()
+                .ToList()
+                .ForEach((ctx) =>
+                {
+                    var name = ctx.Name().GetText();
+                    var val = VisitClassMember(ctx);
+                    members.Add(name, (val.Type, val));
+                    scopes.Bind(name, val);
+                });
+
+            var classType = new ClassType()
+            {
+                Members = members,
+            };
+
+            return new Node()
+            {
+                TranslatedValue = "",
+                Location = GetTokenLocation(context),
+                Type = classType,
+            };
+        }
+
+        public override Node VisitClassMember([NotNull] ClassMemberContext context)
+        {
+            var fun = InnerVisitFunction(context.blockFunction(), context.lambdaFunction(), true);
+            var expr = context.expr() != null ? VisitExpr(context.expr()) : null;
+            var typ = context.typeAnnotation()?.typeExpr() != null
+                ? EvalTypeExpr(context.typeAnnotation().typeExpr())
+                : null;
+
+            var val = fun ?? expr;
+
+            if (typ != null)
+            {
+                val?.AssertType(typ);
+            }
+
+            return new Node()
+            {
+                TranslatedValue = val?.TranslatedValue ?? "",
+                Location = GetTokenLocation(context),
+                Type = typ ?? val.Type,
             };
         }
 

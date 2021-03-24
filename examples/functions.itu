@@ -3,17 +3,17 @@
 let f = (yeet: int) => 3;
 let g = (): int => 3;
 let h = (yeet: int,yote: int,wonk: boolean): int => 3;
-let i = (wonk: boolean,) => {
+let i = (wonk: boolean,) {
     let x = 8723;
     let y = 123;
     return x + y;
 };
-let j = (): int => {
+let j = (): int {
     let x = 8723;
     let y = 123;
     return x - y;
 };
-let k = (): void => {
+let k = (): void {
     let x = 8723;
     let y = 123;
 };

@@ -19,6 +19,7 @@ namespace ITU.Lang.Core.Translator
     {
         private Scope<Node> scopes = new Scope<Node>();
         private Scope<Type> typeScopes = new Scope<Type>();
+        private IList<ClassType> classes = new List<ClassType>();
 
         private ITokenStream tokenStream;
 
@@ -33,9 +34,31 @@ namespace ITU.Lang.Core.Translator
         {
             var res = VisitStatements(context.statements());
 
+            var classes = string.Join("\n\n", this.classes.Select(x =>
+            {
+                var translatedMembers = x.Members.Select(member =>
+                {
+                    var (name, (typ, node)) = member;
+
+                    if (typ is FunctionType f)
+                    {
+                        var isConstructor = name == "constructor";
+                        var actualName = isConstructor ? x.Name : name;
+                        var returnType = isConstructor ? "" : f.ReturnType.AsTranslatedName();
+                        var paramList = f.ParameterTypes.Zip(f.ParameterNames, (t, n) => $"{t.AsTranslatedName()} {n}");
+                        var end = f?.IsLambda == true ? ";" : "";
+                        return $"public {returnType} {actualName}({string.Join(",", paramList)}){node.TranslatedValue}{end}";
+                    }
+
+                    return $"public {typ.AsTranslatedName()} {name}{(!string.IsNullOrEmpty(node?.TranslatedValue) ? $"={node.TranslatedValue}" : "")};";
+                });
+
+                return $"class {x.Name} {{\n{string.Join("\n", translatedMembers)}\n}}";
+            }));
+
             return new Node()
             {
-                TranslatedValue = "using System; using ITU.Lang.StandardLib;" + res.TranslatedValue,
+                TranslatedValue = "using System;\nusing ITU.Lang.StandardLib;\n" + res.TranslatedValue + "\n" + classes,
                 Location = GetTokenLocation(context),
             };
         }
@@ -86,6 +109,29 @@ namespace ITU.Lang.Core.Translator
             typeScopes.Pop();
         }
 
+        private System.IDisposable UseScope()
+        {
+            return new DisposableScopes(scopes.UseScope(), typeScopes.UseScope());
+        }
+
+        private class DisposableScopes : System.IDisposable
+        {
+            System.IDisposable scope1;
+            System.IDisposable scope2;
+
+            public DisposableScopes(System.IDisposable sc1, System.IDisposable sc2)
+            {
+                scope1 = sc1;
+                scope2 = sc2;
+            }
+
+            public void Dispose()
+            {
+                scope1.Dispose();
+                scope2.Dispose();
+            }
+        }
+
         private void MakeGlobalScope()
         {
             PushScope();
@@ -119,6 +165,15 @@ namespace ITU.Lang.Core.Translator
                 },
                 IsConst = true,
             });
+
+            // classes.Add(new ClassType()
+            // {
+            //     FieldsAndMembers = new Dictionary<string, (Type, Node)>()
+            //     {
+            //         { "stuff", (new StringType(), null) },
+            //     },
+            //     Name = "Class1",
+            // });
 
             /* var stdLib = typeof(PushSignal<int>).Assembly.DefinedTypes.Select(x => (x.Name, x.GetMethods()));
 
