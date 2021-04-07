@@ -91,12 +91,7 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitAccess([NotNull] AccessContext context)
         {
-            var invoke = InvokeIf(context.invokeFunction(), VisitInvokeFunction);
-            var instantiate = InvokeIf(context.instantiateObject(), VisitInstantiateObject);
-            var expr = InvokeIf(context.expr(), VisitExpr);
-            var visited = invoke ?? instantiate ?? expr;
-
-            var node = visited;
+            var node = InvokeIf(context.GetRuleContext<ParserRuleContext>(0), Visit);
             var typ = node?.Type;
 
             var name = context.Name()?.GetText();
@@ -112,10 +107,10 @@ namespace ITU.Lang.Core.Translator
 
             var leftParen = context.LeftParen()?.GetText() ?? "";
             var rightParen = context.RightParen()?.GetText() ?? "";
-            visited.TranslatedValue = leftParen + visited.TranslatedValue + rightParen;
+            node.TranslatedValue = leftParen + node.TranslatedValue + rightParen;
 
             var chain = AccumulateAccessChain(context.accessChain());
-
+            var chainParts = new List<string>();
             foreach (var link in chain)
             {
                 if (!(typ is ObjectType n))
@@ -127,16 +122,25 @@ namespace ITU.Lang.Core.Translator
                 if (member == null)
                     throw new TranspilationException($"Cannot access member '{name}' on object '{n.AsNativeName()}'", GetTokenLocation(context));
 
+
                 // TODO: Make type check on parameter types vs expr types, maybe just visit the stuff
                 if (member is FunctionType f)
-                    member = f.ReturnType;
+                {
+                    var functionNode = VisitInvokeFunction((InvokeFunctionContext)link);
+                    member = functionNode.Type;
+                    chainParts.Add(functionNode.TranslatedValue);
+                }
+                else
+                {
+                    chainParts.Add(memberName);
+                }
 
                 typ = member;
             }
 
             return new Node()
             {
-                TranslatedValue = string.Join(".", names),
+                TranslatedValue = string.Join(".", chainParts),
                 Type = typ,
                 Location = GetTokenLocation(context),
             };
