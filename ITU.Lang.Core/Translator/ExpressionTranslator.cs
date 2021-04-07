@@ -22,9 +22,6 @@ namespace ITU.Lang.Core.Translator
                 return HandleOperatorExpr(context);
             }
 
-            var leftParen = context.LeftParen()?.GetText() ?? "";
-            var rightParen = context.RightParen()?.GetText() ?? "";
-
             var buf = new StringBuilder();
             Type lastSeenType = null;
             var hasVisitedFirstChild = false;
@@ -58,7 +55,7 @@ namespace ITU.Lang.Core.Translator
 
             return new Node()
             {
-                TranslatedValue = leftParen + buf.ToString() + rightParen,
+                TranslatedValue = buf.ToString(),
                 Type = lastSeenType,
                 Location = GetTokenLocation(context),
             };
@@ -89,28 +86,50 @@ namespace ITU.Lang.Core.Translator
             };
         }
 
+        private R InvokeIf<T, R>(T value, System.Func<T, R> func) =>
+            value != null ? func(value) : default(R);
+
         public override Node VisitAccess([NotNull] AccessContext context)
         {
-            var names = context.nestedName().Name().Select(x => x.GetText()).ToList();
-            var firstName = names[0];
+            var invoke = InvokeIf(context.invokeFunction(), VisitInvokeFunction);
+            var instantiate = InvokeIf(context.instantiateObject(), VisitInstantiateObject);
+            var expr = InvokeIf(context.expr(), VisitExpr);
+            var visited = invoke ?? instantiate ?? expr;
 
-            if (!scopes.HasBinding(firstName))
+            var node = visited;
+            var typ = node?.Type;
+
+            var name = context.Name()?.GetText();
+
+            if (name != null)
             {
-                throw new TranspilationException($"Variable '{firstName}' was not declared before accessing", GetTokenLocation(context));
+                if (!scopes.HasBinding(name))
+                    throw new TranspilationException($"Variable '{name}' was not declared before accessing", GetTokenLocation(context));
+
+                node = scopes.GetBinding(name);
+                typ = node.Type;
             }
 
-            var binding = scopes.GetBinding(firstName);
-            var typ = binding.Type;
+            var leftParen = context.LeftParen()?.GetText() ?? "";
+            var rightParen = context.RightParen()?.GetText() ?? "";
+            visited.TranslatedValue = leftParen + visited.TranslatedValue + rightParen;
 
-            foreach (var name in names.GetRange(1, names.Count - 1))
+            var chain = AccumulateAccessChain(context.accessChain());
+
+            foreach (var link in chain)
             {
                 if (!(typ is ObjectType n))
                     throw new TranspilationException($"Cannot access property '{name}' on non-object", GetTokenLocation(context));
 
-                var member = n.GetMember(name);
+                var memberName = link is InvokeFunctionContext l ? l.Name().GetText() : link.GetText();
+                var member = n.GetMember(memberName);
 
                 if (member == null)
                     throw new TranspilationException($"Cannot access member '{name}' on object '{n.AsNativeName()}'", GetTokenLocation(context));
+
+                // TODO: Make type check on parameter types vs expr types, maybe just visit the stuff
+                if (member is FunctionType f)
+                    member = f.ReturnType;
 
                 typ = member;
             }
@@ -121,6 +140,20 @@ namespace ITU.Lang.Core.Translator
                 Type = typ,
                 Location = GetTokenLocation(context),
             };
+        }
+
+        public IList<IParseTree> AccumulateAccessChain(AccessChainContext context)
+        {
+            var list = new List<IParseTree>();
+
+            for (var rest = context; rest != null; rest = rest.accessChain())
+            {
+                var name = rest.Name();
+                var function = rest.invokeFunction();
+                list.Add((IParseTree)name ?? function);
+            }
+
+            return list;
         }
 
         public override Node VisitBool([NotNull] BoolContext context)
