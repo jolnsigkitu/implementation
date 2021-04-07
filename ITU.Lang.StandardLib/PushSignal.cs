@@ -3,81 +3,87 @@ using System.Collections.Generic;
 
 namespace ITU.Lang.StandardLib
 {
-    public abstract class PushSignal<TInput>
+    public static class Signal
     {
-        internal abstract void push(TInput value);
-
-        public static ProducerSignal<T> produce<T>(Action<Action<T>> producer) => new ProducerSignal<T>(producer);
+        public static PushSignal<int> Timer(int millisecondInterval)
+        {
+            return PushSignal<int>.Produce((push) =>
+            {
+                var i = 0;
+                var timer = new System.Threading.Timer((_) => push(i++), null, 0, millisecondInterval);
+            });
+        }
     }
 
-    public abstract class IntPushSignal : PushSignal<int>
+    public abstract class PushSignal<TInput>
     {
-        public static ProducerSignal<int> produce(Action<Action<int>> producer) => new ProducerSignal<int>(producer);
+        internal abstract void Push(TInput value);
+        public static ProducerSignal<TInput> Produce(Action<Action<TInput>> producer) => new ProducerSignal<TInput>(producer);
     }
 
     public abstract class ChainablePushSignal<TInput, TOutput> : PushSignal<TInput>
     {
         protected IList<PushSignal<TOutput>> next = new List<PushSignal<TOutput>>();
 
-        internal void addNext(PushSignal<TOutput> node) => next.Add(node);
+        internal void AddNext(PushSignal<TOutput> node) => next.Add(node);
 
-        public MapSignal<TOutput, TResult> map<TResult>(Func<TOutput, TResult> mapper)
+        public MapSignal<TOutput, TResult> Map<TResult>(Func<TOutput, TResult> mapper)
         {
             var sig = new MapSignal<TOutput, TResult>(mapper);
-            addNext(sig);
+            AddNext(sig);
             return sig;
         }
 
-        public ReduceSignal<TOutput, TResult> reduce<TResult>(Func<TResult, TOutput, TResult> reducer, TResult defaultResult = default(TResult))
+        public ReduceSignal<TOutput, TResult> Reduce<TResult>(Func<TResult, TOutput, TResult> reducer, TResult defaultResult = default(TResult))
         {
             var sig = new ReduceSignal<TOutput, TResult>(reducer, defaultResult);
-            addNext(sig);
+            AddNext(sig);
             return sig;
         }
 
-        public FilterSignal<TOutput> filter(Predicate<TOutput> filter)
+        public FilterSignal<TOutput> Filter(Predicate<TOutput> filter)
         {
             var sig = new FilterSignal<TOutput>(filter);
-            addNext(sig);
+            AddNext(sig);
             return sig;
         }
 
-        // public PushSignal<TOther> pullFrom(PullSignal<TOther> otherSignal) {
+        // public PushSignal<TOther> PullFrom(PullSignal<TOther> otherSignal) {
         //     var sig = new PullFromSignal(otherSignal);
         //     addNext(sig);
         //     return sig;
         // }
 
-        public ForEachSignal<TOutput> forEach(Action<TOutput> func)
+        public ForEachSignal<TOutput> ForEach(Action<TOutput> func)
         {
             var sig = new ForEachSignal<TOutput>(func);
-            addNext(sig);
+            AddNext(sig);
             return sig;
         }
 
-        internal override void push(TInput value)
+        internal override void Push(TInput value)
         {
-            if (!shouldPush(value)) return;
-            TOutput output = getNextValue(value);
+            if (!ShouldPush(value)) return;
+            TOutput output = GetNextValue(value);
             foreach (var node in next)
             {
-                node.push(output);
+                node.Push(output);
             }
         }
 
-        protected virtual bool shouldPush(TInput value) => true;
+        protected virtual bool ShouldPush(TInput value) => true;
 
-        protected abstract TOutput getNextValue(TInput value);
+        protected abstract TOutput GetNextValue(TInput value);
     }
 
     public class ProducerSignal<TInput> : ChainablePushSignal<TInput, TInput>
     {
         internal ProducerSignal(Action<Action<TInput>> producer)
         {
-            producer(push);
+            producer(Push);
         }
 
-        protected override TInput getNextValue(TInput value) => value;
+        protected override TInput GetNextValue(TInput value) => value;
     }
 
     public class MapSignal<TInput, TOutput> : ChainablePushSignal<TInput, TOutput>
@@ -89,51 +95,51 @@ namespace ITU.Lang.StandardLib
             this.mapper = mapper;
         }
 
-        protected override TOutput getNextValue(TInput value) => mapper(value);
+        protected override TOutput GetNextValue(TInput value) => mapper(value);
     }
 
     public class ReduceSignal<TInput, TOutput> : ChainablePushSignal<TInput, TOutput>
     {
-        private Func<TOutput, TInput, TOutput> reducer;
-        private TOutput state;
+        private Func<TOutput, TInput, TOutput> Reducer;
+        private TOutput State;
 
         internal ReduceSignal(Func<TOutput, TInput, TOutput> reducer, TOutput defaultValue)
         {
-            this.reducer = reducer;
-            this.state = defaultValue;
+            this.Reducer = reducer;
+            this.State = defaultValue;
         }
 
-        protected override TOutput getNextValue(TInput value)
+        protected override TOutput GetNextValue(TInput value)
         {
-            state = reducer(state, value);
+            State = Reducer(State, value);
 
-            return state;
+            return State;
         }
     }
 
     public class FilterSignal<TInput> : ChainablePushSignal<TInput, TInput>
     {
-        private Predicate<TInput> predicate;
+        private Predicate<TInput> Predicate;
 
         internal FilterSignal(Predicate<TInput> predicate)
         {
-            this.predicate = predicate;
+            Predicate = predicate;
         }
 
-        protected override bool shouldPush(TInput value) => predicate(value);
+        protected override bool ShouldPush(TInput value) => Predicate(value);
 
-        protected override TInput getNextValue(TInput value) => value;
+        protected override TInput GetNextValue(TInput value) => value;
     }
 
     public class ForEachSignal<TInput> : PushSignal<TInput>
     {
-        private Action<TInput> function;
+        private Action<TInput> Function;
 
         internal ForEachSignal(Action<TInput> function)
         {
-            this.function = function;
+            Function = function;
         }
 
-        internal override void push(TInput value) => function(value);
+        internal override void Push(TInput value) => Function(value);
     }
 }

@@ -265,6 +265,7 @@ namespace ITU.Lang.Core.Translator
                 {
                     var expr = exprTypes[i];
                     var param = paramTypes[i];
+
                     if (!expr.Equals(param))
                     {
                         throw new TranspilationException($"Function '{name}' could not be invoked: parameter {i + 1} must be of type '{param.AsNativeName()}', but was '{expr.AsNativeName()}'", GetTokenLocation(context));

@@ -5,14 +5,14 @@ namespace ITU.Lang.Core.Types
 {
     public class ObjectType : Type
     {
-        public Dictionary<string, Type> Members { get; init; } = new Dictionary<string, Type>();
+        public Dictionary<string, Type> Members { get; set; } = new Dictionary<string, Type>();
 
         public Type GetMember(string name)
         {
             return Members.GetValueOrDefault(name);
         }
 
-        public string Name { get; init; }
+        public string Name { get; set; }
 
         public string AsTranslatedName() => Name;
         public string AsNativeName() => Name;

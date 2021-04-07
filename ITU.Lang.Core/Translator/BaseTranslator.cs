@@ -147,7 +147,7 @@ namespace ITU.Lang.Core.Translator
                 {
                     ParameterTypes = new List<Type>()
                     {
-                        new StringType(),
+                        new IntType(),
                     }
                 },
                 IsConst = true,
@@ -159,62 +159,95 @@ namespace ITU.Lang.Core.Translator
                 {
                     ParameterTypes = new List<Type>()
                     {
-                        new StringType(),
+                        new IntType(),
                     }
                 },
                 IsConst = true,
             });
 
-            /* var stdLib = typeof(PushSignal<int>).Assembly.DefinedTypes.Select(x => (x.Name, x.GetMethods()));
+            #region signals
 
-            typeof(PushSignal<int>).Assembly.DefinedTypes.Select((ti) => {
-                var name = ti.Name; var constructorArgs = ti.GetConstructor();
-            }); */
-
-            // Hardcoded as int signals for now
-            typeScopes.Bind("PushSignal", new ClassType()
+            var PushSignal = new ObjectType()
             {
-                Name = "IntPushSignal",
-                Members = new Dictionary<string, (Type, Node)>()
+                Members = new Dictionary<string, Type>(),
+                Name = "PushSignal<int>",
+            };
+
+            PushSignal.Members.Add("Map", new FunctionType()
+            {
+                ReturnType = PushSignal,
+                ParameterNames = new List<string>() { "mapper" },
+                ParameterTypes = new List<Type>()
                 {
-                    {"produce", new Node()
+                    new FunctionType()
                     {
-                        TranslatedValue = "produce",
-                        Type = new FunctionType()
-                        {
-                            ParameterNames = new List<string>()
-                            {
-                                "producer",
-                            },
-                            ParameterTypes = new List<Type>()
-                            {
-                                new FunctionType()
-                                {
-                                    ParameterNames = new List<string>()
-                                    {
-                                        "Who cares no one will see this ever",
-                                    },
-                                    ParameterTypes = new List<Type>()
-                                    {
-                                        new FunctionType()
-                                        {
-                                            ParameterNames = new List<string>()
-                                            {
-                                                "Who cares no one will see this ever 2",
-                                            },
-                                            ParameterTypes = new List<Type>()
-                                            {
-                                                new IntType(),
-                                            }
-                                        },
-                                    }
-                                },
-                            },
-                            ReturnType =
-                        }
-                    }},
+                        ParameterNames = new List<string>() { "item" },
+                        ParameterTypes = new List<Type>() { new IntType() },
+                        ReturnType = new IntType(),
+                    }
                 },
             });
+            PushSignal.Members.Add("Reduce", new FunctionType()
+            {
+                ReturnType = PushSignal,
+                ParameterNames = new List<string>() { "reducer" },
+                ParameterTypes = new List<Type>()
+                {
+                    new FunctionType()
+                    {
+                        ParameterNames = new List<string>() { "acc", "item" },
+                        ParameterTypes = new List<Type>() { new IntType(), new IntType() },
+                        ReturnType = new IntType(),
+                    }
+                },
+            });
+            PushSignal.Members.Add("Filter", new FunctionType()
+            {
+                ReturnType = PushSignal,
+                ParameterNames = new List<string>() { "filter" },
+                ParameterTypes = new List<Type>()
+                {
+                    new FunctionType()
+                    {
+                        ParameterNames = new List<string>() { "item" },
+                        ParameterTypes = new List<Type>() { new IntType() },
+                        ReturnType = new BooleanType(),
+                    }
+                },
+            });
+            /* PushSignal.Members.Add("ForEach", new GenericFunctionType() */
+            PushSignal.Members.Add("ForEach", new FunctionType()
+            {
+                // Generics = new List<string>() { "TInput" },
+                ParameterNames = new List<string>() { "func" },
+                ParameterTypes = new List<Type>()
+                {
+                    new FunctionType()
+                    {
+                        // ParameterNames = new List<string>() { "item" },
+                        ParameterTypes = new List<Type>() { new IntType() },
+                        /* ParameterTypes = new List<Type>() { new GenericType("TInput") } */
+                    }
+                },
+            });
+
+            scopes.Bind("Signal", new Node()
+            {
+                Type = new ObjectType()
+                {
+                    Members = new Dictionary<string, Type>()
+                    {
+                        {"Timer", new FunctionType()
+                            {
+                                ParameterNames = new List<string>() { "millisecondInterval" },
+                                ParameterTypes = new List<Type>() { new IntType() },
+                                ReturnType = PushSignal,
+                            }
+                        },
+                    }
+                },
+            });
+            #endregion
         }
         #endregion
     }

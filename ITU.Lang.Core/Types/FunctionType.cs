@@ -5,7 +5,7 @@ namespace ITU.Lang.Core.Types
 {
     public class FunctionType : Type
     {
-        public bool IsLambda { get; init; }
+        public bool IsLambda { get; set; }
 
         public Type ReturnType { get; set; } = new VoidType();
 
@@ -40,9 +40,16 @@ namespace ITU.Lang.Core.Types
 
         public bool Equals(Type other)
         {
-            if (other is FunctionType f)
-                return ReturnType.Equals(f.ReturnType) && ParameterTypes.Equals(f.ParameterTypes);
-            return false;
+            if (!(other is FunctionType f))
+            {
+                return false;
+            }
+
+            var returnTypeMatches = ReturnType.Equals(f.ReturnType);
+
+            var paramTypesMatches = Enumerable.SequenceEqual(ParameterTypes, f.ParameterTypes);
+
+            return returnTypeMatches && paramTypesMatches;
         }
 
         // Hash codes are needed for successful lookup in dictionaries
