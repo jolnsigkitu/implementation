@@ -10,6 +10,11 @@ namespace ITU.Lang.StandardLib
         public static ProducerSignal<T> produce<T>(Action<Action<T>> producer) => new ProducerSignal<T>(producer);
     }
 
+    public abstract class IntPushSignal : PushSignal<int>
+    {
+        public static ProducerSignal<int> produce(Action<Action<int>> producer) => new ProducerSignal<int>(producer);
+    }
+
     public abstract class ChainablePushSignal<TInput, TOutput> : PushSignal<TInput>
     {
         protected IList<PushSignal<TOutput>> next = new List<PushSignal<TOutput>>();

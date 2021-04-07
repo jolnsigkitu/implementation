@@ -32,11 +32,10 @@ Signal.Native.timer(1000).map(() => readSensorValue())
     let timer2 = Signal.Native.timer(10000).pullFrom(something).forEach(val => print(val.ToString()));
 }
 
-/*{
-    return new PushSignal((push) => {
-        var timer = new Timer(1000);
-        timer.OnTick(() => {
-            push();
-        });
+
+const signal = new PushSignal((push) => {
+    var timer = new Timer(1000);
+    timer.OnTick(() => {
+        push();
     });
-}*/
+});

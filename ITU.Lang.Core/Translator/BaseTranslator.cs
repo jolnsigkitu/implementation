@@ -165,22 +165,56 @@ namespace ITU.Lang.Core.Translator
                 IsConst = true,
             });
 
-            // classes.Add(new ClassType()
-            // {
-            //     FieldsAndMembers = new Dictionary<string, (Type, Node)>()
-            //     {
-            //         { "stuff", (new StringType(), null) },
-            //     },
-            //     Name = "Class1",
-            // });
-
             /* var stdLib = typeof(PushSignal<int>).Assembly.DefinedTypes.Select(x => (x.Name, x.GetMethods()));
 
-
             typeof(PushSignal<int>).Assembly.DefinedTypes.Select((ti) => {
-                var name = ti.Name;
-                var constructorArgs = ti.GetConstructor();
+                var name = ti.Name; var constructorArgs = ti.GetConstructor();
             }); */
+
+            // Hardcoded as int signals for now
+            typeScopes.Bind("PushSignal", new ClassType()
+            {
+                Name = "IntPushSignal",
+                Members = new Dictionary<string, (Type, Node)>()
+                {
+                    {"produce", new Node()
+                    {
+                        TranslatedValue = "produce",
+                        Type = new FunctionType()
+                        {
+                            ParameterNames = new List<string>()
+                            {
+                                "producer",
+                            },
+                            ParameterTypes = new List<Type>()
+                            {
+                                new FunctionType()
+                                {
+                                    ParameterNames = new List<string>()
+                                    {
+                                        "Who cares no one will see this ever",
+                                    },
+                                    ParameterTypes = new List<Type>()
+                                    {
+                                        new FunctionType()
+                                        {
+                                            ParameterNames = new List<string>()
+                                            {
+                                                "Who cares no one will see this ever 2",
+                                            },
+                                            ParameterTypes = new List<Type>()
+                                            {
+                                                new IntType(),
+                                            }
+                                        },
+                                    }
+                                },
+                            },
+                            ReturnType =
+                        }
+                    }},
+                },
+            });
         }
         #endregion
     }
