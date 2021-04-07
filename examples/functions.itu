@@ -28,3 +28,8 @@ g();
 h(1,2,true);
 i(true);
 let x = j();
+
+let useVars = (a: int, b: string): void {
+    let c = a + 2;
+    println(b);
+};

@@ -2,10 +2,10 @@ using System.Text;
 using System.Linq;
 
 using Antlr4.Runtime.Misc;
+using Antlr4.Runtime.Tree;
 
 using ITU.Lang.Core.Types;
 using static ITU.Lang.Core.Grammar.LangParser;
-using Antlr4.Runtime.Tree;
 
 namespace ITU.Lang.Core.Translator
 {
@@ -167,7 +167,6 @@ namespace ITU.Lang.Core.Translator
             else
             {
                 var typeExpr = EvalTypeExpr(context.typeExpr());
-
                 typeScopes.Bind(name, typeExpr);
             }
 
@@ -199,31 +198,50 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitAssign([NotNull] AssignContext context)
         {
-            var name = context.nestedName().GetText(); // TODO: Cannot work for `.`-names yet
-            if (!scopes.HasBinding(name))
+            var names = context.nestedName().Name().Select(x => x.GetText()).ToList();
+            var fullName = string.Join(".", names);
+            var firstName = names[0];
+
+            if (!scopes.HasBinding(firstName))
             {
-                throw new TranspilationException($"Variable {name} was not declared!", GetTokenLocation(context.nestedName()));
+                throw new TranspilationException($"Variable '{firstName}' was not declared before assigning", GetTokenLocation(context));
+            }
+
+            var binding = scopes.GetBinding(firstName);
+            var typ = binding.Type;
+
+            foreach (var name in names.GetRange(1, names.Count - 1))
+            {
+                if (!(typ is ObjectType n))
+                    throw new TranspilationException($"Cannot access property '{name}' on non-object", GetTokenLocation(context));
+
+                var member = n.GetMember(name);
+
+                if (member == null)
+                    throw new TranspilationException($"Cannot access member '{name}' on object '{n.AsNativeName()}'", GetTokenLocation(context));
+
+                typ = member;
             }
 
             var expr = VisitExpr(context.expr());
-            var cur = scopes.GetBinding(name);
 
-            if (cur.IsConst)
+            if (!expr.IsType(typ))
             {
-                throw new TranspilationException($"Cannot update const variable '{name}'!", GetTokenLocation(context.nestedName()));
-            }
-
-            if (!cur.IsType(expr))
-            {
-                var msg = $"Cannot assign value of type '{expr.Type.AsNativeName()}' to variable '{name}' of type '{cur.Type.AsNativeName()}'";
+                var msg = $"Cannot assign value of type '{expr.Type.AsNativeName()}' to variable '{fullName}' of type '{typ.AsNativeName()}'";
                 throw new TranspilationException(msg, GetTokenLocation(context));
             }
 
-            scopes.Rebind(name, expr);
+            if (names.Count == 1)
+            {
+                if (binding.IsConst)
+                    throw new TranspilationException($"Cannot update const variable '{fullName}'", GetTokenLocation(context.nestedName()));
+
+                scopes.Rebind(firstName, expr);
+            }
 
             return new Node()
             {
-                TranslatedValue = $"{name} = {expr.TranslatedValue}",
+                TranslatedValue = $"{fullName} = {expr.TranslatedValue}",
                 Location = GetTokenLocation(context),
             };
         }

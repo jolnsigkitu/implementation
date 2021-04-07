@@ -5,24 +5,24 @@ namespace ITU.Lang.Core.Types
 {
     public class ObjectType : Type
     {
-        public IDictionary<string, Type> FieldsAndMembers = new Dictionary<string, Type>();
+        public Dictionary<string, Type> Members { get; init; } = new Dictionary<string, Type>();
+
+        public Type GetMember(string name)
+        {
+            return Members.GetValueOrDefault(name);
+        }
 
         public string Name { get; init; }
 
-        public string AsTranslatedName()
-        {
-            return Name;
-        }
-
-        public string AsNativeName()
-        {
-            return Name;
-        }
+        public string AsTranslatedName() => Name;
+        public string AsNativeName() => Name;
 
         public bool Equals(Type other)
         {
             if (other is ObjectType t)
-                return Name.Equals(t.Name) && FieldsAndMembers.Equals(t.FieldsAndMembers);
+            {
+                return Name.Equals(t.Name) && Members.Equals(t.Members);
+            }
             return false;
         }
 
@@ -35,7 +35,7 @@ namespace ITU.Lang.Core.Types
             // We go unchecked in order to let the integer automatically overflow for better hashing chaos
             unchecked
             {
-                return FieldsAndMembers.Aggregate(
+                return Members.Aggregate(
                     (seed + Name.GetHashCode()) * modifier,
                     (cur, item) => ((cur * modifier) + item.Key.GetHashCode()) * modifier + item.Value.GetHashCode()
                 );

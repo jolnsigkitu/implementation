@@ -1,20 +1,23 @@
+type Account = {
+    id: int;
+};
+
 type User = {
     // this: User; // Is 'hidden'
     // Fields
     firstName: string;
     lastName: string;
     age: int;
-    // Name typeAnnotation (Eq expr)?;
 
     // Fields with initial default value
     role = 1;
-    // Name Eq expr;
+
+    account: Account;
 
     // Constructor
-
-    constructor(_firstName: string, _lastName: string) {
+    constructor(_firstName: string, lastName: string) {
         firstName = _firstName;
-        // this.lastName = lastName;
+        this.lastName = lastName;
     }
 
 
@@ -22,7 +25,7 @@ type User = {
     fullName() => firstName + lastName;
     fullName2 = () => firstName + lastName;
     fullName3 = () {
-        return firstName + lastName;
+        return firstName + this.lastName;
     };
     // Name ((typeAnnotation)? Eq )? function;
 };
@@ -30,6 +33,19 @@ type User = {
 type Nope = {};
 
 // Instantiation of userland classes
-// const john = new User("John", "Doe");
+const john = new User("John", "Doe");
+println(john.fullName());
 
 const nope = new Nope();
+
+/*
+// Enhancement: Prohibit shadowing of 'this'
+type Mal = {
+    num: int;
+    setNum(this: int) {
+        this.num = this;
+    }
+};
+
+new Mal(9);
+*/

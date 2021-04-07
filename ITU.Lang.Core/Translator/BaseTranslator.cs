@@ -1,6 +1,6 @@
 using System.Text;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime;
@@ -11,7 +11,6 @@ using static ITU.Lang.Core.Grammar.LangParser;
 using ITU.Lang.Core.Types;
 using ITU.Lang.Core.Grammar;
 using ITU.Lang.StandardLib;
-using System.Linq;
 
 namespace ITU.Lang.Core.Translator
 {

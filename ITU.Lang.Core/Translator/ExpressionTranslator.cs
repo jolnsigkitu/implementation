@@ -1,5 +1,6 @@
 using System.Text;
 using System.Linq;
+using System.Collections.Generic;
 
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime;
@@ -8,7 +9,6 @@ using Antlr4.Runtime.Tree;
 using ITU.Lang.Core.Operators;
 using ITU.Lang.Core.Types;
 using static ITU.Lang.Core.Grammar.LangParser;
-using System.Collections.Generic;
 
 namespace ITU.Lang.Core.Translator
 {
@@ -91,17 +91,34 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitAccess([NotNull] AccessContext context)
         {
-            var name = context.GetText();
-            var res = scopes.GetBinding(name);
-            if (!scopes.HasBinding(name))
+            var names = context.nestedName().Name().Select(x => x.GetText()).ToList();
+            var firstName = names[0];
+
+            if (!scopes.HasBinding(firstName))
             {
-                throw new TranspilationException("Variable '" + name + "' was not declared before accessing!", GetTokenLocation(context));
+                throw new TranspilationException($"Variable '{firstName}' was not declared before accessing", GetTokenLocation(context));
+            }
+
+            var binding = scopes.GetBinding(firstName);
+            var typ = binding.Type;
+
+            foreach (var name in names.GetRange(1, names.Count - 1))
+            {
+                if (!(typ is ObjectType n))
+                    throw new TranspilationException($"Cannot access property '{name}' on non-object", GetTokenLocation(context));
+
+                var member = n.GetMember(name);
+
+                if (member == null)
+                    throw new TranspilationException($"Cannot access member '{name}' on object '{n.AsNativeName()}'", GetTokenLocation(context));
+
+                typ = member;
             }
 
             return new Node()
             {
-                TranslatedValue = name,
-                Type = res.Type,
+                TranslatedValue = string.Join(".", names),
+                Type = typ,
                 Location = GetTokenLocation(context),
             };
         }
@@ -221,11 +238,10 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitInvokeFunction([NotNull] InvokeFunctionContext context)
         {
-            var name = context.nestedName().GetText(); // TODO: Cannot work for `.`-names yet
+            var access = VisitAccess(context.access());
+            var name = access.TranslatedValue;
 
-            var function = scopes.GetBinding(name);
-
-            if (!(function?.Type is FunctionType))
+            if (!(access.Type is FunctionType funcType))
             {
                 throw new TranspilationException($"Cannot call non-invokable '{name}'", GetTokenLocation(context));
             }
@@ -233,7 +249,6 @@ namespace ITU.Lang.Core.Translator
             var exprs = context.arguments().expr().Select(expr => VisitExpr(expr));
 
             var exprTypes = exprs.Select(expr => expr.Type).ToList();
-            var funcType = (FunctionType)function.Type;
             var paramTypes = funcType.ParameterTypes;
 
             if (!exprTypes.Equals(paramTypes))
@@ -243,16 +258,16 @@ namespace ITU.Lang.Core.Translator
 
                 if (exprCount != paramCount)
                 {
-                    throw new TranspilationException($"Function '{name}' takes {paramCount} parameters, got {exprCount}", GetTokenLocation(context));
+                    throw new TranspilationException($"Function '{name}' takes {paramCount} parameters, but got {exprCount}", GetTokenLocation(context));
                 }
 
-                for (int i = 0; i > exprCount; i++)
+                for (int i = 0; i < exprCount; i++)
                 {
                     var expr = exprTypes[i];
                     var param = paramTypes[i];
                     if (!expr.Equals(param))
                     {
-                        throw new TranspilationException($"Function '{name}' could not be invoked: parameter {i} must be of type '{param}', but was '{expr}'", GetTokenLocation(context));
+                        throw new TranspilationException($"Function '{name}' could not be invoked: parameter {i + 1} must be of type '{param.AsNativeName()}', but was '{expr.AsNativeName()}'", GetTokenLocation(context));
                     }
                 }
             }
@@ -262,7 +277,7 @@ namespace ITU.Lang.Core.Translator
             // Construct type of what the call would be, so that we can compare it to the variable in scope of Name
             return new Node()
             {
-                TranslatedValue = $"{function.TranslatedValue}({exprText})",
+                TranslatedValue = $"{name}({exprText})",
                 Type = funcType.ReturnType,
                 Location = GetTokenLocation(context),
             };
@@ -294,6 +309,21 @@ namespace ITU.Lang.Core.Translator
         {
             using var _ = UseScope();
             var members = new Dictionary<string, (Type, Node)>();
+            var objMembers = new Dictionary<string, Type>();
+
+            // When we construct the members, we should act as if 'this' is a object
+            var node = new Node()
+            {
+                TranslatedValue = "this",
+                Location = GetTokenLocation(context),
+                Type = new ObjectType()
+                {
+                    Members = objMembers,
+                },
+                IsConst = true,
+            };
+
+            scopes.Bind("this", node);
 
             context.classMember()
                 .ToList()
@@ -301,29 +331,36 @@ namespace ITU.Lang.Core.Translator
                 {
                     var name = ctx.Name().GetText();
                     var val = VisitClassMember(ctx);
+
+                    if (name == "constructor" && !(val.Type is FunctionType))
+                        throw new TranspilationException("Member 'constructor' must be a method", GetTokenLocation(ctx));
+
                     members.Add(name, (val.Type, val));
+                    objMembers.Add(name, val.Type);
                     scopes.Bind(name, val);
                 });
 
-            var classType = new ClassType()
+            // After members have been constructed, actually make this node a class instead of an object
+            node.TranslatedValue = "";
+            node.Type = new ClassType()
             {
                 Members = members,
             };
 
-            return new Node()
-            {
-                TranslatedValue = "",
-                Location = GetTokenLocation(context),
-                Type = classType,
-            };
+            return node;
         }
 
         public override Node VisitClassMember([NotNull] ClassMemberContext context)
         {
+            using var _ = UseScope();
+
             var fun = InnerVisitFunction(context.blockFunction(), context.lambdaFunction(), true);
+
             var expr = context.expr() != null ? VisitExpr(context.expr()) : null;
-            var typ = context.typeAnnotation()?.typeExpr() != null
-                ? EvalTypeExpr(context.typeAnnotation().typeExpr())
+
+            var typeExpr = context.typeAnnotation()?.typeExpr();
+            var typ = typeExpr != null
+                ? EvalTypeExpr(typeExpr)
                 : null;
 
             var val = fun ?? expr;
@@ -332,6 +369,8 @@ namespace ITU.Lang.Core.Translator
             {
                 val?.AssertType(typ);
             }
+
+            if (fun != null) return fun;
 
             return new Node()
             {
@@ -343,19 +382,63 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitInstantiateObject([NotNull] InstantiateObjectContext context)
         {
-            var name = context.nestedName().GetText(); // TODO: Cannot work for `.`-names yet
+            var name = context.nestedName().GetText(); // TODO: Cannot work for `.`-names yet (think namespacing)
+
+            if (!typeScopes.HasBinding(name))
+                throw new TranspilationException($"Cannot instantiate non-existant class {name}", GetTokenLocation(context));
+
+            var classType = typeScopes.GetBinding(name);
+
+            if (!(classType is ClassType c))
+                throw new TranspilationException($"Cannot instantiate non-class value {name}", GetTokenLocation(context));
 
             var exprs = context.arguments()?.expr().Select(expr => VisitExpr(expr));
 
-            // TODO: Actually perform typechecking
+            if (c.Members.TryGetValue("constructor", out var constructor))
+            {
+                var paramTypes = ((FunctionType)constructor.Item1).ParameterTypes;
+
+                if (exprs == null && paramTypes.Count != 0)
+                    throw new TranspilationException($"Class with constructor expects {paramTypes.Count} arguments, but got none.", GetTokenLocation(context));
+
+                // If constructor expects no arguments, exprs is null, since the user did not type any arguments, so we make an empty list.
+                exprs ??= new List<Node>();
+
+                var exprTypes = exprs.Select(expr => expr.Type).ToList();
+
+                if (!exprTypes.Equals(paramTypes))
+                {
+                    var exprCount = exprTypes.Count;
+                    var paramCount = paramTypes.Count;
+
+                    if (exprCount != paramCount)
+                    {
+                        throw new TranspilationException($"Function '{name}' takes {paramCount} parameters, but got {exprCount}", GetTokenLocation(context));
+                    }
+
+                    for (int i = 0; i < exprCount; i++)
+                    {
+                        var expr = exprTypes[i];
+                        var param = paramTypes[i];
+
+                        if (!expr.Equals(param))
+                        {
+                            throw new TranspilationException($"Function '{name}' could not be invoked: parameter {i + 1} must be of type '{param.AsNativeName()}', but was '{expr.AsNativeName()}'", GetTokenLocation(context));
+                        }
+                    }
+                }
+            }
+            else if (exprs?.Count() != 0)
+            {
+                throw new TranspilationException("Cannot pass arguments to class without a constructor", GetTokenLocation(context));
+            }
 
             var exprText = exprs != null ? string.Join(",", exprs.Select(expr => expr.TranslatedValue)) : "";
 
-            // Construct type of what the call would be, so that we can compare it to the variable in scope of Name
             return new Node()
             {
                 TranslatedValue = $"new {name}({exprText})",
-                Type = new ObjectType() { Name = name },
+                Type = c.ToObjectType(),
                 Location = GetTokenLocation(context),
             };
         }

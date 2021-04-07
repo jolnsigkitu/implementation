@@ -17,18 +17,18 @@ namespace ITU.Lang.Core
 
             var tree = parser.prog();
 
-            try
-            {
-                var visitor = new Translator.Translator(tokens);
-                return visitor.VisitProg(tree).TranslatedValue;
-            }
-            catch (TranspilationException ex)
-            {
-                throw ex;
-                // Console.Error.WriteLine(ex.Message);
-                // Environment.Exit(1);
-                // return "";
-            }
+            // try
+            // {
+            var visitor = new Translator.Translator(tokens);
+            return visitor.VisitProg(tree).TranslatedValue;
+            // }
+            // catch (TranspilationException ex)
+            // {
+            //     throw ex;
+            //     // Console.Error.WriteLine(ex.Message);
+            //     // Environment.Exit(1);
+            //     // return "";
+            // }
         }
     }
 }

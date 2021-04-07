@@ -80,7 +80,7 @@ functionArguments:
 	| (Name typeAnnotation Comma)* (Name typeAnnotation)?;
 
 invokeFunction:
-	nestedName LeftParen arguments RightParen; // f(), LONG_FUNCTION_NAME(a,37, 4+9)
+	access LeftParen arguments RightParen; // f(), LONG_FUNCTION_NAME(a,37, 4+9)
 
 instantiateObject:
 	New nestedName (LeftParen arguments RightParen)?;

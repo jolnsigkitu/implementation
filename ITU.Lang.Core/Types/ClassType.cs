@@ -6,12 +6,12 @@ namespace ITU.Lang.Core.Types
 {
     public class ClassType : Type
     {
-        public IDictionary<string, (Type, Node)> Members = new Dictionary<string, (Type, Node)>();
+        public Dictionary<string, (Type, Node)> Members = new Dictionary<string, (Type, Node)>();
 
         public string Name { get; set; }
 
         public string AsNativeName() => Name;
-        public string AsTranslatedName() => "";
+        public string AsTranslatedName() => Name;
 
         public bool Equals(Type other)
         {
@@ -34,6 +34,24 @@ namespace ITU.Lang.Core.Types
                     (cur, item) => ((cur * modifier) + item.Key.GetHashCode()) * modifier + item.Value.GetHashCode()
                 );
             }
+        }
+
+        public ObjectType ToObjectType()
+        {
+            var objMembers = this.Members
+                .Select((entry) =>
+                {
+                    var typ = entry.Value.Item1;
+                    if (typ is ClassType t)
+                        typ = t.ToObjectType();
+                    return (entry.Key, typ);
+                })
+                .ToDictionary(x => x.Item1, x => x.Item2);
+            return new ObjectType()
+            {
+                Name = this.Name,
+                Members = objMembers,
+            };
         }
     }
 }
