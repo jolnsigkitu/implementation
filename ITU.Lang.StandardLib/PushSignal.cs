@@ -5,7 +5,7 @@ namespace ITU.Lang.StandardLib
 {
     public static class Signal
     {
-        public static PushSignal<int> Timer(int millisecondInterval)
+        public static ProducerSignal<int> Timer(int millisecondInterval)
         {
             return PushSignal<int>.Produce((push) =>
             {

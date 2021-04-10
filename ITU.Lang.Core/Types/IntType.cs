@@ -2,24 +2,14 @@ namespace ITU.Lang.Core.Types
 {
     public class IntType : Type
     {
-        public string AsNativeName()
-        {
-            return "int";
-        }
+        public string AsNativeName() => "int";
 
-        public string AsTranslatedName()
-        {
-            return "int";
-        }
+        public string AsTranslatedName() => "int";
 
-        public bool Equals(Type other)
-        {
-            return other is IntType;
-        }
+        public bool Equals(Type other) => other is IntType;
 
-        public override int GetHashCode()
-        {
-            return 3;
-        }
+        public override int GetHashCode() => 3;
+
+        public override string ToString() => "int";
     }
 }

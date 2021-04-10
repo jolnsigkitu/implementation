@@ -22,9 +22,6 @@ namespace ITU.Lang.Core.Translator
                 return HandleOperatorExpr(context);
             }
 
-            var leftParen = context.LeftParen()?.GetText() ?? "";
-            var rightParen = context.RightParen()?.GetText() ?? "";
-
             var buf = new StringBuilder();
             Type lastSeenType = null;
             var hasVisitedFirstChild = false;
@@ -58,7 +55,7 @@ namespace ITU.Lang.Core.Translator
 
             return new Node()
             {
-                TranslatedValue = leftParen + buf.ToString() + rightParen,
+                TranslatedValue = buf.ToString(),
                 Type = lastSeenType,
                 Location = GetTokenLocation(context),
             };
@@ -89,38 +86,79 @@ namespace ITU.Lang.Core.Translator
             };
         }
 
+        private R InvokeIf<T, R>(T value, System.Func<T, R> func) =>
+            value != null ? func(value) : default(R);
+
         public override Node VisitAccess([NotNull] AccessContext context)
         {
-            var names = context.nestedName().Name().Select(x => x.GetText()).ToList();
-            var firstName = names[0];
+            var node = InvokeIf((((ParserRuleContext)context.invokeFunction()) ?? context.instantiateObject()) ?? context.expr(), Visit);
+            var typ = node?.Type;
 
-            if (!scopes.HasBinding(firstName))
+            var name = context.Name()?.GetText();
+
+            if (name != null)
             {
-                throw new TranspilationException($"Variable '{firstName}' was not declared before accessing", GetTokenLocation(context));
+                if (!scopes.HasBinding(name))
+                    throw new TranspilationException($"Variable '{name}' was not declared before accessing", GetTokenLocation(context));
+
+                node = scopes.GetBinding(name);
+                typ = node.Type;
             }
 
-            var binding = scopes.GetBinding(firstName);
-            var typ = binding.Type;
+            var leftParen = context.LeftParen()?.GetText() ?? "";
+            var rightParen = context.RightParen()?.GetText() ?? "";
+            node.TranslatedValue = leftParen + node.TranslatedValue + rightParen;
 
-            foreach (var name in names.GetRange(1, names.Count - 1))
+            var chain = AccumulateAccessChain(context.accessChain());
+            var chainParts = new List<string>();
+            foreach (var link in chain)
             {
                 if (!(typ is ObjectType n))
                     throw new TranspilationException($"Cannot access property '{name}' on non-object", GetTokenLocation(context));
 
-                var member = n.GetMember(name);
+                var memberName = link is InvokeFunctionContext l ? l.Name().GetText() : link.GetText();
+                var member = n.GetMember(memberName);
 
                 if (member == null)
                     throw new TranspilationException($"Cannot access member '{name}' on object '{n.AsNativeName()}'", GetTokenLocation(context));
 
+                // TODO: Make type check on parameter types vs expr types, maybe just visit the stuff
+                if (member is FunctionType f)
+                {
+                    var functionNode = VisitInvokeFunction((InvokeFunctionContext)link, new Node() { Type = f });
+                    member = functionNode.Type;
+                    chainParts.Add(functionNode.TranslatedValue);
+                }
+                else
+                {
+                    chainParts.Add(memberName);
+                }
+
                 typ = member;
             }
 
+            string traillingChain = chainParts.Count != 0 ? $".{string.Join(".", chainParts)}" : "";
+
             return new Node()
             {
-                TranslatedValue = string.Join(".", names),
+                TranslatedValue = node.TranslatedValue + traillingChain,
                 Type = typ,
                 Location = GetTokenLocation(context),
             };
+        }
+
+        public IList<IParseTree> AccumulateAccessChain(AccessChainContext context)
+        {
+            var list = new List<IParseTree>();
+
+            for (var rest = context; rest != null; rest = rest.accessChain())
+            {
+                var name = rest.Name();
+                var function = rest.invokeFunction();
+                list.Add((IParseTree)name ?? function);
+            }
+
+            return list;
         }
 
         public override Node VisitBool([NotNull] BoolContext context)
@@ -236,12 +274,23 @@ namespace ITU.Lang.Core.Translator
             };
         }
 
-        public override Node VisitInvokeFunction([NotNull] InvokeFunctionContext context)
-        {
-            var access = VisitAccess(context.access());
-            var name = access.TranslatedValue;
+        public override Node VisitInvokeFunction([NotNull] InvokeFunctionContext context) => VisitInvokeFunction(context);
 
-            if (!(access.Type is FunctionType funcType))
+        public Node VisitInvokeFunction([NotNull] InvokeFunctionContext context, Node binding = null)
+        {
+            var name = binding?.TranslatedValue ?? context.Name().GetText();
+            if (binding == null)
+            {
+                if (!scopes.HasBinding(name))
+                {
+                    throw new TranspilationException($"Tried to invoke non-initialized invokable '{name}'", GetTokenLocation(context));
+                }
+                binding = scopes.GetBinding(name);
+            }
+
+            name = binding?.TranslatedValue ?? name;
+
+            if (!(binding.Type is FunctionType funcType))
             {
                 throw new TranspilationException($"Cannot call non-invokable '{name}'", GetTokenLocation(context));
             }
@@ -251,7 +300,7 @@ namespace ITU.Lang.Core.Translator
             var exprTypes = exprs.Select(expr => expr.Type).ToList();
             var paramTypes = funcType.ParameterTypes;
 
-            if (!exprTypes.Equals(paramTypes))
+            if (!paramTypes.Equals(exprTypes))
             {
                 var exprCount = exprTypes.Count;
                 var paramCount = paramTypes.Count;
@@ -266,7 +315,7 @@ namespace ITU.Lang.Core.Translator
                     var expr = exprTypes[i];
                     var param = paramTypes[i];
 
-                    if (!expr.Equals(param))
+                    if (!param.Equals(expr))
                     {
                         throw new TranspilationException($"Function '{name}' could not be invoked: parameter {i + 1} must be of type '{param.AsNativeName()}', but was '{expr.AsNativeName()}'", GetTokenLocation(context));
                     }

@@ -22,14 +22,7 @@ semiStatement: inlineStatement Semi;
 returnStatement: Return expr Semi;
 
 // Value Expressions
-expr:
-	term
-	| invokeFunction
-	| instantiateObject
-	| expr operator expr
-	| operator expr
-	| expr operator
-	| LeftParen expr RightParen;
+expr: term | expr operator expr | operator expr | expr operator;
 
 operator:
 	(
@@ -53,7 +46,14 @@ literal: integer | bool | stringLiteral | charLiteral;
 
 nestedName: Name (Dot Name)*;
 
-access: nestedName;
+access: (
+		Name
+		| invokeFunction
+		| instantiateObject
+		| LeftParen expr RightParen
+	) accessChain?;
+
+accessChain: Dot (Name | invokeFunction) accessChain?;
 
 vardec: (Const | Let) typedName Eq expr;
 
@@ -79,8 +79,7 @@ function: blockFunction | lambdaFunction;
 functionArguments:
 	| (Name typeAnnotation Comma)* (Name typeAnnotation)?;
 
-invokeFunction:
-	access LeftParen arguments RightParen; // f(), LONG_FUNCTION_NAME(a,37, 4+9)
+invokeFunction: Name LeftParen arguments RightParen;
 
 instantiateObject:
 	New nestedName (LeftParen arguments RightParen)?;

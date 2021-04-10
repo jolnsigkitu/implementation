@@ -2,24 +2,12 @@ namespace ITU.Lang.Core.Types
 {
     public class StringType : Type
     {
-        public string AsNativeName()
-        {
-            return "string";
-        }
+        public string AsNativeName() => "string";
 
-        public string AsTranslatedName()
-        {
-            return "string";
-        }
+        public string AsTranslatedName() => "string";
 
-        public bool Equals(Type other)
-        {
-            return other is StringType;
-        }
+        public bool Equals(Type other) => other is StringType;
 
-        public override int GetHashCode()
-        {
-            return 5;
-        }
+        public override int GetHashCode() => 5;
     }
 }
