@@ -147,7 +147,7 @@ namespace ITU.Lang.Core.Translator
                 {
                     ParameterTypes = new List<Type>()
                     {
-                        new IntType(),
+                        new AnyType(),
                     }
                 },
                 IsConst = true,
@@ -159,7 +159,7 @@ namespace ITU.Lang.Core.Translator
                 {
                     ParameterTypes = new List<Type>()
                     {
-                        new IntType(),
+                        new AnyType(),
                     }
                 },
                 IsConst = true,
@@ -233,6 +233,7 @@ namespace ITU.Lang.Core.Translator
 
             scopes.Bind("Signal", new Node()
             {
+                TranslatedValue = "Signal",
                 Type = new ObjectType()
                 {
                     Members = new Dictionary<string, Type>()

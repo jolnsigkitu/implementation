@@ -1,9 +1,8 @@
-
 const timer = Signal.Timer(1000);
 timer.ForEach((item: int) => println(item));
 
-// TODO: Support direct chaining of function calls
-// Signal.Timer(2000).Map(i => i * 2).ForEach(item => println(item));
+Signal.Timer(2000).Map((i: int) => i * 2).ForEach((item: int) => println(item));
+
 const a = Signal.Timer(2000);
 const b = a.Map((i: int) => i * 2);
 b.ForEach((item: int) => println(item));

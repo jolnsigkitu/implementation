@@ -91,7 +91,7 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitAccess([NotNull] AccessContext context)
         {
-            var node = InvokeIf(context.GetRuleContext<ParserRuleContext>(0), Visit);
+            var node = InvokeIf((((ParserRuleContext)context.invokeFunction()) ?? context.instantiateObject()) ?? context.expr(), Visit);
             var typ = node?.Type;
 
             var name = context.Name()?.GetText();
@@ -122,11 +122,10 @@ namespace ITU.Lang.Core.Translator
                 if (member == null)
                     throw new TranspilationException($"Cannot access member '{name}' on object '{n.AsNativeName()}'", GetTokenLocation(context));
 
-
                 // TODO: Make type check on parameter types vs expr types, maybe just visit the stuff
                 if (member is FunctionType f)
                 {
-                    var functionNode = VisitInvokeFunction((InvokeFunctionContext)link);
+                    var functionNode = VisitInvokeFunction((InvokeFunctionContext)link, new Node() { Type = f });
                     member = functionNode.Type;
                     chainParts.Add(functionNode.TranslatedValue);
                 }
@@ -138,9 +137,11 @@ namespace ITU.Lang.Core.Translator
                 typ = member;
             }
 
+            string traillingChain = chainParts.Count != 0 ? $".{string.Join(".", chainParts)}" : "";
+
             return new Node()
             {
-                TranslatedValue = string.Join(".", chainParts),
+                TranslatedValue = node.TranslatedValue + traillingChain,
                 Type = typ,
                 Location = GetTokenLocation(context),
             };
@@ -273,12 +274,23 @@ namespace ITU.Lang.Core.Translator
             };
         }
 
-        public override Node VisitInvokeFunction([NotNull] InvokeFunctionContext context)
-        {
-            var access = VisitAccess(context.access());
-            var name = access.TranslatedValue;
+        public override Node VisitInvokeFunction([NotNull] InvokeFunctionContext context) => VisitInvokeFunction(context);
 
-            if (!(access.Type is FunctionType funcType))
+        public Node VisitInvokeFunction([NotNull] InvokeFunctionContext context, Node binding = null)
+        {
+            var name = binding?.TranslatedValue ?? context.Name().GetText();
+            if (binding == null)
+            {
+                if (!scopes.HasBinding(name))
+                {
+                    throw new TranspilationException($"Tried to invoke non-initialized invokable '{name}'", GetTokenLocation(context));
+                }
+                binding = scopes.GetBinding(name);
+            }
+
+            name = binding?.TranslatedValue ?? name;
+
+            if (!(binding.Type is FunctionType funcType))
             {
                 throw new TranspilationException($"Cannot call non-invokable '{name}'", GetTokenLocation(context));
             }
@@ -288,7 +300,7 @@ namespace ITU.Lang.Core.Translator
             var exprTypes = exprs.Select(expr => expr.Type).ToList();
             var paramTypes = funcType.ParameterTypes;
 
-            if (!exprTypes.Equals(paramTypes))
+            if (!paramTypes.Equals(exprTypes))
             {
                 var exprCount = exprTypes.Count;
                 var paramCount = paramTypes.Count;
@@ -303,7 +315,7 @@ namespace ITU.Lang.Core.Translator
                     var expr = exprTypes[i];
                     var param = paramTypes[i];
 
-                    if (!expr.Equals(param))
+                    if (!param.Equals(expr))
                     {
                         throw new TranspilationException($"Function '{name}' could not be invoked: parameter {i + 1} must be of type '{param.AsNativeName()}', but was '{expr.AsNativeName()}'", GetTokenLocation(context));
                     }

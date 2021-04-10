@@ -37,5 +37,7 @@ namespace ITU.Lang.Core.Translator
         {
             AssertType(n.Type);
         }
+
+        public override string ToString() => $"Node: {{Type: {Type}, Translated: {TranslatedValue}{(IsConst ? ", const" : "")}}}";
     }
 }

@@ -67,5 +67,7 @@ namespace ITU.Lang.Core.Types
                 );
             }
         }
+
+        public override string ToString() => AsNativeName();
     }
 }
