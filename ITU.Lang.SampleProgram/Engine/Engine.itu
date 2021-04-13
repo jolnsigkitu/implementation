@@ -1,0 +1,8 @@
+
+type Engine = {
+    constructor() {
+        print("I am become engine");
+    }
+
+    getState() => "foobar";
+};

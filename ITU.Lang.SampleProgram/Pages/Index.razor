@@ -1,0 +1,24 @@
+@page "/"
+
+<h1>Typing speed tester!</h1>
+
+<p>Current state: @state</p>
+
+<div class="flex">
+    <input @onkeyup="onInputChange" class="flex-1 bg-gray-200 p-2" />
+</div>
+
+@code {
+    private string state = "";
+    private Engine engine = new Engine();
+    protected override void OnInitialized()
+    {
+        state = engine.getState();
+    }
+
+    public void onInputChange(KeyboardEventArgs e)
+    {
+        Console.WriteLine("yoooooo");
+        Console.WriteLine(e.Key);
+    }
+}

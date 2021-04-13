@@ -137,10 +137,9 @@ namespace ITU.Lang.Core.Translator
             };
 
             scopes.Bind(name, binding);
-            var constPrefix = binding.IsConst ? "const " : "";
             return new Node()
             {
-                TranslatedValue = $"{constPrefix}{binding.Type.AsTranslatedName()} {name} = {expr.TranslatedValue}",
+                TranslatedValue = $"{binding.Type.AsTranslatedName()} {name} = {expr.TranslatedValue}",
                 Location = GetTokenLocation(context),
             };
         }

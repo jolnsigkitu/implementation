@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing speed tester</title>
+
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="font-mono flex flex-col justify-center items-center w-screen h-screen pt-24">
+    <div class="text-center">
+        <div class="text-6xl"><span id="wpm">0</span> wpm</div>
+        <div class="flex items-baseline justify-center">
+            <div id="timer">00:00</div>
+            <div>&middot;</div>
+            <div><span id="accuracy">0</span> %</div>
+        </div>
+    </div>
+    <div id="inputContainer" class="flex justify-center items-center w-full p-2 m-4 bg-gray-100">
+        <input autofocus type="text" id="textInput" class="text-2xl bg-transparent focus:outline-none" autofocus>
+    </div>
+    <div id="targetContainer" class="w-full h-60 max-w-2xl text-xl overflow-y-auto"></div>
+    <script type="module" src="index.js"></script>
+</body>
+</html>
