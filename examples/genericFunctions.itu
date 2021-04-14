@@ -12,14 +12,7 @@ const intInvoke = (inp: int, callback: callback<int>) {
     callback(inp);
 };
 
+type funny = <T, T1, T2>(T, T1, T2) => void;
 
-/*
-const foo = (
-    inp: int,
-    callback: (int) => void
-) {
-    callback(inp);
-};
-
-foo(1, (a: int) => print(a));
-*/
+const yeeee: funny<int, boolean, boolean> = (a: int, b: boolean, c: boolean) {};
+const yeeee2 = (a: int, b: boolean, c: boolean) {};

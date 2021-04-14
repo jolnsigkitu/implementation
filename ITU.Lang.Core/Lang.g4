@@ -100,7 +100,7 @@ typeRef: Name genericHandle?;
 
 classExpr: LeftBrace classMember* RightBrace;
 
-funcTypeExpr: funcTypeExprParamList FatArrow (typeExpr | Void);
+funcTypeExpr: genericHandle? funcTypeExprParamList FatArrow (typeExpr | Void);
 
 funcTypeExprParamList:
 	LeftParen (typeExpr Comma)* typeExpr? RightParen;

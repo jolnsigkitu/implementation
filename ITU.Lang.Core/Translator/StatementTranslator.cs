@@ -188,20 +188,27 @@ namespace ITU.Lang.Core.Translator
 
             if (func != null)
             {
-                var typ = new FunctionType()
+                using (var _ = UseScope())
                 {
-                    ReturnType = InvokeIf(func.typeExpr(), EvalTypeExpr) ?? new VoidType(),
-                    ParameterTypes = func.funcTypeExprParamList().typeExpr().Select(EvalTypeExpr).ToList(),
-                };
+                    var genericHandleNames = func.genericHandle()?.Name().Select(n => n.GetText()).ToList();
 
-                var hasGenericReturnType = typ.ReturnType is GenericTypeIdentifier || typ.ReturnType is GenericFunctionType;
-                var hasGenericParameterType = typ.ParameterTypes.Any(t => t is GenericTypeIdentifier || t is GenericFunctionType);
-                if (hasGenericReturnType || hasGenericParameterType)
-                {
-                    typ = new GenericFunctionType(typ);
+                    genericHandleNames?.ForEach(handle => typeScopes.Bind(handle, new GenericTypeIdentifier(handle)));
+
+                    var typ = new FunctionType()
+                    {
+                        ReturnType = InvokeIf(func.typeExpr(), EvalTypeExpr) ?? new VoidType(),
+                        ParameterTypes = func.funcTypeExprParamList().typeExpr().Select(EvalTypeExpr).ToList(),
+                    };
+
+                    var hasGenericReturnType = typ.ReturnType is GenericTypeIdentifier || typ.ReturnType is GenericFunctionType;
+                    var hasGenericParameterType = typ.ParameterTypes.Any(t => t is GenericTypeIdentifier || t is GenericFunctionType);
+                    if (genericHandleNames != null || hasGenericReturnType || hasGenericParameterType)
+                    {
+                        typ = new GenericFunctionType(typ);
+                    }
+
+                    return typ;
                 }
-
-                return typ;
             }
 
             var typeRef = context.typeRef();
