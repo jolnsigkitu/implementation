@@ -139,6 +139,7 @@ namespace ITU.Lang.Core.Translator
             typeScopes.Bind("boolean", new BooleanType());
             typeScopes.Bind("string", new StringType());
             typeScopes.Bind("char", new CharType());
+            typeScopes.Bind("any", new AnyType());
 
             scopes.Bind("println", new Node()
             {

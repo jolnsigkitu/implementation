@@ -1,0 +1,25 @@
+const invoke = <T>(inp: T, callback: (T) => void) {
+    callback(inp);
+};
+
+invoke(2, print);
+
+//type intInvoke = invoke<int>;
+
+type callback = <T>(T) => void;
+
+const intInvoke = (inp: int, callback: callback<int>) {
+    callback(inp);
+};
+
+
+/*
+const foo = (
+    inp: int,
+    callback: (int) => void
+) {
+    callback(inp);
+};
+
+foo(1, (a: int) => print(a));
+*/

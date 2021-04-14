@@ -15,6 +15,7 @@ namespace ITU.Lang.Core.Types
 
         public bool Equals(Type other)
         {
+            if (other is AnyType) return true;
             if (other is ClassType t)
                 return Name.Equals(t.Name) && Members.Equals(t.Members);
             return false;

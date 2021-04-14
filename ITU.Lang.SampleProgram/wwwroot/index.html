@@ -18,6 +18,23 @@
         <a class="dismiss">🗙</a>
     </div> -->
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        window.AddKeyupEventListenerCSharp = (dotnetHelper, queryString) => {
+            document.querySelector(queryString).addEventListener('keyup', (evt) => {
+                dotnetHelper.invokeMethodAsync('EventHandler', {
+                    AltKey: evt.altKey,
+                    Code: evt.code,
+                    ctrlKey: evt.ctrlKey,
+                    Key: evt.key,
+                    Location: evt.location,
+                    MetaKey: evt.metaKey,
+                    Repeat: evt.repeat,
+                    ShiftKey: evt.shiftKey,
+                    Type: "KeyboardEventArgs",
+                });
+            });
+        }
+    </script>
 </body>
 
 </html>

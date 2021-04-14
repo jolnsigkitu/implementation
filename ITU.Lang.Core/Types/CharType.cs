@@ -6,7 +6,7 @@ namespace ITU.Lang.Core.Types
 
         public string AsTranslatedName() => "char";
 
-        public bool Equals(Type other) => other is CharType;
+        public bool Equals(Type other) => other is CharType || other is AnyType;
 
         public override int GetHashCode() => 7;
     }

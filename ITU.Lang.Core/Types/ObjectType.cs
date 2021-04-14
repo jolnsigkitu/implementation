@@ -23,7 +23,7 @@ namespace ITU.Lang.Core.Types
             {
                 return Name.Equals(t.Name) && Members.Equals(t.Members);
             }
-            return false;
+            return other is AnyType;
         }
 
         // Hash codes are needed for successful lookup in dictionaries

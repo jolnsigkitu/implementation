@@ -6,7 +6,7 @@ namespace ITU.Lang.Core.Types
 
         public string AsTranslatedName() => "int";
 
-        public bool Equals(Type other) => other is IntType;
+        public bool Equals(Type other) => other is IntType || other is AnyType;
 
         public override int GetHashCode() => 3;
 

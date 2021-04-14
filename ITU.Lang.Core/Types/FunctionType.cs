@@ -40,6 +40,7 @@ namespace ITU.Lang.Core.Types
 
         public bool Equals(Type other)
         {
+            if (other is AnyType) return true;
             if (!(other is FunctionType f))
             {
                 return false;

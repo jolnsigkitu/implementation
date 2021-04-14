@@ -4,7 +4,7 @@ namespace ITU.Lang.Core.Types
     {
         public string AsNativeName() => "any";
 
-        public string AsTranslatedName() => "object";
+        public string AsTranslatedName() => "dynamic";
 
         public bool Equals(Type other) => true;
 

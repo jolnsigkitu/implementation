@@ -26,7 +26,7 @@ namespace ITU.Lang.Core.Translator
 
         public override Node VisitBlock([NotNull] BlockContext context)
         {
-            Type blockType = null;
+            Type blockType = new VoidType();
             var hasReturnStatement = false;
             var buf = new StringBuilder();
 
@@ -166,6 +166,12 @@ namespace ITU.Lang.Core.Translator
             else
             {
                 var typeExpr = EvalTypeExpr(context.typeExpr());
+
+                if (typeExpr is VoidType)
+                {
+                    throw new TranspilationException("Cannot assign void to a type", GetTokenLocation(context));
+                }
+
                 typeScopes.Bind(name, typeExpr);
             }
 
@@ -178,9 +184,28 @@ namespace ITU.Lang.Core.Translator
 
         private Type EvalTypeExpr([NotNull] TypeExprContext context)
         {
-            // TODO: Expand when `typeExpr` is expanded
-            var name = context.Name().GetText();
-            // TODO: Fix void only being used in correct contexts
+            var func = context.funcTypeExpr();
+
+            if (func != null)
+            {
+                var typ = new FunctionType()
+                {
+                    ReturnType = InvokeIf(func.typeExpr(), EvalTypeExpr) ?? new VoidType(),
+                    ParameterTypes = func.funcTypeExprParamList().typeExpr().Select(EvalTypeExpr).ToList(),
+                };
+
+                var hasGenericReturnType = typ.ReturnType is GenericTypeIdentifier || typ.ReturnType is GenericFunctionType;
+                var hasGenericParameterType = typ.ParameterTypes.Any(t => t is GenericTypeIdentifier || t is GenericFunctionType);
+                if (hasGenericReturnType || hasGenericParameterType)
+                {
+                    typ = new GenericFunctionType(typ);
+                }
+
+                return typ;
+            }
+
+            var typeRef = context.typeRef();
+            var name = typeRef.Name().GetText();
             if (name == "void")
             {
                 return new VoidType();
@@ -192,7 +217,23 @@ namespace ITU.Lang.Core.Translator
                 throw new TranspilationException($"Type '{name}' is not yet bound", GetTokenLocation(context));
             }
 
-            return boundType;
+            var handle = typeRef.genericHandle();
+
+            if (handle == null)
+            {
+                return boundType;
+            }
+
+            if (!(boundType is GenericFunctionType generic))
+            {
+                throw new TranspilationException("Cannot specify generic arguments for non-generic type", GetTokenLocation(context));
+            }
+
+            var handleNames = handle.Name().Select(n => n.GetText());
+            var handleTypes = handleNames.Select(n => typeScopes.GetBinding(n)).ToList();
+
+            var resolutions = generic.Resolve(handleTypes);
+            return generic.Specify(resolutions);
         }
 
         public override Node VisitAssign([NotNull] AssignContext context)

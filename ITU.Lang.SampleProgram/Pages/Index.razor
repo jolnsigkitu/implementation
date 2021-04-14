@@ -1,4 +1,5 @@
 @page "/"
+@inject IJSRuntime jsRuntime
 
 <h1>Typing speed tester!</h1>
 <div class="text-center">
@@ -9,39 +10,50 @@
         <div><span id="accuracy">0</span> %</div>
     </div>
 </div>
-<div id="inputContainer" class="flex justify-center items-center w-full p-2 m-4 bg-gray-100 focus-within:bg-gray-200" @onclick="FocusTextInput">
-    <input type="text" id="textInput" @ref="textInput" class="text-2xl bg-transparent focus:outline-none" autofocus @onkeyup="OnKey">
+<div id="inputContainer" class="flex justify-center items-center w-full p-2 m-4 bg-gray-100 focus-within:bg-gray-200"
+    @onclick="FocusTextInput">
+    <input type="text" id="textInput" @ref="textInput" class="text-2xl bg-transparent focus:outline-none" autofocus
+        @onkeyup="OnKey">
 </div>
 <div id="targetContainer" class="w-full h-60 max-w-2xl text-xl overflow-y-auto"></div>
 
-@*
-<p>Current state: @state</p>
+@* <button class="px-4 py-2 bg-gray-400 m-2 rounded" @onclick="CallNativeJsMethod">Test</button> *@
 
-<div class="flex">
+@*
+    <p>Current state: @state</p>
+
+    <div class="flex">
     <input @onkeyup="onInputChange" class="flex-1 bg-gray-200 p-2" />
-</div> *@
+    </div> *@
 
 @code {
     private ElementReference textInput { get; set; }
     private string state = "";
     private Engine engine = new Engine();
+
+    private JSKeyboardEventHandlerSignal keypressSignal = new JSKeyboardEventHandlerSignal();
+
     protected override void OnInitialized()
     {
         state = engine.getState();
     }
 
-    public void onInputChange(KeyboardEventArgs e)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Console.WriteLine("yoooooo");
-        Console.WriteLine(e.Key);
+        if (firstRender)
+        {
+            var signal = await keypressSignal.Attach(jsRuntime, "input");
+            //signal.ForEach((evt) => Console.WriteLine(evt.Key));
+            engine.init(signal);
+        }
     }
 
     public void OnKey(KeyboardEventArgs e)
     {
         /*
         if(!hasStarted) {
-            setInterval(renderStats, 1000);
-            hasStarted = true;
+        setInterval(renderStats, 1000);
+        hasStarted = true;
         }
 
         const val = evt.target.value;
@@ -50,13 +62,13 @@
         words[currentWord].correct = val === text + " ";
 
         if(evt.key === " ") {
-            currentWord++;
-            evt.target.value = "";
-            words[currentWord].completedAt = new Date();
+        currentWord++;
+        evt.target.value = "";
+        words[currentWord].completedAt = new Date();
         }
 
         if(words.length - currentWord <= 10) {
-            words.push(...makeText());
+        words.push(...makeText());
         }
 
         renderText();
@@ -69,8 +81,8 @@
         Console.WriteLine("Baaah");
     }
 
-    public void FocusTextInput()
+    public async Task FocusTextInput()
     {
-        textInput.FocusAsync();
+        await textInput.FocusAsync();
     }
 }

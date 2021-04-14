@@ -1,6 +1,7 @@
 using System.Text;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime;
@@ -113,16 +114,37 @@ namespace ITU.Lang.Core.Translator
             var chainParts = new List<string>();
             foreach (var link in chain)
             {
+                var memberName = link is InvokeFunctionContext l ? l.Name().GetText() : link.GetText();
+
+                if (typ is AnyType a)
+                {
+                    // We need to add function argument expressions...
+                    if (!(link is InvokeFunctionContext l2))
+                    {
+                        chainParts.Add(memberName);
+                        continue;
+                    }
+
+                    var exprs = l2.arguments().expr().Select(e => VisitExpr(e)).ToList();
+                    var funcArgs = $"({string.Join(",", exprs.Select(e => e.TranslatedValue))})";
+                    typ = new FunctionType()
+                    {
+                        ReturnType = a,
+                        ParameterTypes = exprs.Select(e => e.Type).ToList(),
+                    };
+
+                    chainParts.Add(memberName + funcArgs);
+                    continue;
+                }
+
                 if (!(typ is ObjectType n))
                     throw new TranspilationException($"Cannot access property '{name}' on non-object", GetTokenLocation(context));
 
-                var memberName = link is InvokeFunctionContext l ? l.Name().GetText() : link.GetText();
                 var member = n.GetMember(memberName);
 
                 if (member == null)
                     throw new TranspilationException($"Cannot access member '{name}' on object '{n.AsNativeName()}'", GetTokenLocation(context));
 
-                // TODO: Make type check on parameter types vs expr types, maybe just visit the stuff
                 if (member is FunctionType f)
                 {
                     var functionNode = VisitInvokeFunction((InvokeFunctionContext)link, new Node() { Type = f });
@@ -211,23 +233,44 @@ namespace ITU.Lang.Core.Translator
 
             var blockFun = context.blockFunction();
             var lambdaFun = context.lambdaFunction();
+            var genericHandle = context.genericHandle();
 
-            return InnerVisitFunction(blockFun, lambdaFun);
+            return InnerVisitFunction(new InnerVisitFunctionArgs()
+            {
+                blockFun = blockFun,
+                lambdaFun = lambdaFun,
+                genericHandle = genericHandle,
+            });
         }
 
-        private Node InnerVisitFunction(BlockFunctionContext blockFun, LambdaFunctionContext lambdaFun, bool isMember = false)
+        private class InnerVisitFunctionArgs
         {
-            var functionParameterList = blockFun?.functionParameterList() ?? lambdaFun?.functionParameterList();
+            public BlockFunctionContext blockFun;
+            public LambdaFunctionContext lambdaFun;
+            public GenericHandleContext genericHandle;
+            public bool isMember = false;
+        }
+
+        private Node InnerVisitFunction(InnerVisitFunctionArgs args)
+        {
+            var handles = args.genericHandle?.Name().Select(n => n.GetText()).ToList();
+
+            if (handles != null)
+            {
+                handles.ForEach(handle => typeScopes.Bind(handle, new GenericTypeIdentifier(handle)));
+            }
+
+            var functionParameterList = args.blockFun?.functionParameterList() ?? args.lambdaFun?.functionParameterList();
 
             if (functionParameterList == null)
             {
                 return null;
             }
 
-            var args = functionParameterList.functionArguments();
+            var funcArgs = functionParameterList.functionArguments();
 
-            var paramNames = args.Name().Select(p => p.GetText()).ToList();
-            var paramTypes = args.typeAnnotation().Select(x => EvalTypeExpr(x.typeExpr())).ToList();
+            var paramNames = funcArgs.Name().Select(p => p.GetText()).ToList();
+            var paramTypes = funcArgs.typeAnnotation().Select(x => EvalTypeExpr(x.typeExpr())).ToList();
 
             foreach (var (name, type) in paramNames.Zip(paramTypes, System.ValueTuple.Create))
             {
@@ -238,7 +281,7 @@ namespace ITU.Lang.Core.Translator
                 });
             }
 
-            var body = Visit(((IParseTree)lambdaFun?.expr()) ?? blockFun.block());
+            var body = Visit(((IParseTree)args.lambdaFun?.expr()) ?? args.blockFun.block());
 
             var returnType = body.Type;
 
@@ -251,26 +294,30 @@ namespace ITU.Lang.Core.Translator
                 returnType = EvalTypeExpr(functionParameterList.typeAnnotation().typeExpr());
             }
 
-            if (body.Type != null)
-            {
-                body.AssertType(returnType);
-            }
+            Debug.Assert(body.Type != null);
+            body.AssertType(returnType);
 
-            var signature = isMember ? "" : $"({string.Join(",", paramNames)})";
-            var seperator = !isMember || lambdaFun != null ? " =>" : "";
+            var signature = args.isMember ? "" : $"({string.Join(",", paramNames)})";
+            var seperator = !args.isMember || args.lambdaFun != null ? " =>" : "";
+
+            var nodeType = new FunctionType()
+            {
+                ReturnType = returnType,
+                ParameterTypes = paramTypes,
+                ParameterNames = paramNames,
+                IsLambda = args.lambdaFun != null,
+            };
+
+            if (handles != null)
+            {
+                nodeType = new GenericFunctionType(nodeType);
+            }
 
             return new Node()
             {
-
                 TranslatedValue = $"{signature}{seperator} {body.TranslatedValue}",
-                Location = GetTokenLocation(((ISyntaxTree)blockFun) ?? lambdaFun),
-                Type = new FunctionType()
-                {
-                    ReturnType = returnType,
-                    ParameterTypes = paramTypes,
-                    ParameterNames = paramNames,
-                    IsLambda = lambdaFun != null,
-                },
+                Location = GetTokenLocation(((ISyntaxTree)args.blockFun) ?? args.lambdaFun),
+                Type = nodeType,
             };
         }
 
@@ -298,7 +345,16 @@ namespace ITU.Lang.Core.Translator
             var exprs = context.arguments().expr().Select(expr => VisitExpr(expr));
 
             var exprTypes = exprs.Select(expr => expr.Type).ToList();
-            var paramTypes = funcType.ParameterTypes;
+
+            var typ = funcType;
+
+            if (binding.Type is GenericFunctionType genFuncType)
+            {
+                var specificTypes = genFuncType.Resolve(exprTypes);
+                typ = genFuncType.Specify(specificTypes);
+            }
+
+            var paramTypes = typ.ParameterTypes;
 
             if (!paramTypes.Equals(exprTypes))
             {
@@ -328,7 +384,7 @@ namespace ITU.Lang.Core.Translator
             return new Node()
             {
                 TranslatedValue = $"{name}({exprText})",
-                Type = funcType.ReturnType,
+                Type = typ.ReturnType,
                 Location = GetTokenLocation(context),
             };
         }
@@ -404,7 +460,12 @@ namespace ITU.Lang.Core.Translator
         {
             using var _ = UseScope();
 
-            var fun = InnerVisitFunction(context.blockFunction(), context.lambdaFunction(), true);
+            var fun = InnerVisitFunction(new InnerVisitFunctionArgs()
+            {
+                blockFun = context.blockFunction(),
+                lambdaFun = context.lambdaFunction(),
+                isMember = true,
+            });
 
             var expr = context.expr() != null ? VisitExpr(context.expr()) : null;
 
