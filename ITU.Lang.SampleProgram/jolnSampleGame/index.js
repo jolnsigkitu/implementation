@@ -84,7 +84,7 @@ function renderCurrentText(text) {
     return `<span class="py-2 px-1 ${hasIncorrectLetter ? 'bg-red-200' : 'bg-gray-200'}">${letters.join("")}</span>`;
 }
 
-function renderFocus() {
+/* function renderFocus() {
     const activeClass = 'bg-gray-200';
     const inactiveClass = 'bg-gray-100';
 
@@ -96,7 +96,7 @@ function renderFocus() {
         inputContainer.classList.remove(activeClass);
         inputContainer.classList.add(inactiveClass);
     }
-}
+} */
 
 function renderStats() {
     if(!hasStarted) {

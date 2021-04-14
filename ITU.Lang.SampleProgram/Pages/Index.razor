@@ -1,14 +1,28 @@
 @page "/"
 
 <h1>Typing speed tester!</h1>
+<div class="text-center">
+    <div class="text-6xl"><span id="wpm">0</span> wpm</div>
+    <div class="flex items-baseline justify-center">
+        <div id="timer">00:00</div>
+        <div>&middot;</div>
+        <div><span id="accuracy">0</span> %</div>
+    </div>
+</div>
+<div id="inputContainer" class="flex justify-center items-center w-full p-2 m-4 bg-gray-100 focus-within:bg-gray-200" @onclick="FocusTextInput">
+    <input type="text" id="textInput" @ref="textInput" class="text-2xl bg-transparent focus:outline-none" autofocus @onkeyup="OnKey">
+</div>
+<div id="targetContainer" class="w-full h-60 max-w-2xl text-xl overflow-y-auto"></div>
 
+@*
 <p>Current state: @state</p>
 
 <div class="flex">
     <input @onkeyup="onInputChange" class="flex-1 bg-gray-200 p-2" />
-</div>
+</div> *@
 
 @code {
+    private ElementReference textInput { get; set; }
     private string state = "";
     private Engine engine = new Engine();
     protected override void OnInitialized()
@@ -20,5 +34,43 @@
     {
         Console.WriteLine("yoooooo");
         Console.WriteLine(e.Key);
+    }
+
+    public void OnKey(KeyboardEventArgs e)
+    {
+        /*
+        if(!hasStarted) {
+            setInterval(renderStats, 1000);
+            hasStarted = true;
+        }
+
+        const val = evt.target.value;
+        const { text } = words[currentWord];
+
+        words[currentWord].correct = val === text + " ";
+
+        if(evt.key === " ") {
+            currentWord++;
+            evt.target.value = "";
+            words[currentWord].completedAt = new Date();
+        }
+
+        if(words.length - currentWord <= 10) {
+            words.push(...makeText());
+        }
+
+        renderText();
+        renderStats();
+        */
+    }
+
+    public void Baaah()
+    {
+        Console.WriteLine("Baaah");
+    }
+
+    public void FocusTextInput()
+    {
+        textInput.FocusAsync();
     }
 }
