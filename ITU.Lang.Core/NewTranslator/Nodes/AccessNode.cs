@@ -1,38 +1,49 @@
+using System;
 using Antlr4.Runtime;
-using ITU.Lang.Core.Types;
 
 namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
 {
     public class AccessNode : ExprNode
     {
-        public ChainNode FirstPart { get; }
+        public string Name { get; }
+        public ExprNode FirstExpr { get; }
         public AccessChainNode Chain { get; }
         // We don't care about the type of the underlying ExprNode, as we get and validate later
-        public AccessNode(ChainNode firstPart, AccessChainNode chain, ParserRuleContext context) : base(null, context)
+        public AccessNode(string name, ExprNode firstExpr, AccessChainNode chain, ParserRuleContext context) : base(firstExpr.Type, context)
         {
-            FirstPart = firstPart;
+            Name = name;
+            FirstExpr = firstExpr;
             Chain = chain;
         }
 
         public override void Validate(Scopes scopes)
         {
-            // if (Name != null)
-            // {
-            //     var binding = scopes.Values.GetBinding(Name);
-            //     Type = binding.Type;
-            // }
-            if (FirstPart != null)
+            ExprNode node = FirstExpr;
+            if (Name != null)
             {
-                FirstPart.Validate(scopes);
-                Type = FirstPart.Type;
+                var binding = scopes.Values.GetBinding(Name);
+                node = binding.Expr;
             }
+
             if (Chain != null)
             {
-                Chain.Type = Type;
-                Chain.Validate(scopes);
+                // TODO: Fix chain when we get members sorted
+                throw new NotImplementedException("Access chain not implemented until members are fixed");
+                // foreach (var link in Chain.Chain)
+                // {
+
+                //     if (link.Function != null)
+                //     {
+                //         var func = link.Function;
+                //         func.Validate();
+                //         node = func;
+                //     }
+                // }
             }
+            // Type = node.Type;
+            node.Validate(scopes);
         }
 
-        public override string ToString() => $"{Name ?? FirstPart.ToString()}.{Chain}";
+        public override string ToString() => $"{(Name ?? FirstExpr.ToString())}";
     }
 }

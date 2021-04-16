@@ -8,5 +8,7 @@ namespace ITU.Lang.Core.NewTranslator
         public string Name { get; set; }
         public Type Type { get; set; }
         public bool IsConst { get; set; }
+
+        public ExprNode Expr { get; set; }
     }
 }

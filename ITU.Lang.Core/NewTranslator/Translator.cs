@@ -131,19 +131,16 @@ namespace ITU.Lang.Core.NewTranslator
 
         public override AccessNode VisitAccess([NotNull] AccessContext context)
         {
-            var firstLink = new ChainNode
-            {
-                Name = context.Name().GetText(),
-                Expr = VisitFirstChild<ExprNode>(new ParserRuleContext[] {
-                    context.invokeFunction(),
-                    context.instantiateObject(),
-                    context.expr(),
-                }),
-            };
+            var name = context.Name()?.GetText();
+            var expr = VisitFirstChild<ExprNode>(new ParserRuleContext[] {
+                context.invokeFunction(),
+                context.instantiateObject(),
+                context.expr(),
+            });
 
             var chain = InvokeIf(context.accessChain(), VisitAccessChain);
 
-            return new AccessNode(firstLink, chain, context);
+            return new AccessNode(name, expr, chain, context);
         }
 
         public override AccessChainNode VisitAccessChain([NotNull] AccessChainContext context)
@@ -152,14 +149,14 @@ namespace ITU.Lang.Core.NewTranslator
 
             for (var rest = context; rest != null; rest = rest.accessChain())
             {
-                var name = rest.Name().GetText();
-                var function = InvokeIf(rest.invokeFunction(), VisitInvokeFunction);
                 list.Add(new ChainNode
                 {
-                    Name = name,
-                    Expr = function,
+                    Name = rest.Name().GetText(),
+                    Function = InvokeIf(rest.invokeFunction(), VisitInvokeFunction),
                 });
             }
+
+            return new AccessChainNode(list, context);
         }
 
         public override ExprNode VisitInvokeFunction([NotNull] InvokeFunctionContext context)
@@ -169,7 +166,12 @@ namespace ITU.Lang.Core.NewTranslator
 
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node
         {
-            return (T)Visit(children.First(s => s != null));
+            var child = children.FirstOrDefault(s => s != null);
+            if (child == null)
+            {
+                return default(T);
+            }
+            return (T)Visit(child);
         }
 
         private R InvokeIf<T, R>(T value, System.Func<T, R> func) =>

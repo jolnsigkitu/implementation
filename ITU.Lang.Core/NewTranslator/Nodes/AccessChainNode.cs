@@ -23,6 +23,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
     public struct ChainNode
     {
         public string Name;
-        public ExprNode Expr;
+        // TODO: Change to InvokeFunctionNode when implemented
+        public ExprNode Function;
     }
 }

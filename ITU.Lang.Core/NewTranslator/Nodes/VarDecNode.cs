@@ -32,6 +32,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
                 Name = Name,
                 Type = TypeAnnotation ?? Expr.Type,
                 IsConst = IsConst,
+                Expr = Expr,
             });
         }
 
