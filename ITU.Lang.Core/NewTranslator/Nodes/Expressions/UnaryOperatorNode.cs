@@ -12,6 +12,6 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
             Expr = expr;
             Operator = op;
         }
-        public override void Validate() => Expr.Validate();
+        public override void Validate(Scopes scopes) => Expr.Validate(scopes);
     }
 }

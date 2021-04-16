@@ -11,5 +11,7 @@ namespace ITU.Lang.Core.Types
         public override int GetHashCode() => 2;
 
         public override string ToString() => "void";
+
+        public void Validate(Scope<Type> scope) { }
     }
 }

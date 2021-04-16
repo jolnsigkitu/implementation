@@ -86,6 +86,7 @@ namespace ITU.Lang.Core.Operators
                     throw new TranspilationException($"Attempting to use undeclared binary operator '{op}'");
                 }
 
+                System.Console.WriteLine(node1 + ", " + node2);
                 innerDict.TryGetValue((node1.Type, node2.Type), out var func);
 
                 if (func == null)

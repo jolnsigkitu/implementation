@@ -17,7 +17,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
         {
             Context = context;
         }
-        public abstract void Validate();
+        public abstract void Validate(Scopes scopes);
         public abstract override string ToString();
     }
 }

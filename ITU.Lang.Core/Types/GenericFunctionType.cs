@@ -91,5 +91,7 @@ namespace ITU.Lang.Core.Types
 
             return type;
         }
+
+        public override void Validate(Scope<Type> scope) { }
     }
 }

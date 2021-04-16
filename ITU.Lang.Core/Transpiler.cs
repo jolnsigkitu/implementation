@@ -1,5 +1,6 @@
 ﻿using Antlr4.Runtime;
 using ITU.Lang.Core.Grammar;
+using ITU.Lang.Core.NewTranslator;
 
 namespace ITU.Lang.Core
 {
@@ -21,7 +22,7 @@ namespace ITU.Lang.Core
 
             var prog = visitor.VisitProg(tree);
 
-            prog.Validate();
+            prog.Validate(new Scopes());
             return prog.ToString();
 
             // try

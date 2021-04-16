@@ -54,5 +54,7 @@ namespace ITU.Lang.Core.Types
                 Members = objMembers,
             };
         }
+
+        public void Validate(Scope<Type> scope) { }
     }
 }

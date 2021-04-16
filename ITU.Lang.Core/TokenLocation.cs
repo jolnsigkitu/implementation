@@ -17,5 +17,4 @@ namespace ITU.Lang.Core
             EndColumn = end.Column;
         }
     }
-
 }

@@ -41,5 +41,7 @@ namespace ITU.Lang.Core.Types
                 );
             }
         }
+
+        public void Validate(Scope<Type> scope) { }
     }
 }

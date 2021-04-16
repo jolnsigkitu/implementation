@@ -15,10 +15,10 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
             Operator = op;
         }
 
-        public override void Validate()
+        public override void Validate(Scopes scopes)
         {
-            Expr1.Validate();
-            Expr2.Validate();
+            Expr1.Validate(scopes);
+            Expr2.Validate(scopes);
         }
 
         public override string ToString() => $"{Expr1} {Operator} {Expr2}";

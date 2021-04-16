@@ -9,5 +9,7 @@ namespace ITU.Lang.Core.Types
         public bool Equals(Type other) => other is StringType || other is AnyType;
 
         public override int GetHashCode() => 5;
+
+        public void Validate(Scope<Type> scope) { }
     }
 }

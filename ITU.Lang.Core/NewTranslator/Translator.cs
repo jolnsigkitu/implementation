@@ -20,11 +20,11 @@ namespace ITU.Lang.Core.NewTranslator
 
         private OperatorFactory operators = Operators.Operators.InitializeOperators(new OperatorFactory());
 
+        private TypeEvaluator typeEvaluator = new TypeEvaluator();
+
         public Translator(ITokenStream tokenStream)
         {
             this.tokenStream = tokenStream;
-
-            MakeGlobalScope();
         }
 
         public override ProgNode VisitProg([NotNull] ProgContext context)
@@ -84,6 +84,7 @@ namespace ITU.Lang.Core.NewTranslator
             });
         }
 
+        #region Literals
         public override ExprNode VisitLiteral([NotNull] LiteralContext context)
         {
             return VisitFirstChild<ExprNode>(new ParserRuleContext[] {
@@ -94,24 +95,57 @@ namespace ITU.Lang.Core.NewTranslator
             });
         }
 
-        public override ExprNode VisitInteger([NotNull] IntegerContext context)
+        public override LiteralNode VisitInteger([NotNull] IntegerContext context)
         {
             return new LiteralNode(context.GetText(), new IntType(), context);
         }
 
-        public override ExprNode VisitBool([NotNull] BoolContext context)
+        public override LiteralNode VisitBool([NotNull] BoolContext context)
         {
             return new LiteralNode(context.GetText(), new BooleanType(), context);
         }
 
-        public override ExprNode VisitStringLiteral([NotNull] StringLiteralContext context)
+        public override LiteralNode VisitStringLiteral([NotNull] StringLiteralContext context)
         {
             return new LiteralNode(context.GetText(), new StringType(), context);
         }
 
-        public override ExprNode VisitCharLiteral([NotNull] CharLiteralContext context)
+        public override LiteralNode VisitCharLiteral([NotNull] CharLiteralContext context)
         {
             return new LiteralNode(context.GetText(), new CharType(), context);
+        }
+        #endregion
+
+        public override VarDecNode VisitVardec([NotNull] VardecContext context)
+        {
+            var typedName = context.typedName();
+
+            var name = typedName.Name().GetText();
+            var expr = VisitExpr(context.expr());
+            var isConst = context.Const() != null;
+            var typeAnnotation = InvokeIf(typedName.typeAnnotation()?.typeExpr(), typeEvaluator.VisitTypeExpr);
+
+            return new VarDecNode(name, isConst, expr, typeAnnotation, context);
+        }
+
+        public override AccessNode VisitAccess([NotNull] AccessContext context)
+        {
+            var name = context.Name();
+            var firstPart = VisitFirstChild<ExprNode>(new ParserRuleContext[] {
+                context.invokeFunction(),
+                context.instantiateObject(),
+                context.expr(),
+            });
+
+            var chain = InvokeIf(context.accessChain(), VisitAccessChain);
+
+            return new AccessNode(name, firstPart, chain);
+        }
+
+        public override AccessChainNode VisitAccessChain([NotNull] AccessChainContext context)
+        {
+            var rest = InvokeIf(context.accessChain(), VisitAccessChain);
+
         }
 
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node
@@ -119,9 +153,7 @@ namespace ITU.Lang.Core.NewTranslator
             return (T)Visit(children.First(s => s != null));
         }
 
-        private void MakeGlobalScope()
-        {
-
-        }
+        private R InvokeIf<T, R>(T value, System.Func<T, R> func) =>
+            value != null ? func(value) : default(R);
     }
 }
