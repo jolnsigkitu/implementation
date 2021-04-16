@@ -78,12 +78,13 @@ namespace ITU.Lang.Core.Translator
 
             Node getNode()
             {
-                if (children[0] is OperatorContext) // unary pre
-                    return operators.UnaryPrefix.Get(op, exprs[0]);
-                else if (exprs.Length == 1) // unary post
-                    return operators.UnaryPostfix.Get(op, exprs[0]);
-                else // binary
-                    return operators.Binary.Get(op, exprs[0], exprs[1]);
+                throw new TranspilationException("wonk");
+                // if (children[0] is OperatorContext) // unary pre
+                //     return operators.UnaryPrefix.Get(op, exprs[0]);
+                // else if (exprs.Length == 1) // unary post
+                //     return operators.UnaryPostfix.Get(op, exprs[0]);
+                // else // binary
+                //     return operators.Binary.Get(op, exprs[0], exprs[1]);
             };
         }
 
