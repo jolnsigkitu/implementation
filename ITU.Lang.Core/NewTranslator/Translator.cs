@@ -11,10 +11,11 @@ using ITU.Lang.Core.NewTranslator.Nodes;
 using static ITU.Lang.Core.Grammar.LangParser;
 using ITU.Lang.Core.NewTranslator.Nodes.Expressions;
 using ITU.Lang.Core.Operators;
+using System;
 
 namespace ITU.Lang.Core.NewTranslator
 {
-    class Translator : LangBaseVisitor<Node>
+    public class Translator : LangBaseVisitor<Node>
     {
         private ITokenStream tokenStream;
 
@@ -130,22 +131,40 @@ namespace ITU.Lang.Core.NewTranslator
 
         public override AccessNode VisitAccess([NotNull] AccessContext context)
         {
-            var name = context.Name();
-            var firstPart = VisitFirstChild<ExprNode>(new ParserRuleContext[] {
-                context.invokeFunction(),
-                context.instantiateObject(),
-                context.expr(),
-            });
+            var firstLink = new ChainNode
+            {
+                Name = context.Name().GetText(),
+                Expr = VisitFirstChild<ExprNode>(new ParserRuleContext[] {
+                    context.invokeFunction(),
+                    context.instantiateObject(),
+                    context.expr(),
+                }),
+            };
 
             var chain = InvokeIf(context.accessChain(), VisitAccessChain);
 
-            return new AccessNode(name, firstPart, chain);
+            return new AccessNode(firstLink, chain, context);
         }
 
         public override AccessChainNode VisitAccessChain([NotNull] AccessChainContext context)
         {
-            var rest = InvokeIf(context.accessChain(), VisitAccessChain);
+            var list = new List<ChainNode>();
 
+            for (var rest = context; rest != null; rest = rest.accessChain())
+            {
+                var name = rest.Name().GetText();
+                var function = InvokeIf(rest.invokeFunction(), VisitInvokeFunction);
+                list.Add(new ChainNode
+                {
+                    Name = name,
+                    Expr = function,
+                });
+            }
+        }
+
+        public override ExprNode VisitInvokeFunction([NotNull] InvokeFunctionContext context)
+        {
+            throw new NotImplementedException();
         }
 
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node

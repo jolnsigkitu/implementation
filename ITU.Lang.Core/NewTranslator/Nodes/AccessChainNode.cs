@@ -8,14 +8,9 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
     {
         public IList<ChainNode> Chain;
 
-        public AccessChainNode(ChainNode node, ParserRuleContext context) : base(null, context)
+        public AccessChainNode(IList<ChainNode> chain, ParserRuleContext context) : base(null, context)
         {
-            Chain = new List<ChainNode>() { node };
-        }
-
-        public void Add(ChainNode node)
-        {
-            Chain.Add(node);
+            Chain = chain;
         }
 
         public override void Validate(Scopes scopes)
@@ -25,10 +20,9 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
         public override string ToString() => string.Join(".", Chain);
     }
 
-    struct ChainNode
+    public struct ChainNode
     {
         public string Name;
-        // TODO: Change to InvokeFunction
-        public Node InvokeFunction;
+        public ExprNode Expr;
     }
 }
