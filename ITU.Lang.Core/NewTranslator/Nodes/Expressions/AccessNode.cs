@@ -11,7 +11,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
 
         public bool HasParens { get; }
         // We don't care about the type of the underlying ExprNode, as we get and validate later
-        public AccessNode(string name, ExprNode firstExpr, AccessChainNode chain, bool hasParens, ParserRuleContext context) : base(context)
+        public AccessNode(string name, ExprNode firstExpr, AccessChainNode chain, bool hasParens, TokenLocation location) : base(location)
         {
             Name = name;
             FirstExpr = firstExpr;

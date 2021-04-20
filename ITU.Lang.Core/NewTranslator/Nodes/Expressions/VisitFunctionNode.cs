@@ -5,7 +5,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
 {
     public class VisitFunctionNode : ExprNode
     {
-        public VisitFunctionNode(ParserRuleContext context) : base(context)
+        public VisitFunctionNode(TokenLocation location) : base(location)
         {
         }
 

@@ -14,7 +14,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
         public GenericHandleNode Handle { get; }
         public bool IsLambda { get; }
 
-        public FunctionNode(ParameterListNode parameterList, ExprNode body, GenericHandleNode handle, bool isLambda, ParserRuleContext context) : base(context)
+        public FunctionNode(ParameterListNode parameterList, ExprNode body, GenericHandleNode handle, bool isLambda, TokenLocation location) : base(location)
         {
             ParameterList = parameterList;
             Body = body;

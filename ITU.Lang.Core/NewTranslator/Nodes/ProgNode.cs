@@ -9,7 +9,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
     {
         public IList<StatementNode> Statements { get; private set; }
 
-        public ProgNode(ProgContext ctx, IList<StatementNode> statements) : base(ctx)
+        public ProgNode(IList<StatementNode> statements, TokenLocation location) : base(location)
         {
             Statements = statements;
         }

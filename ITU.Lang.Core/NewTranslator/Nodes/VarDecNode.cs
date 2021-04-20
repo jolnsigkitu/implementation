@@ -14,7 +14,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
 
         private Type DerivedType;
 
-        public VarDecNode(string name, bool isConst, ExprNode expr, TypeNode typeAnnotation, VardecContext ctx) : base(ctx)
+        public VarDecNode(string name, bool isConst, ExprNode expr, TypeNode typeAnnotation, TokenLocation loc) : base(loc)
         {
             Name = name;
             Expr = expr;
@@ -30,8 +30,6 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
 
             if (TypeAnnotation != null)
             {
-                System.Console.WriteLine(Expr);
-                System.Console.WriteLine($"TA: {TypeAnnotation}");
                 var typ = TypeAnnotation.EvalType(env);
                 Expr.AssertType(typ);
                 DerivedType = typ;

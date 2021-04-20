@@ -8,7 +8,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
     {
         public IEnumerable<string> Names { get; }
 
-        public GenericHandleNode(IEnumerable<string> names, ParserRuleContext context) : base(context)
+        public GenericHandleNode(IEnumerable<string> names, TokenLocation location) : base(location)
         {
             Names = names;
         }

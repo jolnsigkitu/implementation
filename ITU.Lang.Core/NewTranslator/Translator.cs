@@ -30,7 +30,7 @@ namespace ITU.Lang.Core.NewTranslator
         public override ProgNode VisitProg([NotNull] ProgContext context)
         {
             var statements = VisitStatements(context.statements());
-            return new ProgNode(context, statements);
+            return new ProgNode(statements, GetLocation(context));
         }
 
         public new IList<StatementNode> VisitStatements([NotNull] StatementsContext context)
@@ -60,7 +60,7 @@ namespace ITU.Lang.Core.NewTranslator
                 inlineStatement.typedec(),
                 inlineStatement.expr(),
             });
-            return new SemiStatementNode(context, child);
+            return new SemiStatementNode(child, GetLocation(context));
         }
 
         public override ExprNode VisitExpr([NotNull] ExprContext context)
@@ -76,10 +76,10 @@ namespace ITU.Lang.Core.NewTranslator
             if (exprs.Length == 1)
             {
                 var isPrefix = children[0] is OperatorContext;
-                return new UnaryOperatorNode(op, exprs[0], isPrefix, context);
+                return new UnaryOperatorNode(op, exprs[0], isPrefix, GetLocation(context));
             }
 
-            return new BinaryOperatorNode(op, exprs[0], exprs[1], context);
+            return new BinaryOperatorNode(op, exprs[0], exprs[1], GetLocation(context));
         }
 
         public override ExprNode VisitTerm([NotNull] TermContext context)
@@ -104,22 +104,22 @@ namespace ITU.Lang.Core.NewTranslator
 
         public override LiteralNode VisitInteger([NotNull] IntegerContext context)
         {
-            return new LiteralNode(context.GetText(), new IntType(), context);
+            return new LiteralNode(context.GetText(), new IntType(), GetLocation(context));
         }
 
         public override LiteralNode VisitBool([NotNull] BoolContext context)
         {
-            return new LiteralNode(context.GetText(), new BooleanType(), context);
+            return new LiteralNode(context.GetText(), new BooleanType(), GetLocation(context));
         }
 
         public override LiteralNode VisitStringLiteral([NotNull] StringLiteralContext context)
         {
-            return new LiteralNode(context.GetText(), new StringType(), context);
+            return new LiteralNode(context.GetText(), new StringType(), GetLocation(context));
         }
 
         public override LiteralNode VisitCharLiteral([NotNull] CharLiteralContext context)
         {
-            return new LiteralNode(context.GetText(), new CharType(), context);
+            return new LiteralNode(context.GetText(), new CharType(), GetLocation(context));
         }
         #endregion
 
@@ -132,7 +132,7 @@ namespace ITU.Lang.Core.NewTranslator
             var isConst = context.Const() != null;
             var typeAnnotation = InvokeIf(typedName.typeAnnotation(), typeEvaluator.VisitTypeAnnotation);
 
-            return new VarDecNode(name, isConst, expr, typeAnnotation, context);
+            return new VarDecNode(name, isConst, expr, typeAnnotation, GetLocation(context));
         }
 
         public override AccessNode VisitAccess([NotNull] AccessContext context)
@@ -149,7 +149,7 @@ namespace ITU.Lang.Core.NewTranslator
 
             var chain = InvokeIf(context.accessChain(), VisitAccessChain);
 
-            return new AccessNode(name, expr, chain, hasParens, context);
+            return new AccessNode(name, expr, chain, hasParens, GetLocation(context));
         }
 
         public override AccessChainNode VisitAccessChain([NotNull] AccessChainContext context)
@@ -165,7 +165,7 @@ namespace ITU.Lang.Core.NewTranslator
                 });
             }
 
-            return new AccessChainNode(list, context);
+            return new AccessChainNode(list, GetLocation(context));
         }
 
         public override ExprNode VisitInstantiateObject([NotNull] InstantiateObjectContext context)
@@ -189,7 +189,7 @@ namespace ITU.Lang.Core.NewTranslator
 
             var isLambda = lambdaFunctionBody != null;
 
-            return new FunctionNode(parameterList, body, handle, isLambda, context);
+            return new FunctionNode(parameterList, body, handle, isLambda, GetLocation(context));
         }
 
         public override ParameterListNode VisitFunctionParameterList([NotNull] FunctionParameterListContext context)
@@ -205,7 +205,7 @@ namespace ITU.Lang.Core.NewTranslator
                 ? new StaticTypeNode(new VoidType())
                 : typeAnnotation;
 
-            return new ParameterListNode(nameTypePairs, returnType, context);
+            return new ParameterListNode(nameTypePairs, returnType, GetLocation(context));
         }
 
         public override InvokeFunctionNode VisitInvokeFunction([NotNull] InvokeFunctionContext context)
@@ -213,26 +213,26 @@ namespace ITU.Lang.Core.NewTranslator
             var name = context.Name().GetText();
             var arguments = context.arguments()?.expr()?.Select(VisitExpr);
 
-            return new InvokeFunctionNode(name, arguments, context);
+            return new InvokeFunctionNode(name, arguments, GetLocation(context));
         }
 
         public override BlockNode VisitBlock([NotNull] BlockContext context)
         {
             var statements = InvokeIf(context.statements(), VisitStatements);
-            return new BlockNode(statements, context);
+            return new BlockNode(statements, GetLocation(context));
         }
 
         public override ReturnStatementNode VisitReturnStatement([NotNull] ReturnStatementContext context)
         {
             var expr = VisitExpr(context.expr());
 
-            return new ReturnStatementNode(expr, context);
+            return new ReturnStatementNode(expr, GetLocation(context));
         }
 
         public override GenericHandleNode VisitGenericHandle([NotNull] GenericHandleContext context)
         {
             var names = context.Name().Select(n => n.GetText());
-            return new GenericHandleNode(names, context);
+            return new GenericHandleNode(names, GetLocation(context));
         }
 
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node
@@ -247,5 +247,13 @@ namespace ITU.Lang.Core.NewTranslator
 
         private R InvokeIf<T, R>(T value, System.Func<T, R> func) =>
             value != null ? func(value) : default(R);
+
+        private TokenLocation GetLocation(ISyntaxTree node)
+        {
+            var interval = node.SourceInterval;
+            var start = tokenStream.Get(interval.a);
+            var end = tokenStream.Get(interval.b);
+            return new TokenLocation(start, end);
+        }
     }
 }

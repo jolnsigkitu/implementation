@@ -6,16 +6,11 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
 {
     public abstract class Node
     {
-        public ParserRuleContext Context { get; private set; }
+        public TokenLocation Location;
 
-        public Interval Interval
+        public Node(TokenLocation location)
         {
-            get => Context.SourceInterval;
-        }
-
-        public Node(ParserRuleContext context)
-        {
-            Context = context;
+            Location = location;
         }
         public abstract void Validate(Environment env);
         public abstract override string ToString();

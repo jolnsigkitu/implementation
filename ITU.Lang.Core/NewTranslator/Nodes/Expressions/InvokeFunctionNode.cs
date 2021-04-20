@@ -11,7 +11,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
         public string Name { get; private set; }
         public IEnumerable<ExprNode> Exprs { get; }
 
-        public InvokeFunctionNode(string name, IEnumerable<ExprNode> exprs, InvokeFunctionContext context) : base(context)
+        public InvokeFunctionNode(string name, IEnumerable<ExprNode> exprs, TokenLocation location) : base(location)
         {
             Name = name;
             Exprs = exprs;
@@ -21,21 +21,21 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
         {
             if (!env.Scopes.Values.HasBinding(Name))
             {
-                throw new TranspilationException($"Tried to invoke non-initialized invokable '{Name}'");
+                throw new TranspilationException($"Tried to invoke non-initialized invokable '{Name}'", Location);
             }
 
             var binding = env.Scopes.Values.GetBinding(Name);
 
             if (!(binding.Type is FunctionType ft))
             {
-                throw new TranspilationException($"Cannot invoke non-invokable '{Name}'");
+                throw new TranspilationException($"Cannot invoke non-invokable '{Name}'", Location);
             }
 
             var paramTypes = ft.ParameterTypes;
 
             if (paramTypes.Count() != Exprs.Count())
             {
-                throw new TranspilationException($"Expected {paramTypes.Count()} parameter(s) when invoking function '{Name}', but got {Exprs.Count()}");
+                throw new TranspilationException($"Expected {paramTypes.Count()} parameter(s) when invoking function '{Name}', but got {Exprs.Count()}", Location);
             }
 
             foreach (var (expr, type) in Exprs.Zip(paramTypes))

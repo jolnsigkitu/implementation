@@ -8,6 +8,6 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
 {
     public abstract class StatementNode : Node
     {
-        protected StatementNode(ParserRuleContext ctx) : base(ctx) { }
+        protected StatementNode(TokenLocation loc) : base(loc) { }
     }
 }

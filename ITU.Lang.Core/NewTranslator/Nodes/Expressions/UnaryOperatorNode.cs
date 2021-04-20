@@ -8,7 +8,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
         public string Operator { get; private set; }
         protected readonly ExprNode Expr;
         public bool IsPrefix;
-        public UnaryOperatorNode(string op, ExprNode expr, bool isPrefix, ParserRuleContext context) : base(context)
+        public UnaryOperatorNode(string op, ExprNode expr, bool isPrefix, TokenLocation location) : base(location)
         {
             Expr = expr;
             Operator = op;

@@ -6,9 +6,10 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
     public class LiteralNode : ExprNode
     {
         public string Value { get; private set; }
-        public LiteralNode(string value, Type type, ParserRuleContext context) : base(type, context)
+        public LiteralNode(string value, Type type, TokenLocation location) : base(location)
         {
             Value = value;
+            Type = type;
         }
 
         public override Type ValidateExpr(Environment env) => Type;

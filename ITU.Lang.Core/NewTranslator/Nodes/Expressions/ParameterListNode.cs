@@ -12,7 +12,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
         public TypeNode ReturnType;
 
         public readonly IList<(string, Type)> EvaluatedNamePairs = new List<(string, Type)>();
-        public ParameterListNode(IEnumerable<(string, TypeNode)> nameTypePairs, TypeNode returnType, FunctionParameterListContext context) : base(context)
+        public ParameterListNode(IEnumerable<(string, TypeNode)> nameTypePairs, TypeNode returnType, TokenLocation location) : base(location)
         {
             NameTypePairs = nameTypePairs;
             ReturnType = returnType;

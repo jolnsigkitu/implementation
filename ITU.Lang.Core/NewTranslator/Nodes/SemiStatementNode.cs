@@ -5,7 +5,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
     public class SemiStatementNode : StatementNode
     {
         private Node Statement;
-        public SemiStatementNode(SemiStatementContext ctx, Node statement) : base(ctx)
+        public SemiStatementNode(Node statement, TokenLocation loc) : base(loc)
         {
             Statement = statement;
         }

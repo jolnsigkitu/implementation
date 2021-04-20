@@ -6,12 +6,12 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
     public abstract class ExprNode : Node
     {
         public Type Type { get; set; }
-        protected ExprNode(Type type, ParserRuleContext context) : base(context)
+        protected ExprNode(Type type, TokenLocation location) : base(location)
         {
             Type = type;
         }
 
-        protected ExprNode(ParserRuleContext context) : base(context) { }
+        protected ExprNode(TokenLocation location) : base(location) { }
 
         public bool IsType(Type v)
         {
@@ -27,7 +27,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
         {
             if (IsType(v)) return;
 
-            throw new TranspilationException($"Expected type '{(v.AsNativeName())}', got '{Type.AsNativeName()}'");
+            throw new TranspilationException($"Expected type '{(v.AsNativeName())}', got '{Type.AsNativeName()}'", Location);
         }
 
         public override void Validate(Environment env)

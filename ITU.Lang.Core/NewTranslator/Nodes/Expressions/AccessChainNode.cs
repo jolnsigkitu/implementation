@@ -8,7 +8,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
     {
         public IList<ChainNode> Chain;
 
-        public AccessChainNode(IList<ChainNode> chain, ParserRuleContext context) : base(context)
+        public AccessChainNode(IList<ChainNode> chain, TokenLocation location) : base(location)
         {
             Chain = chain;
         }
@@ -24,7 +24,6 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
     public struct ChainNode
     {
         public string Name;
-        // TODO: Change to InvokeFunctionNode when implemented
-        public ExprNode Function;
+        public InvokeFunctionNode Function;
     }
 }

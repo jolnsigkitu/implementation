@@ -8,7 +8,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
     {
         private IList<StatementNode> Statements;
 
-        public BlockNode(IList<StatementNode> statements, LangParser.BlockContext context) : base(context)
+        public BlockNode(IList<StatementNode> statements, TokenLocation location) : base(location)
         {
             Statements = statements;
         }
@@ -25,7 +25,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
                 {
                     if (foundReturnType != null)
                     {
-                        throw new TranspilationException("Block cannot contain statements after a return statement.");
+                        throw new TranspilationException("Block cannot contain statements after a return statement.", Location);
                     }
 
                     statement.Validate(env);

@@ -8,7 +8,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
         public string Operator { get; private set; }
         private readonly ExprNode Expr1;
         private readonly ExprNode Expr2;
-        public BinaryOperatorNode(string op, ExprNode expr1, ExprNode expr2, ParserRuleContext context) : base(context)
+        public BinaryOperatorNode(string op, ExprNode expr1, ExprNode expr2, TokenLocation location) : base(location)
         {
             Expr1 = expr1;
             Expr2 = expr2;

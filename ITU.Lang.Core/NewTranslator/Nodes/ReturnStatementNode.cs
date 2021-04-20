@@ -8,7 +8,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
     {
         private ExprNode Expr;
         public Type ReturnType;
-        public ReturnStatementNode(ExprNode expr, ReturnStatementContext context) : base(context)
+        public ReturnStatementNode(ExprNode expr, TokenLocation location) : base(location)
         {
             Expr = expr;
         }

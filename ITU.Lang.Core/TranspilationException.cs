@@ -13,6 +13,6 @@ namespace ITU.Lang.Core
         public TranspilationException(string message, TokenLocation loc) : this(message, loc, null) { }
 
         public TranspilationException(string message, Exception innerException) : base(message, innerException) { }
-        public TranspilationException(string message, TokenLocation loc, Exception innerException) : base($"{ERR_MSG} at line {loc.StartLine}:{loc.StartColumn} - {loc.EndLine}:{loc.EndColumn}:\n{message}", innerException) { }
+        public TranspilationException(string message, TokenLocation loc, Exception innerException) : base($"{ERR_MSG} at line {loc}:\n{message}", innerException) { }
     }
 }
