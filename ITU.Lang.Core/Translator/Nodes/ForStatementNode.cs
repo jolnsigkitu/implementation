@@ -22,12 +22,12 @@ namespace ITU.Lang.Core.Translator.Nodes
         public override void Validate(Environment env)
         {
             using var _ = env.Scopes.Use();
-            Init.Validate(env);
+            Init?.Validate(env);
 
-            Condition.Validate(env);
-            Condition.AssertType(new BooleanType());
+            Condition?.Validate(env);
+            Condition?.AssertType(new BooleanType());
 
-            Effect.Validate(env);
+            Effect?.Validate(env);
 
             Body.Validate(env);
         }

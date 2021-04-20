@@ -31,10 +31,22 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             }
             var binding = env.Scopes.Values.GetBinding(name);
 
+            if (binding.IsConst)
+            {
+                throw new TranspilationException("Cannot reassign to const variable");
+            }
+
             var typ = binding.Type;
 
             Expr.Validate(env);
             Expr.AssertType(typ);
+
+            env.Scopes.Values.Rebind(name, new VariableBinding
+            {
+                Name = name,
+                Type = Expr.Type,
+                IsConst = binding.IsConst,
+            });
 
             return typ;
         }

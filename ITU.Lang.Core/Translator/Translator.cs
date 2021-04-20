@@ -288,9 +288,9 @@ namespace ITU.Lang.Core.Translator
 
         public override ForStatementNode VisitForStatement([NotNull] ForStatementContext context)
         {
-            var declaration = VisitInlineStatement(context.forDecStatement().inlineStatement());
-            var condition = VisitExpr(context.forConExpression().expr());
-            var increment = VisitInlineStatement(context.forIncStatement().inlineStatement());
+            var declaration = InvokeIf(context.forDecStatement()?.inlineStatement(), VisitInlineStatement);
+            var condition = InvokeIf(context.forConExpression()?.expr(), VisitExpr);
+            var increment = InvokeIf(context.forIncStatement()?.inlineStatement(), VisitInlineStatement);
             var block = InvokeIf(context.block(), VisitBlock);
             var statement = InvokeIf(context.statement(), VisitStatement);
             var body = (Node)block ?? statement;
