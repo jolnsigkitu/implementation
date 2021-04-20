@@ -235,6 +235,31 @@ namespace ITU.Lang.Core.NewTranslator
             return new GenericHandleNode(names, GetLocation(context));
         }
 
+        public override IfStatementNode VisitIfStatement([NotNull] IfStatementContext context)
+        {
+            var expr = VisitExpr(context.expr());
+            var block = VisitBlock(context.block());
+
+            var elseIfStatements = context.elseIfStatement().Select(VisitElseIfStatement);
+            var elseStatement = InvokeIf(context.elseStatement(), VisitElseStatement);
+
+            return new IfStatementNode(expr, block, elseIfStatements, elseStatement, GetLocation(context));
+        }
+
+        public override ElseIfStatementNode VisitElseIfStatement([NotNull] ElseIfStatementContext context)
+        {
+            var expr = VisitExpr(context.expr());
+            var block = VisitBlock(context.block());
+
+            return new ElseIfStatementNode(expr, block, GetLocation(context));
+        }
+        public override ElseStatementNode VisitElseStatement([NotNull] ElseStatementContext context)
+        {
+            var block = VisitBlock(context.block());
+
+            return new ElseStatementNode(block, GetLocation(context));
+        }
+
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node
         {
             var child = children.FirstOrDefault(s => s != null);

@@ -47,7 +47,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
             {
                 content = string.Join("\n", Statements);
             }
-            return $"{{{content}}}";
+            return $"{{\n{content}\n}}";
         }
     }
 }
