@@ -134,6 +134,14 @@ namespace ITU.Lang.Core.Translator
             return new VarDecNode(name, isConst, expr, typeAnnotation, GetLocation(context));
         }
 
+        public override TypeDecNode VisitTypedec([NotNull] TypedecContext context)
+        {
+            var name = context.Name().GetText();
+            var typeNode = typeEvaluator.VisitTypeExpr(context.typeExpr());
+
+            return new TypeDecNode(name, typeNode, GetLocation(context));
+        }
+
         public override AccessNode VisitAccess([NotNull] AccessContext context)
         {
             var name = context.Name()?.GetText();

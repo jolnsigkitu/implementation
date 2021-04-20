@@ -31,7 +31,6 @@ namespace ITU.Lang.CLI
                 {
                     throw new Exception($"An error occured while transpiling {fileName}:\n" + ex.Message, ex);
                 }
-
             }
         }
     }
