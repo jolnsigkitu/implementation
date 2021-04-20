@@ -20,6 +20,8 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
             var collection = IsPrefix ? env.Operators.UnaryPrefix : env.Operators.UnaryPostfix;
 
+            // System.Console.WriteLine(Operator + ": " + (Expr.Type?.ToString() ?? "null"));
+
             return collection.Get(Operator, Expr.Type);
         }
 
