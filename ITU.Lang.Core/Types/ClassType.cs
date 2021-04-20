@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using ITU.Lang.Core.Translator;
+using ITU.Lang.Core.Translator.Nodes;
 
 namespace ITU.Lang.Core.Types
 {

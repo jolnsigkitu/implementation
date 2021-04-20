@@ -1,6 +1,6 @@
 ﻿using Antlr4.Runtime;
 using ITU.Lang.Core.Grammar;
-using ITU.Lang.Core.NewTranslator;
+using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core
 {
@@ -18,7 +18,7 @@ namespace ITU.Lang.Core
 
             var tree = parser.prog();
 
-            var visitor = new NewTranslator.Translator(tokens);
+            var visitor = new Translator.Translator(tokens);
 
             var prog = visitor.VisitProg(tree);
 
