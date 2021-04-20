@@ -17,7 +17,7 @@ namespace ITU.Lang.Core.Types
 
         public IList<string> GenericIdentifiers { get; set; }
 
-        public IDictionary<string, Type> Resolve(IList<Type> expressions)
+        public IDictionary<string, Type> Resolve(IEnumerable<Type> expressions)
         {
             var specificTypes = new Dictionary<string, Type>();
 
@@ -49,10 +49,6 @@ namespace ITU.Lang.Core.Types
                         }
                     }
                 }
-
-                // const b = <T, U, V, ...>(a: int, b: (T) => (U) => (V) => ... => void) => ...
-                // const c = (x: boolean) => void ...
-                // b(17, c) ????
             }
 
             return specificTypes;

@@ -12,6 +12,12 @@ namespace ITU.Lang.Core.NewTranslator
 {
     class TypeEvaluator : LangBaseVisitor<TypeNode>
     {
+        private readonly Translator translator;
+
+        public TypeEvaluator(Translator translator)
+        {
+            this.translator = translator;
+        }
         public override TypeNode VisitTypeExpr([NotNull] TypeExprContext context)
         {
             return VisitFirstChild<TypeNode>(new ParserRuleContext[] {
@@ -26,17 +32,24 @@ namespace ITU.Lang.Core.NewTranslator
             return VisitTypeExpr(context.typeExpr());
         }
 
-        public override TypeNode VisitTypeRef([NotNull] TypeRefContext context)
+        public override TypeRefNode VisitTypeRef([NotNull] TypeRefContext context)
         {
             var name = context.Name().GetText();
-            var handle = InvokeIf(context.genericHandle(), VisitGenericHandle);
+            var handle = InvokeIf(context.genericHandle(), translator.VisitGenericHandle);
             return new TypeRefNode(name, handle);
         }
 
-        public override TypeNode VisitGenericHandle([NotNull] GenericHandleContext context)
+        public override FuncTypeNode VisitFuncTypeExpr([NotNull] FuncTypeExprContext context)
         {
-            var names = context.Name().Select(n => n.GetText());
-            return new GenericHandleNode(names);
+            var handle = InvokeIf(context.genericHandle(), translator.VisitGenericHandle);
+
+            var exprs = context.funcTypeExprParamList().typeExpr().Select(VisitTypeExpr);
+
+            var returnExpr = context.Void() != null
+                ? new StaticTypeNode(new VoidType())
+                : VisitTypeExpr(context.typeExpr());
+
+            return new FuncTypeNode(exprs, returnExpr, handle);
         }
 
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : TypeNode

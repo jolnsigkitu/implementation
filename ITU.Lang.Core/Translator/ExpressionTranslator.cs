@@ -360,7 +360,7 @@ namespace ITU.Lang.Core.Translator
             if (!paramTypes.Equals(exprTypes))
             {
                 var exprCount = exprTypes.Count;
-                var paramCount = paramTypes.Count;
+                var paramCount = paramTypes.ToList().Count;
 
                 if (exprCount != paramCount)
                 {
@@ -370,7 +370,7 @@ namespace ITU.Lang.Core.Translator
                 for (int i = 0; i < exprCount; i++)
                 {
                     var expr = exprTypes[i];
-                    var param = paramTypes[i];
+                    var param = paramTypes.ToList()[i];
 
                     if (!param.Equals(expr))
                     {
@@ -510,8 +510,8 @@ namespace ITU.Lang.Core.Translator
             {
                 var paramTypes = ((FunctionType)constructor.Item1).ParameterTypes;
 
-                if (exprs == null && paramTypes.Count != 0)
-                    throw new TranspilationException($"Class with constructor expects {paramTypes.Count} arguments, but got none.", GetTokenLocation(context));
+                if (exprs == null && paramTypes.ToList().Count != 0)
+                    throw new TranspilationException($"Class with constructor expects {paramTypes.ToList().Count} arguments, but got none.", GetTokenLocation(context));
 
                 // If constructor expects no arguments, exprs is null, since the user did not type any arguments, so we make an empty list.
                 exprs ??= new List<Node>();
@@ -521,7 +521,7 @@ namespace ITU.Lang.Core.Translator
                 if (!exprTypes.Equals(paramTypes))
                 {
                     var exprCount = exprTypes.Count;
-                    var paramCount = paramTypes.Count;
+                    var paramCount = paramTypes.ToList().Count;
 
                     if (exprCount != paramCount)
                     {
@@ -531,7 +531,7 @@ namespace ITU.Lang.Core.Translator
                     for (int i = 0; i < exprCount; i++)
                     {
                         var expr = exprTypes[i];
-                        var param = paramTypes[i];
+                        var param = paramTypes.ToList()[i];
 
                         if (!expr.Equals(param))
                         {

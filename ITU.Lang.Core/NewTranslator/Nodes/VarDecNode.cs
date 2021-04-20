@@ -30,8 +30,11 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
 
             if (TypeAnnotation != null)
             {
-                DerivedType = TypeAnnotation.EvalType(env);
-                Expr.AssertType(DerivedType);
+                System.Console.WriteLine(Expr);
+                System.Console.WriteLine($"TA: {TypeAnnotation}");
+                var typ = TypeAnnotation.EvalType(env);
+                Expr.AssertType(typ);
+                DerivedType = typ;
             }
 
             env.Scopes.Values.Bind(Name, new VariableBinding()
@@ -39,7 +42,6 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
                 Name = Name,
                 Type = DerivedType,
                 IsConst = IsConst,
-                Expr = Expr,
             });
         }
 

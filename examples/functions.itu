@@ -19,7 +19,9 @@ let k = (): void {
 };
 let l = (yeet: int,yote: int,wonk: boolean): int => 3;
 let m = (a: int, b: int) => a + b;
-// let n: (int, int, boolean) => int = (yeet,yote,wonk) => 3;
+let n: (int, int, boolean) => int = (yeet: int, yote: int,wonk: boolean) => 3;
+
+// let o: (int) => int = (lol: int) => true;
 // let o: typeof h = (yeet,yote,wonk) => 3;
 
 

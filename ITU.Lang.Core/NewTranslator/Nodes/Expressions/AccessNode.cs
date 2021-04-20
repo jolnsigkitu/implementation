@@ -21,11 +21,13 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
 
         public override Type ValidateExpr(Environment env)
         {
-            ExprNode node = FirstExpr;
+            FirstExpr?.Validate(env);
+            Type typ = FirstExpr?.Type;
+
             if (Name != null)
             {
                 var binding = env.Scopes.Values.GetBinding(Name);
-                node = binding.Expr;
+                typ = binding.Type;
             }
 
             if (Chain != null)
@@ -34,7 +36,6 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
                 throw new System.NotImplementedException("Access chain not implemented until members are fixed");
                 // foreach (var link in Chain.Chain)
                 // {
-
                 //     if (link.Function != null)
                 //     {
                 //         var func = link.Function;
@@ -44,9 +45,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
                 // }
             }
 
-            node.Validate(env);
-
-            return node.Type;
+            return typ;
         }
 
         public override string ToString()

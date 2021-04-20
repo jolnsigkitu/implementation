@@ -9,8 +9,8 @@ namespace ITU.Lang.Core.Types
 
         public Type ReturnType { get; set; } = new VoidType();
 
-        public IList<Type> ParameterTypes = new List<Type>();
-        public IList<string> ParameterNames = new List<string>();
+        public IEnumerable<Type> ParameterTypes = new List<Type>();
+        public IEnumerable<string> ParameterNames = new List<string>();
 
         public string AsTranslatedName()
         {

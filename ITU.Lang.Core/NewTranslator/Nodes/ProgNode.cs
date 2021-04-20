@@ -7,9 +7,9 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
 {
     public class ProgNode : Node
     {
-        public List<StatementNode> Statements { get; private set; }
+        public IList<StatementNode> Statements { get; private set; }
 
-        public ProgNode(ProgContext ctx, List<StatementNode> statements) : base(ctx)
+        public ProgNode(ProgContext ctx, IList<StatementNode> statements) : base(ctx)
         {
             Statements = statements;
         }

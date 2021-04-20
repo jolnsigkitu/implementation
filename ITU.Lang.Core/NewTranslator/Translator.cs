@@ -11,6 +11,7 @@ using ITU.Lang.Core.NewTranslator.Nodes;
 using static ITU.Lang.Core.Grammar.LangParser;
 using ITU.Lang.Core.NewTranslator.Nodes.Expressions;
 using ITU.Lang.Core.Operators;
+using ITU.Lang.Core.NewTranslator.TypeNodes;
 
 namespace ITU.Lang.Core.NewTranslator
 {
@@ -18,17 +19,23 @@ namespace ITU.Lang.Core.NewTranslator
     {
         private ITokenStream tokenStream;
 
-        private TypeEvaluator typeEvaluator = new TypeEvaluator();
+        private TypeEvaluator typeEvaluator;
 
         public Translator(ITokenStream tokenStream)
         {
             this.tokenStream = tokenStream;
+            typeEvaluator = new TypeEvaluator(this);
         }
 
         public override ProgNode VisitProg([NotNull] ProgContext context)
         {
-            var statements = context.statements().statement().Select(VisitStatement).ToList();
+            var statements = VisitStatements(context.statements());
             return new ProgNode(context, statements);
+        }
+
+        public new IList<StatementNode> VisitStatements([NotNull] StatementsContext context)
+        {
+            return context.statement().Select(VisitStatement).ToList();
         }
 
         public override StatementNode VisitStatement([NotNull] StatementContext context)
@@ -161,9 +168,71 @@ namespace ITU.Lang.Core.NewTranslator
             return new AccessChainNode(list, context);
         }
 
-        public override ExprNode VisitInvokeFunction([NotNull] InvokeFunctionContext context)
+        public override ExprNode VisitInstantiateObject([NotNull] InstantiateObjectContext context)
         {
             throw new System.NotImplementedException();
+        }
+
+        public override FunctionNode VisitFunction([NotNull] FunctionContext context)
+        {
+            var handle = InvokeIf(context.genericHandle(), VisitGenericHandle);
+
+            var blockFun = context.blockFunction();
+            var lambdaFun = context.lambdaFunction();
+
+            var parameterListCtx = blockFun?.functionParameterList() ?? lambdaFun.functionParameterList();
+            var parameterList = InvokeIf(parameterListCtx, VisitFunctionParameterList);
+
+            var blockFunctionBody = InvokeIf(blockFun?.block(), VisitBlock);
+            var lambdaFunctionBody = InvokeIf(lambdaFun?.expr(), VisitExpr);
+            var body = blockFunctionBody ?? lambdaFunctionBody;
+
+            var isLambda = lambdaFunctionBody != null;
+
+            return new FunctionNode(parameterList, body, handle, isLambda, context);
+        }
+
+        public override ParameterListNode VisitFunctionParameterList([NotNull] FunctionParameterListContext context)
+        {
+            var args = context.functionArguments();
+            var names = args.Name().Select(n => n.GetText());
+            var types = args.typeAnnotation().Select(t => typeEvaluator.VisitTypeExpr(t.typeExpr()));
+            var nameTypePairs = names.Zip(types, (n, t) => (n, t));
+
+            var typeAnnotation = InvokeIf(context.typeAnnotation(), typeEvaluator.VisitTypeAnnotation);
+
+            var returnType = context.Void() != null
+                ? new StaticTypeNode(new VoidType())
+                : typeAnnotation;
+
+            return new ParameterListNode(nameTypePairs, returnType, context);
+        }
+
+        public override InvokeFunctionNode VisitInvokeFunction([NotNull] InvokeFunctionContext context)
+        {
+            var name = context.Name().GetText();
+            var arguments = context.arguments()?.expr()?.Select(VisitExpr);
+
+            return new InvokeFunctionNode(name, arguments, context);
+        }
+
+        public override BlockNode VisitBlock([NotNull] BlockContext context)
+        {
+            var statements = InvokeIf(context.statements(), VisitStatements);
+            return new BlockNode(statements, context);
+        }
+
+        public override ReturnStatementNode VisitReturnStatement([NotNull] ReturnStatementContext context)
+        {
+            var expr = VisitExpr(context.expr());
+
+            return new ReturnStatementNode(expr, context);
+        }
+
+        public override GenericHandleNode VisitGenericHandle([NotNull] GenericHandleContext context)
+        {
+            var names = context.Name().Select(n => n.GetText());
+            return new GenericHandleNode(names, context);
         }
 
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node
