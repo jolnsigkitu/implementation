@@ -167,6 +167,14 @@ namespace ITU.Lang.Core.Translator
             return new AccessChainNode(list, GetLocation(context));
         }
 
+        public override Node VisitAssign([NotNull] AssignContext context)
+        {
+            var names = context.nestedName().Name().Select(x => x.GetText()).ToList();
+            var expr = VisitExpr(context.expr());
+
+            return new AssignNode(names, expr, GetLocation(context));
+        }
+
         public override ExprNode VisitInstantiateObject([NotNull] InstantiateObjectContext context)
         {
             throw new System.NotImplementedException();
@@ -259,7 +267,7 @@ namespace ITU.Lang.Core.Translator
             return new ElseStatementNode(block, GetLocation(context));
         }
 
-        public override Node VisitWhileStatement([NotNull] WhileStatementContext context)
+        public override WhileStatementNode VisitWhileStatement([NotNull] WhileStatementContext context)
         {
             var expr = VisitExpr(context.expr());
 
@@ -269,7 +277,7 @@ namespace ITU.Lang.Core.Translator
             return new WhileStatementNode(expr, block, statement, GetLocation(context));
         }
 
-        public override Node VisitDoWhileStatement([NotNull] DoWhileStatementContext context)
+        public override DoWhileStatementNode VisitDoWhileStatement([NotNull] DoWhileStatementContext context)
         {
             var expr = VisitExpr(context.expr());
 
@@ -278,7 +286,7 @@ namespace ITU.Lang.Core.Translator
             return new DoWhileStatementNode(expr, block, GetLocation(context));
         }
 
-        public override Node VisitForStatement([NotNull] ForStatementContext context)
+        public override ForStatementNode VisitForStatement([NotNull] ForStatementContext context)
         {
             var declaration = VisitInlineStatement(context.forDecStatement().inlineStatement());
             var condition = VisitExpr(context.forConExpression().expr());
@@ -287,6 +295,15 @@ namespace ITU.Lang.Core.Translator
             var statement = InvokeIf(context.statement(), VisitStatement);
             var body = (Node)block ?? statement;
             return new ForStatementNode(declaration, condition, increment, body, GetLocation(context));
+        }
+
+        public override LoopStatementNode VisitLoopStatement([NotNull] LoopStatementContext context)
+        {
+            var block = InvokeIf(context.block(), VisitBlock);
+            var statement = InvokeIf(context.statement(), VisitStatement);
+            var body = (Node)block ?? statement;
+
+            return new LoopStatementNode(body, GetLocation(context));
         }
 
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node
