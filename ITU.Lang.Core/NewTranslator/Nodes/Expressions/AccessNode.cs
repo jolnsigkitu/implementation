@@ -8,12 +8,15 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
         public string Name { get; }
         public ExprNode FirstExpr { get; }
         public AccessChainNode Chain { get; }
+
+        public bool HasParens { get; }
         // We don't care about the type of the underlying ExprNode, as we get and validate later
-        public AccessNode(string name, ExprNode firstExpr, AccessChainNode chain, ParserRuleContext context) : base(context)
+        public AccessNode(string name, ExprNode firstExpr, AccessChainNode chain, bool hasParens, ParserRuleContext context) : base(context)
         {
             Name = name;
             FirstExpr = firstExpr;
             Chain = chain;
+            HasParens = hasParens;
         }
 
         public override Type ValidateExpr(Environment env)
@@ -46,6 +49,11 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
             return node.Type;
         }
 
-        public override string ToString() => $"{(Name ?? FirstExpr.ToString())}";
+        public override string ToString()
+        {
+            var content = $"{(Name ?? FirstExpr.ToString())}";
+
+            return HasParens ? $"({content})" : content;
+        }
     }
 }

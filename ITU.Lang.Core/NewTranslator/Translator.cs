@@ -123,7 +123,7 @@ namespace ITU.Lang.Core.NewTranslator
             var name = typedName.Name().GetText();
             var expr = VisitExpr(context.expr());
             var isConst = context.Const() != null;
-            var typeAnnotation = InvokeIf(typedName.typeAnnotation()?.typeExpr(), typeEvaluator.VisitTypeExpr);
+            var typeAnnotation = InvokeIf(typedName.typeAnnotation(), typeEvaluator.VisitTypeAnnotation);
 
             return new VarDecNode(name, isConst, expr, typeAnnotation, context);
         }
@@ -137,9 +137,12 @@ namespace ITU.Lang.Core.NewTranslator
                 context.expr(),
             });
 
+            // No need to check for right parenthesis because of parser rules enforcing matching parens
+            var hasParens = context.LeftParen() != null;
+
             var chain = InvokeIf(context.accessChain(), VisitAccessChain);
 
-            return new AccessNode(name, expr, chain, context);
+            return new AccessNode(name, expr, chain, hasParens, context);
         }
 
         public override AccessChainNode VisitAccessChain([NotNull] AccessChainContext context)
