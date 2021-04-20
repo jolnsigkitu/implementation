@@ -8,17 +8,18 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
         public string Operator { get; private set; }
         private readonly ExprNode Expr1;
         private readonly ExprNode Expr2;
-        public BinaryOperatorNode(string op, ExprNode expr1, ExprNode expr2, Type returnType, ParserRuleContext context) : base(returnType, context)
+        public BinaryOperatorNode(string op, ExprNode expr1, ExprNode expr2, ParserRuleContext context) : base(context)
         {
             Expr1 = expr1;
             Expr2 = expr2;
             Operator = op;
         }
-
-        public override void Validate(Scopes scopes)
+        public override Type ValidateExpr(Environment env)
         {
-            Expr1.Validate(scopes);
-            Expr2.Validate(scopes);
+            Expr1.Validate(env);
+            Expr2.Validate(env);
+
+            return env.Operators.Binary.Get(Operator, Expr1.Type, Expr2.Type);
         }
 
         public override string ToString() => $"{Expr1} {Operator} {Expr2}";

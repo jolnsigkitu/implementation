@@ -14,11 +14,11 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
             Statements = statements;
         }
 
-        public override void Validate(Scopes scopes)
+        public override void Validate(Environment env)
         {
             foreach (var statement in Statements)
             {
-                statement.Validate(scopes);
+                statement.Validate(env);
             }
         }
         public override string ToString()

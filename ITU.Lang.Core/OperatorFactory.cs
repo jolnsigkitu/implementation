@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-using ITU.Lang.Core.NewTranslator.Nodes.Expressions;
-using ITU.Lang.Core.NewTranslator.Nodes;
 using ITU.Lang.Core.Types;
 using Type = ITU.Lang.Core.Types.Type;
 
@@ -17,25 +15,25 @@ namespace ITU.Lang.Core.Operators
         public class OperatorDictionary<TKey, TVal> : Dictionary<string, Dictionary<TKey, TVal>> { }
         public class UnaryOperatorCollection
         {
-            private OperatorDictionary<Type, Func<ExprNode, ExprNode>> dict = new OperatorDictionary<Type, Func<ExprNode, ExprNode>>();
+            private OperatorDictionary<Type, Type> dict = new OperatorDictionary<Type, Type>();
 
-            public void Bind(string op, Type typ, Func<ExprNode, ExprNode> func)
+            public void Bind(string op, Type returnType, Type inputType)
             {
                 dict.TryGetValue(op, out var innerDict);
                 if (innerDict == null)
                 {
-                    innerDict = new Dictionary<Type, Func<ExprNode, ExprNode>>();
+                    innerDict = new Dictionary<Type, Type>();
                     dict.Add(op, innerDict);
                 }
-                innerDict.TryGetValue(typ, out var value);
+                innerDict.TryGetValue(returnType, out var value);
                 if (value != null)
                 {
-                    throw new TranspilationException($"Operator '{op}' for type '{typ.AsNativeName()}' already exists");
+                    throw new TranspilationException($"Operator '{op}' for type '{returnType.AsNativeName()}' already exists");
                 }
-                innerDict[typ] = func;
+                innerDict[returnType] = inputType;
             }
 
-            public ExprNode Get(string op, ExprNode node)
+            public Type Get(string op, Type inputType)
             {
                 dict.TryGetValue(op, out var innerDict);
                 if (innerDict == null)
@@ -45,40 +43,40 @@ namespace ITU.Lang.Core.Operators
                     );
                 }
 
-                innerDict.TryGetValue(node.Type, out var func);
+                innerDict.TryGetValue(inputType, out var returnType);
 
-                if (func == null)
+                if (returnType == null)
                 {
                     throw new TranspilationException(
-                        $"Operator '{op}' is not applicable to expression of type '{node.Type.AsNativeName()}'"
+                        $"Operator '{op}' is not applicable to expression of type '{inputType.AsNativeName()}'"
                     );
                 }
 
-                return func(node);
+                return returnType;
             }
         }
 
         public class BinaryOperatorCollection
         {
-            private OperatorDictionary<(Type, Type), Func<ExprNode, ExprNode, BinaryOperatorNode>> dict = new OperatorDictionary<(Type, Type), Func<ExprNode, ExprNode, BinaryOperatorNode>>();
+            private OperatorDictionary<(Type, Type), Type> dict = new OperatorDictionary<(Type, Type), Type>();
 
-            public void Bind(string op, (Type, Type) types, Func<ExprNode, ExprNode, BinaryOperatorNode> func)
+            public void Bind(string op, (Type, Type) inputTypes, Type returnType)
             {
                 dict.TryGetValue(op, out var innerDict);
                 if (innerDict == null)
                 {
-                    innerDict = new Dictionary<(Type, Type), Func<ExprNode, ExprNode, BinaryOperatorNode>>();
+                    innerDict = new Dictionary<(Type, Type), Type>();
                     dict.Add(op, innerDict);
                 }
-                innerDict.TryGetValue(types, out var value);
+                innerDict.TryGetValue(inputTypes, out var value);
                 if (value != null)
                 {
-                    throw new TranspilationException($"Operator '({types.Item1.AsNativeName()}) {op} ({types.Item2.AsNativeName()})' already exists");
+                    throw new TranspilationException($"Operator '({inputTypes.Item1.AsNativeName()}) {op} ({inputTypes.Item2.AsNativeName()})' already exists");
                 }
-                innerDict[types] = func;
+                innerDict[inputTypes] = returnType;
             }
 
-            public ExprNode Get(string op, ExprNode node1, ExprNode node2)
+            public Type Get(string op, Type inputType1, Type inputType2)
             {
                 dict.TryGetValue(op, out var innerDict);
                 if (innerDict == null)
@@ -86,17 +84,16 @@ namespace ITU.Lang.Core.Operators
                     throw new TranspilationException($"Attempting to use undeclared binary operator '{op}'");
                 }
 
-                System.Console.WriteLine(op + " " + node1.GetType() + ", " + node2.GetType());
-                innerDict.TryGetValue((node1.Type, node2.Type), out var func);
+                innerDict.TryGetValue((inputType1, inputType2), out var returnType);
 
-                if (func == null)
+                if (returnType == null)
                 {
                     throw new TranspilationException(
-                        $"Operator '{op}' is not applicable to expression of type '({node1.Type.AsNativeName()}, {node2.Type.AsNativeName()})'"
+                        $"Operator '{op}' is not applicable to expression of type '({inputType1.AsNativeName()}, {inputType2.AsNativeName()})'"
                     );
                 }
 
-                return func(node1, node2);
+                return returnType;
             }
         }
     }
@@ -110,83 +107,39 @@ namespace ITU.Lang.Core.Operators
             var str = new StringType();
 
             #region Unary boolean
-            factory.UnaryPrefix.Bind("!", boolean,
-                (n1) => new UnaryPreOperatorNode("!", n1, str, n1.Context)
-            );
+            factory.UnaryPrefix.Bind("!", boolean, boolean);
             #endregion
 
             #region Unary algebraic
-            factory.UnaryPrefix.Bind("++", integer,
-                (n1) => new UnaryPreOperatorNode("++", n1, integer, n1.Context)
-            );
-            factory.UnaryPrefix.Bind("--", integer,
-                (n1) => new UnaryPreOperatorNode("--", n1, integer, n1.Context)
-            );
-            factory.UnaryPrefix.Bind("+", integer,
-                (n1) => new UnaryPreOperatorNode("+", n1, integer, n1.Context)
-            );
-            factory.UnaryPrefix.Bind("-", integer,
-                (n1) => new UnaryPreOperatorNode("-", n1, integer, n1.Context)
-            );
+            factory.UnaryPrefix.Bind("++", integer, integer);
+            factory.UnaryPrefix.Bind("--", integer, integer);
+            factory.UnaryPrefix.Bind("+", integer, integer);
+            factory.UnaryPrefix.Bind("-", integer, integer);
 
-            factory.UnaryPostfix.Bind("++", integer,
-                (n1) => new UnaryPostOperatorNode("++", n1, integer, n1.Context)
-            );
-            factory.UnaryPostfix.Bind("--", integer,
-                (n1) => new UnaryPostOperatorNode("--", n1, integer, n1.Context)
-            );
+            factory.UnaryPostfix.Bind("++", integer, integer);
+            factory.UnaryPostfix.Bind("--", integer, integer);
             #endregion
 
             #region Binary algebraic
-            factory.Binary.Bind("+", (str, str),
-                (n1, n2) => new BinaryOperatorNode("+", n1, n2, str, n1.Context)
-            );
-            factory.Binary.Bind("+", (integer, integer),
-                (n1, n2) => new BinaryOperatorNode("+", n1, n2, integer, n1.Context)
-            );
-            factory.Binary.Bind("-", (integer, integer),
-                (n1, n2) => new BinaryOperatorNode("-", n1, n2, integer, n1.Context)
-            );
-            factory.Binary.Bind("*", (integer, integer),
-                (n1, n2) => new BinaryOperatorNode("*", n1, n2, integer, n1.Context)
-            );
-            factory.Binary.Bind("/", (integer, integer),
-                (n1, n2) => new BinaryOperatorNode("/", n1, n2, integer, n1.Context)
-            );
-            factory.Binary.Bind("%", (integer, integer),
-                (n1, n2) => new BinaryOperatorNode("%", n1, n2, integer, n1.Context)
-            );
+            factory.Binary.Bind("+", (str, str), str);
+            factory.Binary.Bind("+", (integer, integer), integer);
+            factory.Binary.Bind("-", (integer, integer), integer);
+            factory.Binary.Bind("*", (integer, integer), integer);
+            factory.Binary.Bind("/", (integer, integer), integer);
+            factory.Binary.Bind("%", (integer, integer), integer);
             #endregion
 
             #region Binary Boolean
-            factory.Binary.Bind("==", (boolean, boolean),
-                (n1, n2) => new BinaryOperatorNode("==", n1, n2, boolean, n1.Context)
-            );
-            factory.Binary.Bind("&&", (boolean, boolean),
-                (n1, n2) => new BinaryOperatorNode("&&", n1, n2, boolean, n1.Context)
-            );
-            factory.Binary.Bind("||", (boolean, boolean),
-                (n1, n2) => new BinaryOperatorNode("||", n1, n2, boolean, n1.Context)
-            );
-            factory.Binary.Bind("^", (boolean, boolean),
-                (n1, n2) => new BinaryOperatorNode("^", n1, n2, boolean, n1.Context)
-            );
+            factory.Binary.Bind("==", (boolean, boolean), boolean);
+            factory.Binary.Bind("&&", (boolean, boolean), boolean);
+            factory.Binary.Bind("||", (boolean, boolean), boolean);
+            factory.Binary.Bind("^", (boolean, boolean), boolean);
 
-            factory.Binary.Bind("==", (integer, integer),
-                (n1, n2) => new BinaryOperatorNode("==", n1, n2, boolean, n1.Context)
-            );
-            factory.Binary.Bind("<", (integer, integer),
-                (n1, n2) => new BinaryOperatorNode("<", n1, n2, boolean, n1.Context)
-            );
-            factory.Binary.Bind(">", (integer, integer),
-                (n1, n2) => new BinaryOperatorNode(">", n1, n2, boolean, n1.Context)
-            );
-            factory.Binary.Bind("<=", (integer, integer),
-                (n1, n2) => new BinaryOperatorNode("<=", n1, n2, boolean, n1.Context)
-            );
-            factory.Binary.Bind(">=", (integer, integer),
-                (n1, n2) => new BinaryOperatorNode(">=", n1, n2, boolean, n1.Context)
-            );
+            factory.Binary.Bind("==", (integer, integer), boolean);
+            factory.Binary.Bind("<", (integer, integer), boolean);
+            factory.Binary.Bind(">", (integer, integer), boolean);
+            factory.Binary.Bind("<=", (integer, integer), boolean);
+            factory.Binary.Bind(">=", (integer, integer), boolean);
             #endregion
 
             return factory;

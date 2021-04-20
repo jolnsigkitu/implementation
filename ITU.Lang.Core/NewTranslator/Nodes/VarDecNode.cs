@@ -19,15 +19,15 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
             IsConst = isConst;
         }
 
-        public override void Validate(Scopes scopes)
+        public override void Validate(Environment env)
         {
-            TypeAnnotation?.Validate(scopes.Types);
+            TypeAnnotation?.Validate(env.Scopes.Types);
 
-            Expr.Validate(scopes);
+            Expr.Validate(env);
 
             if (TypeAnnotation != null) Expr.AssertType(TypeAnnotation);
 
-            scopes.Values.Bind(Name, new VariableBinding()
+            env.Scopes.Values.Bind(Name, new VariableBinding()
             {
                 Name = Name,
                 Type = TypeAnnotation ?? Expr.Type,

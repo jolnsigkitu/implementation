@@ -1,5 +1,5 @@
-using System;
 using Antlr4.Runtime;
+using ITU.Lang.Core.Types;
 
 namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
 {
@@ -9,26 +9,26 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
         public ExprNode FirstExpr { get; }
         public AccessChainNode Chain { get; }
         // We don't care about the type of the underlying ExprNode, as we get and validate later
-        public AccessNode(string name, ExprNode firstExpr, AccessChainNode chain, ParserRuleContext context) : base(firstExpr.Type, context)
+        public AccessNode(string name, ExprNode firstExpr, AccessChainNode chain, ParserRuleContext context) : base(context)
         {
             Name = name;
             FirstExpr = firstExpr;
             Chain = chain;
         }
 
-        public override void Validate(Scopes scopes)
+        public override Type ValidateExpr(Environment env)
         {
             ExprNode node = FirstExpr;
             if (Name != null)
             {
-                var binding = scopes.Values.GetBinding(Name);
+                var binding = env.Scopes.Values.GetBinding(Name);
                 node = binding.Expr;
             }
 
             if (Chain != null)
             {
                 // TODO: Fix chain when we get members sorted
-                throw new NotImplementedException("Access chain not implemented until members are fixed");
+                throw new System.NotImplementedException("Access chain not implemented until members are fixed");
                 // foreach (var link in Chain.Chain)
                 // {
 
@@ -40,8 +40,10 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
                 //     }
                 // }
             }
-            // Type = node.Type;
-            node.Validate(scopes);
+
+            node.Validate(env);
+
+            return node.Type;
         }
 
         public override string ToString() => $"{(Name ?? FirstExpr.ToString())}";

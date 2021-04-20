@@ -8,13 +8,14 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
     {
         public IList<ChainNode> Chain;
 
-        public AccessChainNode(IList<ChainNode> chain, ParserRuleContext context) : base(null, context)
+        public AccessChainNode(IList<ChainNode> chain, ParserRuleContext context) : base(context)
         {
             Chain = chain;
         }
 
-        public override void Validate(Scopes scopes)
+        public override Type ValidateExpr(Environment env)
         {
+            return null;
         }
 
         public override string ToString() => string.Join(".", Chain);

@@ -11,15 +11,12 @@ using ITU.Lang.Core.NewTranslator.Nodes;
 using static ITU.Lang.Core.Grammar.LangParser;
 using ITU.Lang.Core.NewTranslator.Nodes.Expressions;
 using ITU.Lang.Core.Operators;
-using System;
 
 namespace ITU.Lang.Core.NewTranslator
 {
     public class Translator : LangBaseVisitor<Node>
     {
         private ITokenStream tokenStream;
-
-        private OperatorFactory operators = Operators.Operators.InitializeOperators(new OperatorFactory());
 
         private TypeEvaluator typeEvaluator = new TypeEvaluator();
 
@@ -68,12 +65,14 @@ namespace ITU.Lang.Core.NewTranslator
             // operator-variant
             var exprs = context.expr().Select(VisitExpr).ToArray();
             var children = context.children;
-            if (children[0] is OperatorContext) // unary pre
-                return operators.UnaryPrefix.Get(op, exprs[0]);
-            else if (exprs.Length == 1) // unary post
-                return operators.UnaryPostfix.Get(op, exprs[0]);
-            else // binary
-                return operators.Binary.Get(op, exprs[0], exprs[1]);
+
+            if (exprs.Length == 1)
+            {
+                var isPrefix = children[0] is OperatorContext;
+                return new UnaryOperatorNode(op, exprs[0], isPrefix, context);
+            }
+
+            return new BinaryOperatorNode(op, exprs[0], exprs[1], context);
         }
 
         public override ExprNode VisitTerm([NotNull] TermContext context)
@@ -161,7 +160,7 @@ namespace ITU.Lang.Core.NewTranslator
 
         public override ExprNode VisitInvokeFunction([NotNull] InvokeFunctionContext context)
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node

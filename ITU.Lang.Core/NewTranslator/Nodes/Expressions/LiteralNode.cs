@@ -11,7 +11,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
             Value = value;
         }
 
-        public override void Validate(Scopes scopes) { }
+        public override Type ValidateExpr(Environment env) => Type;
 
         public override string ToString() => Value;
     }

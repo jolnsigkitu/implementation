@@ -11,6 +11,8 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
             Type = type;
         }
 
+        protected ExprNode(ParserRuleContext context) : base(context) { }
+
         public bool IsType(Type v)
         {
             return Type.Equals(v);
@@ -28,9 +30,11 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
             throw new TranspilationException($"Expected type '{(v.AsNativeName())}', got '{Type.AsNativeName()}'");
         }
 
-        // public override void Validate(Scopes scopes)
-        // {
+        public override void Validate(Environment env)
+        {
+            Type = ValidateExpr(env);
+        }
 
-        // }
+        public abstract Type ValidateExpr(Environment env);
     }
 }

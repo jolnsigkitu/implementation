@@ -10,7 +10,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes
             Statement = statement;
         }
 
-        public override void Validate(Scopes scopes) => Statement.Validate(scopes);
+        public override void Validate(Environment env) => Statement.Validate(env);
 
         public override string ToString() => Statement.ToString() + ";";
     }
