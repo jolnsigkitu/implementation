@@ -10,6 +10,6 @@ do {
     i = i + 1;
 } while(true);
 
-for(let j = 0; j < 5; j = j + 5) {
+for(let j = 0; j < 5; j++) {
 
 }

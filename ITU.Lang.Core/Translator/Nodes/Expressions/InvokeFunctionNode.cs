@@ -17,7 +17,7 @@ namespace ITU.Lang.Core.Translator.Nodes
             Exprs = exprs;
         }
 
-        public override Type ValidateExpr(Environment env)
+        protected override Type ValidateExpr(Environment env)
         {
             if (!env.Scopes.Values.HasBinding(Name))
             {

@@ -22,7 +22,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             IsLambda = isLambda;
         }
 
-        public override Type ValidateExpr(Environment env)
+        protected override Type ValidateExpr(Environment env)
         {
             using var _ = env.Scopes.Use();
 

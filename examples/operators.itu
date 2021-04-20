@@ -9,3 +9,4 @@ const h = !true;
 const i = !h;
 const j = a + b;
 const l = c++;
+const m = ++c;

@@ -12,7 +12,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Type = type;
         }
 
-        public override Type ValidateExpr(Environment env) => Type;
+        protected override Type ValidateExpr(Environment env) => Type;
 
         public override string ToString() => Value;
     }

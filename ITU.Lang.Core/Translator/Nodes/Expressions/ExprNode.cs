@@ -35,6 +35,6 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Type = ValidateExpr(env);
         }
 
-        public abstract Type ValidateExpr(Environment env);
+        protected abstract Type ValidateExpr(Environment env);
     }
 }

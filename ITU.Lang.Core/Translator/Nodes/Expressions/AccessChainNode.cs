@@ -13,7 +13,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Chain = chain;
         }
 
-        public override Type ValidateExpr(Environment env)
+        protected override Type ValidateExpr(Environment env)
         {
             return null;
         }

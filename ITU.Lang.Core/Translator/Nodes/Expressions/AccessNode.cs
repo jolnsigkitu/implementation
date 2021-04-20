@@ -19,7 +19,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             HasParens = hasParens;
         }
 
-        public override Type ValidateExpr(Environment env)
+        protected override Type ValidateExpr(Environment env)
         {
             FirstExpr?.Validate(env);
             Type typ = FirstExpr?.Type;

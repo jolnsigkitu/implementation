@@ -13,7 +13,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Statements = statements;
         }
 
-        public override Type ValidateExpr(Environment env)
+        protected override Type ValidateExpr(Environment env)
         {
             using var _ = env.Scopes.Use();
 

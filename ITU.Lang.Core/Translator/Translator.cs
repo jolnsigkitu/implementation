@@ -75,7 +75,6 @@ namespace ITU.Lang.Core.Translator
             if (exprs.Length == 1)
             {
                 var isPrefix = children[0] is OperatorContext;
-                // System.Console.WriteLine(exprs[0].Type?.ToString() ?? "null");
                 return new UnaryOperatorNode(op, exprs[0], isPrefix, GetLocation(context));
             }
 

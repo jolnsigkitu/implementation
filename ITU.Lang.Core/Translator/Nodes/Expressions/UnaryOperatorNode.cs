@@ -14,13 +14,11 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Operator = op;
             IsPrefix = isPrefix;
         }
-        public override Type ValidateExpr(Environment env)
+        protected override Type ValidateExpr(Environment env)
         {
-            Expr.ValidateExpr(env);
+            Expr.Validate(env);
 
             var collection = IsPrefix ? env.Operators.UnaryPrefix : env.Operators.UnaryPostfix;
-
-            // System.Console.WriteLine(Operator + ": " + (Expr.Type?.ToString() ?? "null"));
 
             return collection.Get(Operator, Expr.Type);
         }
