@@ -25,7 +25,7 @@ namespace ITU.Lang.Core.NewTranslator.Nodes.Expressions
 
         public override string ToString()
         {
-            throw new System.NotImplementedException();
+            return IsPrefix ? $"{Operator}{Expr}" : $"{Expr}{Operator}";
         }
     }
 }
