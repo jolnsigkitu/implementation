@@ -26,6 +26,10 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
             if (Name != null)
             {
+                if (!env.Scopes.Values.HasBinding(Name))
+                {
+                    throw new TranspilationException($"Cannot access undeclared value '{Name}'", Location);
+                }
                 var binding = env.Scopes.Values.GetBinding(Name);
                 typ = binding.Type;
             }

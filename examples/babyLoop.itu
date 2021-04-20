@@ -1,0 +1,15 @@
+while(true)
+{
+    let a = 0;
+}
+
+let i = 0;
+while(true) i = i + 1;
+
+do {
+    i = i + 1;
+} while(true);
+
+for(let j = 0; j < 5; j = j + 5) {
+
+}

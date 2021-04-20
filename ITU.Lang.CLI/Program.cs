@@ -29,7 +29,7 @@ namespace ITU.Lang.CLI
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"An error occured while transpiing {fileName}:\n" + ex.Message, ex);
+                    throw new Exception($"An error occured while transpiling {fileName}:\n" + ex.Message, ex);
                 }
 
             }

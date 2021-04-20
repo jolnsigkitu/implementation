@@ -10,7 +10,6 @@ using ITU.Lang.Core.Grammar;
 using ITU.Lang.Core.Translator.Nodes;
 using static ITU.Lang.Core.Grammar.LangParser;
 using ITU.Lang.Core.Translator.Nodes.Expressions;
-using ITU.Lang.Core.Operators;
 using ITU.Lang.Core.Translator.TypeNodes;
 
 namespace ITU.Lang.Core.Translator
@@ -76,6 +75,7 @@ namespace ITU.Lang.Core.Translator
             if (exprs.Length == 1)
             {
                 var isPrefix = children[0] is OperatorContext;
+                // System.Console.WriteLine(exprs[0].Type?.ToString() ?? "null");
                 return new UnaryOperatorNode(op, exprs[0], isPrefix, GetLocation(context));
             }
 
@@ -258,6 +258,36 @@ namespace ITU.Lang.Core.Translator
             var block = VisitBlock(context.block());
 
             return new ElseStatementNode(block, GetLocation(context));
+        }
+
+        public override Node VisitWhileStatement([NotNull] WhileStatementContext context)
+        {
+            var expr = VisitExpr(context.expr());
+
+            var block = InvokeIf(context.block(), VisitBlock);
+            var statement = InvokeIf(context.statement(), VisitStatement);
+
+            return new WhileStatementNode(expr, block, statement, GetLocation(context));
+        }
+
+        public override Node VisitDoWhileStatement([NotNull] DoWhileStatementContext context)
+        {
+            var expr = VisitExpr(context.expr());
+
+            var block = InvokeIf(context.block(), VisitBlock);
+
+            return new DoWhileStatementNode(expr, block, GetLocation(context));
+        }
+
+        public override Node VisitForStatement([NotNull] ForStatementContext context)
+        {
+            var declaration = VisitInlineStatement(context.forDecStatement().inlineStatement());
+            var condition = VisitExpr(context.forConExpression().expr());
+            var increment = VisitInlineStatement(context.forIncStatement().inlineStatement());
+            var block = InvokeIf(context.block(), VisitBlock);
+            var statement = InvokeIf(context.statement(), VisitStatement);
+            var body = (Node)block ?? statement;
+            return new ForStatementNode(declaration, condition, increment, body, GetLocation(context));
         }
 
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node
