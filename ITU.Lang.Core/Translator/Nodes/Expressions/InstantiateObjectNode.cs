@@ -44,38 +44,36 @@ namespace ITU.Lang.Core.Translator.Nodes
 
             if (typeBinding.Members.TryGetValue("constructor", out var constructor))
             {
-                var paramTypes = ((FunctionType)constructor.Type).ParameterTypes;
+                var funcType = (FunctionType)constructor.Type;
 
-                if (Exprs.Count == 0 && paramTypes.Count != 0)
-                {
-                    throw new TranspilationException($"Class with constructor expects {paramTypes.Count} arguments, but got none.", Location);
-                }
-
-                var exprTypes = Exprs.Select(expr => expr.Type).ToList();
-
-                if (!exprTypes.Equals(paramTypes))
-                {
-                    var exprCount = exprTypes.Count;
-                    var paramCount = paramTypes.Count;
-
-                    if (exprCount != paramCount)
-                    {
-                        throw new TranspilationException($"Function '{name}' takes {paramCount} parameters, but got {exprCount}", Location);
-                    }
-
-                    var i = 1;
-                    foreach (var (expr, param) in exprTypes.Zip(paramTypes))
-                    {
-                        if (!expr.Equals(param))
-                        {
-                            throw new TranspilationException($"Function '{name}' could not be invoked: parameter {i} must be of type '{param.AsNativeName()}', but was '{expr.AsNativeName()}'", Location);
-                        }
-                        i++;
-                    }
-                }
+                AssertExprsMatchesConstructor(funcType);
             }
 
             return typeBinding.Type;
+        }
+
+        private void AssertExprsMatchesConstructor(FunctionType funcType)
+        {
+            var paramTypes = funcType.ParameterTypes;
+            var exprTypes = Exprs.Select(expr => expr.Type).ToList();
+
+            var exprCount = exprTypes.Count;
+            var paramCount = paramTypes.Count;
+
+            if (exprCount != paramCount)
+            {
+                throw new TranspilationException($"Class constructor takes {paramCount} parameters, but got {exprCount}", Location);
+            }
+
+            var i = 1;
+            foreach (var (expr, param) in exprTypes.Zip(paramTypes))
+            {
+                if (!expr.Equals(param))
+                {
+                    throw new TranspilationException($"Class constructor could not be invoked: parameter {i} must be of type '{param.AsNativeName()}', but was '{expr.AsNativeName()}'", Location);
+                }
+                i++;
+            }
         }
 
         public override string ToString()
