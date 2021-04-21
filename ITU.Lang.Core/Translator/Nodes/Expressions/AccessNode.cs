@@ -58,6 +58,11 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                             throw new TranspilationException("Cannot access member on non-object", Location);
                         }
 
+                        if (env.Scopes.Types.HasBinding(returnClassType.Name))
+                        {
+                            throw new TranspilationException($"Unknown type {returnClassType.Name}.", Location);
+                        }
+
                         binding = env.Scopes.Types.GetBinding(returnClassType.Name);
                     }
                     // name
