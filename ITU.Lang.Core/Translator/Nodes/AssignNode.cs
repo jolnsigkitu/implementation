@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Antlr4.Runtime;
 using ITU.Lang.Core.Types;
 
@@ -6,10 +7,10 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 {
     public class AssignNode : ExprNode
     {
-        public IList<string> Names { get; }
+        public List<string> Names { get; }
         public ExprNode Expr { get; }
 
-        public AssignNode(IList<string> names, ExprNode expr, TokenLocation location) : base(location)
+        public AssignNode(List<string> names, ExprNode expr, TokenLocation location) : base(location)
         {
             Names = names;
             Expr = expr;
@@ -19,21 +20,32 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
         {
             var name = Names[0];
 
-            if (Names.Count > 1)
-            {
-                // TODO: Fix when we get members sorted
-                throw new System.NotImplementedException("Assignment to nested properties not implemented until members are fixed");
-            }
-
             if (!env.Scopes.Values.HasBinding(name))
             {
                 throw new TranspilationException($"Cannot access undeclared value '{name}'", Location);
             }
+
             var binding = env.Scopes.Values.GetBinding(name);
 
-            if (binding.IsConst)
+            if (binding.IsConst && Names.Count == 1)
             {
-                throw new TranspilationException("Cannot reassign to const variable");
+                throw new TranspilationException("Cannot reassign to const variable", Location);
+            }
+
+            if (Names.Count > 1)
+            {
+                foreach (var memberName in Names.GetRange(1, Names.Count - 1))
+                {
+                    if (binding.Members == null)
+                    {
+                        throw new TranspilationException("Cannot assign value to nested property on non-object", Location);
+                    }
+                    if (!binding.Members.TryGetValue(memberName, out var member))
+                    {
+                        throw new TranspilationException($"Cannot assign value to undefined member {memberName} on type {binding.Type}", Location);
+                    }
+                    binding = member;
+                }
             }
 
             var typ = binding.Type;
@@ -41,12 +53,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Expr.Validate(env);
             Expr.AssertType(typ);
 
-            env.Scopes.Values.Rebind(name, new VariableBinding
-            {
-                Name = name,
-                Type = Expr.Type,
-                IsConst = binding.IsConst,
-            });
+            binding.Type = Expr.Type;
 
             return typ;
         }

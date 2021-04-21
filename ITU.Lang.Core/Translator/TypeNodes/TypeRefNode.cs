@@ -26,7 +26,7 @@ namespace ITU.Lang.Core.Translator.TypeNodes
                 throw new TranspilationException($"Found undefined type '{Name}'");
             }
 
-            var typ = env.Scopes.Types.GetBinding(Name);
+            var typ = env.Scopes.Types.GetBinding(Name).Type;
             typ.Validate(env.Scopes.Types);
             return typ;
         }

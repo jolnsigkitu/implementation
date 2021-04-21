@@ -12,6 +12,11 @@ namespace ITU.Lang.Core.Translator.Nodes
 
         public override void Validate(Environment env) => Statement.Validate(env);
 
-        public override string ToString() => Statement.ToString() + ";";
+        public override string ToString()
+        {
+            var str = Statement.ToString();
+
+            return string.IsNullOrEmpty(str) ? "" : $"{str};";
+        }
     }
 }

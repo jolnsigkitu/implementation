@@ -1,3 +1,5 @@
+using ITU.Lang.Core.Translator;
+
 namespace ITU.Lang.Core.Types
 {
     public class GenericTypeIdentifier : Type
@@ -19,7 +21,7 @@ namespace ITU.Lang.Core.Types
 
         public override string ToString() => Identifier;
 
-        public void Validate(Scope<Type> scope)
+        public void Validate(Scope<TypeBinding> scope)
         {
             throw new System.NotImplementedException();
         }

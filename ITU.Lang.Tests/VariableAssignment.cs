@@ -33,5 +33,7 @@ namespace ITU.Lang.Tests
 
             Assert.Throws<TranspilationException>(() => prog.Validate(new Environment()));
         }
+
+        // this.invalid = lastName;
     }
 }

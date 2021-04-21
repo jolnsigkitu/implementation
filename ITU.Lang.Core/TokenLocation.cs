@@ -17,6 +17,6 @@ namespace ITU.Lang.Core
             EndColumn = end.Column;
         }
 
-        public override string ToString() => $"{StartLine}:{StartColumn} - {EndLine}:{EndColumn}:";
+        public override string ToString() => $"{StartLine}:{StartColumn} - {EndLine}:{EndColumn}";
     }
 }

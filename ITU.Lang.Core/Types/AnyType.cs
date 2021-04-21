@@ -1,3 +1,5 @@
+using ITU.Lang.Core.Translator;
+
 namespace ITU.Lang.Core.Types
 {
     public class AnyType : Type
@@ -12,6 +14,6 @@ namespace ITU.Lang.Core.Types
 
         public override string ToString() => "any";
 
-        public void Validate(Scope<Type> scope) { }
+        public void Validate(Scope<TypeBinding> scope) { }
     }
 }

@@ -13,6 +13,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
         public ExprNode Body { get; }
         public GenericHandleNode Handle { get; }
         public bool IsLambda { get; }
+        public bool IsClassMember { get; set; }
 
         public FunctionNode(ParameterListNode parameterList, ExprNode body, GenericHandleNode handle, bool isLambda, TokenLocation location) : base(location)
         {
@@ -60,9 +61,9 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
         public override string ToString()
         {
             var parametersStr = string.Join(", ", ParameterList);
-            // TODO: Support class members
-            // return $"{parametersStr} {(IsLambda ? "=> " : "")}{Body}";
-            return $"{parametersStr} => {Body}";
+            var arrow = !IsClassMember || IsLambda ? " =>" : "";
+
+            return $"{parametersStr}{arrow} {Body}";
         }
     }
 }

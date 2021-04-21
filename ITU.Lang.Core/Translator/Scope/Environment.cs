@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ITU.Lang.Core.Operators;
+using ITU.Lang.Core.Translator.Nodes;
 using OperatorFactoryOperators = ITU.Lang.Core.Operators.Operators;
 
 namespace ITU.Lang.Core.Translator
@@ -10,6 +11,6 @@ namespace ITU.Lang.Core.Translator
 
         public OperatorFactory Operators = OperatorFactoryOperators.InitializeOperators(new OperatorFactory());
 
-        public IList<ClassType> Classes = new List<ClassType>();
+        public IList<ClassNode> Classes = new List<ClassNode>();
     }
 }

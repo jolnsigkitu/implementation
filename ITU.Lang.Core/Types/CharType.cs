@@ -1,3 +1,5 @@
+using ITU.Lang.Core.Translator;
+
 namespace ITU.Lang.Core.Types
 {
     public class CharType : Type
@@ -10,6 +12,6 @@ namespace ITU.Lang.Core.Types
 
         public override int GetHashCode() => 7;
 
-        public void Validate(Scope<Type> scope) { }
+        public void Validate(Scope<TypeBinding> scope) { }
     }
 }

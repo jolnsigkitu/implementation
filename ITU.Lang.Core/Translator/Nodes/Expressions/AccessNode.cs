@@ -36,17 +36,47 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
             if (Chain != null)
             {
-                // TODO: Fix chain when we get members sorted
-                throw new System.NotImplementedException("Access chain not implemented until members are fixed");
-                // foreach (var link in Chain.Chain)
-                // {
-                //     if (link.Function != null)
-                //     {
-                //         var func = link.Function;
-                //         func.Validate();
-                //         node = func;
-                //     }
-                // }
+                if (!(typ is ClassType ct))
+                {
+                    throw new TranspilationException("Cannot access member on non-object", Location);
+                }
+
+                IBinding binding = env.Scopes.Types.GetBinding(ct.Name);
+
+                foreach (var link in Chain.Chain)
+                {
+                    // function
+                    if (link.Function != null)
+                    {
+                        var func = link.Function;
+                        func.Validate(env);
+
+                        typ = ((FunctionType)func.Type).ReturnType;
+
+                        if (!(typ is ClassType returnClassType))
+                        {
+                            throw new TranspilationException("Cannot access member on non-object", Location);
+                        }
+
+                        binding = env.Scopes.Types.GetBinding(returnClassType.Name);
+                    }
+                    // name
+                    else
+                    {
+                        if (binding.Members == null)
+                        {
+                            throw new TranspilationException("Cannot access member on non-object", Location);
+                        }
+
+                        if (!binding.Members.TryGetValue(link.Name, out var memberBinding))
+                        {
+                            throw new TranspilationException($"Cannot access undefined member {link.Name} on type {typ}", Location);
+                        }
+
+                        binding = memberBinding;
+                        typ = binding.Type;
+                    }
+                }
             }
 
             return typ;
@@ -54,9 +84,12 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
         public override string ToString()
         {
+            var chainStr = Chain != null ? $".{Chain}" : "";
             var content = $"{(Name ?? FirstExpr.ToString())}";
 
-            return HasParens ? $"({content})" : content;
+            content = HasParens ? $"({content})" : content;
+
+            return $"{content}{chainStr}";
         }
     }
 }

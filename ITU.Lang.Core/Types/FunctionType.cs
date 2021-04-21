@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core.Types
 {
@@ -71,6 +72,6 @@ namespace ITU.Lang.Core.Types
 
         public override string ToString() => AsNativeName();
 
-        public virtual void Validate(Scope<Type> scope) { }
+        public virtual void Validate(Scope<TypeBinding> scope) { }
     }
 }

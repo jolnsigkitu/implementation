@@ -137,9 +137,33 @@ namespace ITU.Lang.Core.Translator
         public override TypeDecNode VisitTypedec([NotNull] TypedecContext context)
         {
             var name = context.Name().GetText();
-            var typeNode = typeEvaluator.VisitTypeExpr(context.typeExpr());
+            var typeDecNode = InvokeIf(context.typeExpr(), typeEvaluator.VisitTypeExpr);
+            var classDecNode = InvokeIf(context.classExpr(), VisitClassExpr);
 
-            return new TypeDecNode(name, typeNode, GetLocation(context));
+            // Since name is not available in ClassExprContext we monkey-patch it in here
+            if (classDecNode != null)
+            {
+                classDecNode.Type.Name = name;
+            }
+
+            return new TypeDecNode(name, typeDecNode, classDecNode, GetLocation(context));
+        }
+
+        public override ClassNode VisitClassExpr([NotNull] ClassExprContext context)
+        {
+            var members = context.classMember().Select(VisitClassMember).ToList();
+            return new ClassNode(members, GetLocation(context));
+        }
+
+        public override ClassMemberNode VisitClassMember([NotNull] ClassMemberContext context)
+        {
+            var name = context.Name().GetText();
+            // Signify Field member
+            var expr = InvokeIf(context.expr(), VisitExpr);
+            // Signify Method member
+            var func = InnerVisitFunction(context.blockFunction(), context.lambdaFunction());
+            var annotation = InvokeIf(context.typeAnnotation(), typeEvaluator.VisitTypeAnnotation);
+            return new ClassMemberNode(name, expr, func, annotation, GetLocation(context));
         }
 
         public override AccessNode VisitAccess([NotNull] AccessContext context)
@@ -190,10 +214,15 @@ namespace ITU.Lang.Core.Translator
 
         public override FunctionNode VisitFunction([NotNull] FunctionContext context)
         {
-            var handle = InvokeIf(context.genericHandle(), VisitGenericHandle);
+            return InnerVisitFunction(context.blockFunction(), context.lambdaFunction());
+        }
 
-            var blockFun = context.blockFunction();
-            var lambdaFun = context.lambdaFunction();
+        private FunctionNode InnerVisitFunction(BlockFunctionContext blockFun, LambdaFunctionContext lambdaFun)
+        {
+            if (blockFun == null && lambdaFun == null) return null;
+
+            var handleCtx = blockFun?.genericHandle() ?? lambdaFun?.genericHandle();
+            var handle = InvokeIf(handleCtx, VisitGenericHandle);
 
             var parameterListCtx = blockFun?.functionParameterList() ?? lambdaFun.functionParameterList();
             var parameterList = InvokeIf(parameterListCtx, VisitFunctionParameterList);
@@ -204,7 +233,7 @@ namespace ITU.Lang.Core.Translator
 
             var isLambda = lambdaFunctionBody != null;
 
-            return new FunctionNode(parameterList, body, handle, isLambda, GetLocation(context));
+            return new FunctionNode(parameterList, body, handle, isLambda, GetLocation(((ISyntaxTree)blockFun) ?? lambdaFun));
         }
 
         public override ParameterListNode VisitFunctionParameterList([NotNull] FunctionParameterListContext context)

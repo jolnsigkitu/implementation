@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core.Types
 {
@@ -88,6 +89,6 @@ namespace ITU.Lang.Core.Types
             return type;
         }
 
-        public override void Validate(Scope<Type> scope) { }
+        public override void Validate(Scope<TypeBinding> scope) { }
     }
 }

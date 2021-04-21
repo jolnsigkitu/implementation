@@ -7,7 +7,7 @@ namespace ITU.Lang.Core.Translator
     public class Scopes
     {
         public Scope<VariableBinding> Values { get; } = new Scope<VariableBinding>();
-        public Scope<Type> Types { get; } = new Scope<Type>();
+        public Scope<TypeBinding> Types { get; } = new Scope<TypeBinding>();
 
         public Scopes()
         {
@@ -53,11 +53,11 @@ namespace ITU.Lang.Core.Translator
         {
             Push();
 
-            Types.Bind("int", new IntType());
-            Types.Bind("boolean", new BooleanType());
-            Types.Bind("string", new StringType());
-            Types.Bind("char", new CharType());
-            Types.Bind("any", new AnyType());
+            Types.Bind("int", new TypeBinding(new IntType()));
+            Types.Bind("boolean", new TypeBinding(new BooleanType()));
+            Types.Bind("string", new TypeBinding(new StringType()));
+            Types.Bind("char", new TypeBinding(new CharType()));
+            Types.Bind("any", new TypeBinding(new AnyType()));
 
             Values.Bind("println", new VariableBinding()
             {

@@ -1,3 +1,5 @@
+using ITU.Lang.Core.Translator;
+
 namespace ITU.Lang.Core.Types
 {
     public class StringType : Type
@@ -10,6 +12,8 @@ namespace ITU.Lang.Core.Types
 
         public override int GetHashCode() => 5;
 
-        public void Validate(Scope<Type> scope) { }
+        public void Validate(Scope<TypeBinding> scope) { }
+
+        public override string ToString() => AsNativeName();
     }
 }

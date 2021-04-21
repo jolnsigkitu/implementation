@@ -21,9 +21,11 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
         public override string ToString() => string.Join(".", Chain);
     }
 
-    public struct ChainNode
+    public class ChainNode
     {
         public string Name;
         public InvokeFunctionNode Function;
+
+        public override string ToString() => Name != null ? Name : Function.ToString();
     }
 }

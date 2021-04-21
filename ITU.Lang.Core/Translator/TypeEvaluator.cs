@@ -22,7 +22,6 @@ namespace ITU.Lang.Core.Translator
         {
             return VisitFirstChild<TypeNode>(new ParserRuleContext[] {
                 context.typeRef(),
-                context.classExpr(),
                 context.funcTypeExpr(),
             });
         }

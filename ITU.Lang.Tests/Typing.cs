@@ -17,7 +17,7 @@ namespace ITU.Lang.Tests
 
             prog.Validate(env);
 
-            Assert.Equal(type, env.Scopes.Types.GetBinding(identifier));
+            Assert.Equal(type, env.Scopes.Types.GetBinding(identifier).Type);
         }
 
         [Fact]

@@ -72,9 +72,10 @@ functionParameterList:
 		Colon Void
 		| typeAnnotation
 	)?;
-blockFunction: functionParameterList block;
-lambdaFunction: functionParameterList FatArrow expr;
-function: genericHandle? blockFunction | lambdaFunction;
+blockFunction: genericHandle? functionParameterList block;
+lambdaFunction:
+	genericHandle? functionParameterList FatArrow expr;
+function: blockFunction | lambdaFunction;
 
 genericHandle: LessThan (Name Comma)* Name GreaterThan;
 
@@ -91,16 +92,22 @@ arguments: (expr Comma)* (expr)?;
 typedName: Name typeAnnotation?;
 typeAnnotation: Colon typeExpr;
 
-// Type expressions
-typedec: Type Name Eq typeExpr;
+// const foo: { name: string } =
 
-typeExpr: typeRef | classExpr | funcTypeExpr;
+// Type expressions
+typedec: Type Name Eq (typeExpr | classExpr);
+
+typeExpr: typeRef | funcTypeExpr;
 
 typeRef: Name genericHandle?;
 
 classExpr: LeftBrace classMember* RightBrace;
 
-funcTypeExpr: genericHandle? funcTypeExprParamList FatArrow (typeExpr | Void);
+funcTypeExpr:
+	genericHandle? funcTypeExprParamList FatArrow (
+		typeExpr
+		| Void
+	);
 
 funcTypeExprParamList:
 	LeftParen (typeExpr Comma)* typeExpr? RightParen;

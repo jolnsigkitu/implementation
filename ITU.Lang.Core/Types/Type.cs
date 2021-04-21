@@ -1,4 +1,5 @@
 using System;
+using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core.Types
 {
@@ -6,6 +7,6 @@ namespace ITU.Lang.Core.Types
     {
         string AsTranslatedName();
         string AsNativeName();
-        void Validate(Scope<Type> scope);
+        void Validate(Scope<TypeBinding> scope);
     }
 }

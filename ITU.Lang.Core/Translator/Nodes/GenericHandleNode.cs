@@ -16,7 +16,10 @@ namespace ITU.Lang.Core.Translator.Nodes
         {
             foreach (var name in Names)
             {
-                env.Scopes.Types.Bind(name, new GenericTypeIdentifier(name));
+                env.Scopes.Types.Bind(name, new TypeBinding()
+                {
+                    Type = new GenericTypeIdentifier(name),
+                });
             }
         }
 

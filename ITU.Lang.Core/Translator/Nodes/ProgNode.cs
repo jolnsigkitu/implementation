@@ -9,7 +9,7 @@ namespace ITU.Lang.Core.Translator.Nodes
     {
         public IList<StatementNode> Statements { get; private set; }
 
-        public IList<ClassType> Classes { get; private set; }
+        public IList<ClassNode> Classes { get; private set; }
 
         public ProgNode(IList<StatementNode> statements, TokenLocation location) : base(location)
         {
@@ -28,10 +28,10 @@ namespace ITU.Lang.Core.Translator.Nodes
         public override string ToString()
         {
             var namespaces = "using System;\nusing ITU.Lang.StandardLib;";
-            var statementStrs = Statements.Select(s => s.ToString());
-            var classes = Classes.Select(c => c.ToFullClass());
+            var statementStrs = string.Join("\n", Statements.Select(s => s.ToString()));
+            var classes = string.Join("\n", Classes);
 
-            return $"{namespaces}\n\n{string.Join("\n", statementStrs)}\n{string.Join("\n", classes)}";
+            return $"{namespaces}\n\n{statementStrs}\n{classes}";
         }
     }
 }

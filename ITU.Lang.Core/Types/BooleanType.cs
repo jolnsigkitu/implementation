@@ -1,3 +1,5 @@
+using ITU.Lang.Core.Translator;
+
 namespace ITU.Lang.Core.Types
 {
     public class BooleanType : Type
@@ -11,6 +13,6 @@ namespace ITU.Lang.Core.Types
         // We just choose a unique prime for our base types, probably shouldn't bring us many problems
         public override int GetHashCode() => 11;
 
-        public void Validate(Scope<Type> scope) { }
+        public void Validate(Scope<TypeBinding> scope) { }
     }
 }
