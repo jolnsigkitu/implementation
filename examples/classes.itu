@@ -32,10 +32,10 @@ type User = {
 type Nope = {};
 
 // Instantiation of userland classes
-//const john = new User("John", "Doe");
+const john = new User("John", "Doe");
 //println(john.fullName());
 
-//const nope = new Nope();
+const nope = new Nope();
 
 /*
 // Enhancement: Prohibit shadowing of 'this'

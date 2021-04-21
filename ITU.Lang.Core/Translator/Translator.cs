@@ -149,23 +149,6 @@ namespace ITU.Lang.Core.Translator
             return new TypeDecNode(name, typeDecNode, classDecNode, GetLocation(context));
         }
 
-        public override ClassNode VisitClassExpr([NotNull] ClassExprContext context)
-        {
-            var members = context.classMember().Select(VisitClassMember).ToList();
-            return new ClassNode(members, GetLocation(context));
-        }
-
-        public override ClassMemberNode VisitClassMember([NotNull] ClassMemberContext context)
-        {
-            var name = context.Name().GetText();
-            // Signify Field member
-            var expr = InvokeIf(context.expr(), VisitExpr);
-            // Signify Method member
-            var func = InnerVisitFunction(context.blockFunction(), context.lambdaFunction());
-            var annotation = InvokeIf(context.typeAnnotation(), typeEvaluator.VisitTypeAnnotation);
-            return new ClassMemberNode(name, expr, func, annotation, GetLocation(context));
-        }
-
         public override AccessNode VisitAccess([NotNull] AccessContext context)
         {
             var name = context.Name()?.GetText();
@@ -205,11 +188,6 @@ namespace ITU.Lang.Core.Translator
             var expr = VisitExpr(context.expr());
 
             return new AssignNode(names, expr, GetLocation(context));
-        }
-
-        public override ExprNode VisitInstantiateObject([NotNull] InstantiateObjectContext context)
-        {
-            throw new System.NotImplementedException();
         }
 
         public override FunctionNode VisitFunction([NotNull] FunctionContext context)
@@ -342,6 +320,39 @@ namespace ITU.Lang.Core.Translator
 
             return new LoopStatementNode(body, GetLocation(context));
         }
+
+        #region Class
+        public override ClassNode VisitClassExpr([NotNull] ClassExprContext context)
+        {
+            var members = context.classMember().Select(VisitClassMember).ToList();
+            return new ClassNode(members, GetLocation(context));
+        }
+
+        public override ClassMemberNode VisitClassMember([NotNull] ClassMemberContext context)
+        {
+            var name = context.Name().GetText();
+            // Signify Field member
+            var expr = InvokeIf(context.expr(), VisitExpr);
+            // Signify Method member
+            var func = InnerVisitFunction(context.blockFunction(), context.lambdaFunction());
+            var annotation = InvokeIf(context.typeAnnotation(), typeEvaluator.VisitTypeAnnotation);
+            return new ClassMemberNode(name, expr, func, annotation, GetLocation(context));
+        }
+
+        public override ExprNode VisitInstantiateObject([NotNull] InstantiateObjectContext context)
+        {
+            // New nestedName (LeftParen arguments RightParen)?;
+
+            var names = context.nestedName().Name().Select(x => x.GetText()).ToList();
+
+            var arguments = context.arguments()?.expr()?.Select(VisitExpr).ToList();
+
+            // If no arguments has been passed, set to default list instead of empty
+            arguments ??= new List<ExprNode>();
+
+            return new InstantiateObjectNode(names, arguments, GetLocation(context));
+        }
+        #endregion
 
         private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node
         {

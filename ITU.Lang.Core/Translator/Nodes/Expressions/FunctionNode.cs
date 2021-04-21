@@ -51,8 +51,8 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             {
                 IsLambda = IsLambda,
                 ReturnType = returnType,
-                ParameterTypes = ParameterList.EvaluatedNamePairs.Select(x => x.Item2),
-                ParameterNames = ParameterList.EvaluatedNamePairs.Select(x => x.Item1),
+                ParameterTypes = ParameterList.EvaluatedNamePairs.Select(x => x.Item2).ToList(),
+                ParameterNames = ParameterList.EvaluatedNamePairs.Select(x => x.Item1).ToList(),
             };
 
             return Handle != null ? new GenericFunctionType(result) : result;
