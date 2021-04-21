@@ -174,7 +174,7 @@ namespace ITU.Lang.Core.Translator
             {
                 list.Add(new ChainNode
                 {
-                    Name = rest.Name().GetText(),
+                    Name = rest.Name()?.GetText(),
                     Function = InvokeIf(rest.invokeFunction(), VisitInvokeFunction),
                 });
             }
