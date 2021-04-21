@@ -9,6 +9,17 @@ namespace ITU.Lang.Tests
 {
     public class Typing
     {
+        private void AssertTypeFromCode(string code, string identifier, Type type)
+        {
+            var prog = Util.GetConstructedTree(code);
+
+            var env = new Environment();
+
+            prog.Validate(env);
+
+            Assert.Equal(type, env.Scopes.Types.GetBinding(identifier));
+        }
+
         [Fact]
         public void CanAliasInbuilt()
         {
@@ -40,13 +51,21 @@ namespace ITU.Lang.Tests
                 },
             };
             var progCode = "type a = (int, int) => int;";
-            var prog = Util.GetConstructedTree(progCode);
 
-            var env = new Environment();
+            AssertTypeFromCode(progCode, "a", expectedType);
+        }
 
-            prog.Validate(env);
+        [Fact]
+        public void CanConstructClassTypes()
+        {
+            var expectedType = new ClassType()
+            {
+                Name = "a",
+                // Members = New Dictionary()
+            };
+            var progCode = "type a = {  };";
 
-            Assert.True(env.Scopes.Types.GetBinding("a").Equals(expectedType));
+            AssertTypeFromCode(progCode, "a", expectedType);
         }
     }
 }

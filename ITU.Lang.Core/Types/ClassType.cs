@@ -55,6 +55,28 @@ namespace ITU.Lang.Core.Types
             };
         }
 
+        public string ToFullClass()
+        {
+            var translatedMembers = this.Members.Select(member =>
+            {
+                var (name, (typ, node)) = member;
+
+                if (typ is FunctionType f)
+                {
+                    var isConstructor = name == "constructor";
+                    var actualName = isConstructor ? this.Name : name;
+                    var returnType = isConstructor ? "" : f.ReturnType.AsTranslatedName();
+                    var paramList = f.ParameterTypes.Zip(f.ParameterNames, (t, n) => $"{t.AsTranslatedName()} {n}");
+                    var end = f?.IsLambda == true ? ";" : "";
+                    return $"public {returnType} {actualName}({string.Join(",", paramList)}){node.TranslatedValue}{end}";
+                }
+
+                return $"public {typ.AsTranslatedName()} {name}{(!string.IsNullOrEmpty(node?.TranslatedValue) ? $"={node.TranslatedValue}" : "")};";
+            });
+
+            return $"class {this.Name} {{\n{string.Join("\n", translatedMembers)}\n}}";
+        }
+
         public void Validate(Scope<Type> scope) { }
     }
 }
