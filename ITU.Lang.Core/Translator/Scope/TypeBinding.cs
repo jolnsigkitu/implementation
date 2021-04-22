@@ -17,5 +17,11 @@ namespace ITU.Lang.Core.Translator
         {
 
         }
+
+        public override string ToString()
+        {
+            var membersStr = Members != null ? $"{{{string.Join(", ", Members.Keys)}}}" : "null";
+            return $"{{Type: {Type?.ToString() ?? "null"}, Members: {membersStr}}}";
+        }
     }
 }

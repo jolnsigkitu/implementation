@@ -34,53 +34,55 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                 typ = binding.Type;
             }
 
-            if (Chain != null)
+            if (Chain == null)
             {
-                if (!(typ is ClassType ct))
+                return typ;
+            }
+
+            return ValidateChain(env, typ);
+        }
+
+        private Type ValidateChain(Environment env, Type typ)
+        {
+            if (!(typ is ClassType ct))
+            {
+                throw new TranspilationException("Cannot access member on non-object", Location);
+            }
+
+            IBinding binding = env.Scopes.Types.GetBinding(ct.Name);
+
+            foreach (var link in Chain.Chain)
+            {
+                if (!(binding.Type is ClassType) || binding.Members == null)
                 {
                     throw new TranspilationException("Cannot access member on non-object", Location);
                 }
 
-                IBinding binding = env.Scopes.Types.GetBinding(ct.Name);
+                var func = (InvokeFunctionNode)link?.Function;
+                var bindingName = link.Function != null ? func.Name : link.Name;
 
-                foreach (var link in Chain.Chain)
+                if (!binding.Members.TryGetValue(bindingName, out var memberBinding))
                 {
-                    // function
-                    if (link.Function != null)
+                    throw new TranspilationException($"Cannot access undefined member {bindingName} on type {typ}", Location);
+                }
+
+                if (func != null)
+                {
+                    func.Binding = memberBinding;
+                    func.Validate(env);
+                }
+
+                binding = memberBinding;
+                typ = binding.Type;
+
+                if (typ is ClassType classType)
+                {
+                    if (!env.Scopes.Types.HasBinding(classType.Name))
                     {
-                        var func = link.Function;
-                        func.Validate(env);
-
-                        typ = ((FunctionType)func.Type).ReturnType;
-
-                        if (!(typ is ClassType returnClassType))
-                        {
-                            throw new TranspilationException("Cannot access member on non-object", Location);
-                        }
-
-                        if (env.Scopes.Types.HasBinding(returnClassType.Name))
-                        {
-                            throw new TranspilationException($"Unknown type {returnClassType.Name}.", Location);
-                        }
-
-                        binding = env.Scopes.Types.GetBinding(returnClassType.Name);
+                        throw new TranspilationException($"Unknown type {classType.Name}.", Location);
                     }
-                    // name
-                    else
-                    {
-                        if (binding.Members == null)
-                        {
-                            throw new TranspilationException("Cannot access member on non-object", Location);
-                        }
 
-                        if (!binding.Members.TryGetValue(link.Name, out var memberBinding))
-                        {
-                            throw new TranspilationException($"Cannot access undefined member {link.Name} on type {typ}", Location);
-                        }
-
-                        binding = memberBinding;
-                        typ = binding.Type;
-                    }
+                    binding = env.Scopes.Types.GetBinding(classType.Name);
                 }
             }
 

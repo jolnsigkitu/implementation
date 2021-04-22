@@ -10,6 +10,8 @@ namespace ITU.Lang.Core.Translator.Nodes
         public string Name { get; private set; }
         public IEnumerable<ExprNode> Exprs { get; }
 
+        public VariableBinding Binding { get; set; }
+
         public InvokeFunctionNode(string name, IEnumerable<ExprNode> exprs, TokenLocation location) : base(location)
         {
             Name = name;
@@ -18,14 +20,17 @@ namespace ITU.Lang.Core.Translator.Nodes
 
         protected override Type ValidateExpr(Environment env)
         {
-            if (!env.Scopes.Values.HasBinding(Name))
+            if (Binding == null)
             {
-                throw new TranspilationException($"Tried to invoke non-initialized invokable '{Name}'", Location);
+                if (!env.Scopes.Values.HasBinding(Name))
+                {
+                    throw new TranspilationException($"Tried to invoke non-initialized invokable '{Name}'", Location);
+                }
+
+                Binding = env.Scopes.Values.GetBinding(Name);
             }
 
-            var binding = env.Scopes.Values.GetBinding(Name);
-
-            if (!(binding.Type is FunctionType ft))
+            if (!(Binding.Type is FunctionType ft))
             {
                 throw new TranspilationException($"Cannot invoke non-invokable '{Name}'", Location);
             }
@@ -44,7 +49,7 @@ namespace ITU.Lang.Core.Translator.Nodes
             }
 
             // We re-assign the name such that it will be converted properly
-            Name = binding.Name;
+            Name = Binding.Name;
 
             return ft.ReturnType;
         }

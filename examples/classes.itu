@@ -33,7 +33,10 @@ type Nope = {};
 
 // Instantiation of userland classes
 const john = new User("John", "Doe");
-//println(john.fullName());
+println(john.fullName());
+println(john.account.id);
+
+println(new User("Jane", "Doe").role);
 
 const nope = new Nope();
 

@@ -10,5 +10,10 @@ namespace ITU.Lang.Core.Translator
         public bool IsConst { get; set; }
 
         public Dictionary<string, VariableBinding> Members { get; set; }
+
+        public override string ToString()
+        {
+            return $"{{Name: {Name?.ToString() ?? "null"}, Type: {Type?.ToString() ?? "null"}, IsConst: {IsConst}, Members: {Members?.ToString() ?? "null"}}}";
+        }
     }
 }
