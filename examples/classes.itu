@@ -40,6 +40,16 @@ println(new User("Jane", "Doe").role);
 
 const nope = new Nope();
 
+let factory = (firstName: string, lastName: string): User {
+    return new User(firstName, lastName);
+};
+
+println(factory("Pickle", "Rick").firstName);
+println(factory("Pickle", "Rick").fullName());
+
+// assign grammar only supports nestedname for now
+// factory("Pickle", "Rick").lastName = "John";
+
 /*
 // Enhancement: Prohibit shadowing of 'this'
 type Mal = {

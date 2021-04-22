@@ -28,10 +28,13 @@ namespace ITU.Lang.Core.Translator.Nodes
         public override string ToString()
         {
             var namespaces = "using System;\nusing ITU.Lang.StandardLib;";
-            var statementStrs = string.Join("\n", Statements.Select(s => s.ToString()));
+
+            var statementStrs = Statements.Select(s => s.ToString()).Where(s => s != "");
+            var statements = string.Join("\n", statementStrs);
+
             var classes = string.Join("\n", Classes);
 
-            return $"{namespaces}\n\n{statementStrs}\n{classes}";
+            return $"{namespaces}\n\n{statements}\n{classes}";
         }
     }
 }
