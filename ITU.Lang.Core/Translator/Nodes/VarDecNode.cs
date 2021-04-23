@@ -1,7 +1,7 @@
+using System.Collections.Generic;
 using ITU.Lang.Core.Translator.Nodes.Expressions;
 using ITU.Lang.Core.Translator.TypeNodes;
 using ITU.Lang.Core.Types;
-using static ITU.Lang.Core.Grammar.LangParser;
 
 namespace ITU.Lang.Core.Translator.Nodes
 {
@@ -35,11 +35,23 @@ namespace ITU.Lang.Core.Translator.Nodes
                 DerivedType = typ;
             }
 
+            IDictionary<string, VariableBinding> members = null;
+            if (DerivedType is ClassType t)
+            {
+                if (!env.Scopes.Types.HasBinding(t.Name))
+                {
+                    throw new TranspilationException($"Cannot declare variable of unknown type '{t.Name}'.", Location);
+                }
+                var classBinding = env.Scopes.Types.GetBinding(t.Name);
+                members = classBinding.Members;
+            }
+
             env.Scopes.Values.Bind(Name, new VariableBinding()
             {
                 Name = Name,
                 Type = DerivedType,
                 IsConst = IsConst,
+                Members = members,
             });
         }
 

@@ -9,7 +9,7 @@ namespace ITU.Lang.Core.Translator
         public Type Type { get; set; }
         public bool IsConst { get; set; }
 
-        public Dictionary<string, VariableBinding> Members { get; set; }
+        public IDictionary<string, VariableBinding> Members { get; set; }
 
         public override string ToString()
         {

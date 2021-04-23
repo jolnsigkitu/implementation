@@ -36,6 +36,10 @@ const john = new User("John", "Doe");
 println(john.fullName());
 println(john.account.id);
 
+john.age = 42;
+//john.age = true;
+println(john.age);
+
 println(new User("Jane", "Doe").role);
 
 const nope = new Nope();

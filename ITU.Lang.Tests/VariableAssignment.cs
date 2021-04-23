@@ -35,5 +35,6 @@ namespace ITU.Lang.Tests
         }
 
         // this.invalid = lastName;
+        // john.age = true;
     }
 }
