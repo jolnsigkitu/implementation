@@ -11,45 +11,26 @@ namespace ITU.Lang.Core.Types
 
         public GenericClassType() { }
 
-        public GenericClassType(ClassType _class)
+        public GenericClassType(ClassType _class, IList<string> genericIdentifiers)
         {
-            /* Name = _class.Name;
-            Members = _class.Members; */
+            Name = _class.Name;
+            GenericIdentifiers = genericIdentifiers;
         }
 
         public ClassType Specify(IDictionary<string, Type> specificTypes)
         {
-            return new ClassType()
-            {
-                Name = Name,
-                // Members = Members.Select((KeyValuePair<string, (Type, Node)> member) =>
-                // {
-                //     var name = member.Key;
-                //     var (type, node) = member.Value;
-                //     if (type is GenericFunctionType generic)
-                //         type = generic.Specify(specificTypes);
-                //     else if (type is GenericClassType genericClass)
-                //         type = genericClass.Specify(specificTypes);
-
-                //     else if (type is GenericTypeIdentifier identifier)
-                //     {
-                //         if (!(specificTypes.TryGetValue(identifier.Identifier, out var specType)))
-                //         {
-                //             throw new TranspilationException($"Cannot find specification of generic type {identifier.Identifier}");
-                //         }
-                //         type = specType;
-                //     }
-                //     return (name, (type, node));
-                // }).ToDictionary(member => member.Item1, member => member.Item2),
-            };
+            return new SpecificClassType(this, specificTypes);
         }
 
-        public IDictionary<string, Type> Resolve(IList<Type> types)
-        {
-            return GenericIdentifiers.Zip(types, (i, t) => (i, t)).ToDictionary(member => member.Item1, member => member.Item2);
-        }
+        // public IDictionary<string, Type> Resolve(IList<Type> types)
+        // {
+        //     return GenericIdentifiers.Zip(types, (i, t) => (i, t)).ToDictionary(member => member.Item1, member => member.Item2);
+        // }
 
-        public override string ToString() => "aaaaaaaa";
+        public override string AsTranslatedName() => ToString();
+        public override string AsNativeName() => ToString();
+
+        public override string ToString() => $"{Name}<{string.Join(", ", GenericIdentifiers)}>";
         // $"GenericClassType: {{Name: {Name}, Members: [{string.Join(", ", Members.Select(m => m.ToString()))}]}}";
     }
 }

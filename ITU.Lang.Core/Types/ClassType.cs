@@ -9,8 +9,8 @@ namespace ITU.Lang.Core.Types
     {
         public string Name { get; set; }
 
-        public string AsNativeName() => Name;
-        public string AsTranslatedName() => Name;
+        public virtual string AsNativeName() => Name;
+        public virtual string AsTranslatedName() => Name;
 
         public bool Equals(Type other)
         {

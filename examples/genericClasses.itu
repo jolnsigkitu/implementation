@@ -1,0 +1,34 @@
+// Lvl 1: Contain generic arguments
+type Wrapper = <T> {
+    value: T;
+};
+
+const wrapper = new Wrapper<int>();
+
+const val = wrapper.value;
+
+// Lvl 2: Recursive type definitions
+type List = <T> {
+    value: T;
+    next: List<T>; // knows T to be specified
+};
+
+let b = new List<int>();
+let c = new List<int>().next;
+let a = new List<int>().next.next.next.next;
+
+type list = <T> {
+    value: T;
+    next: list<T>;
+
+    Add (item: T): list<T> {
+        const newList = new list<T>();
+        newList.next = this;
+        newList.value = item;
+        return newList;
+    }
+};
+
+type intList = list<int>;
+
+const listOfInts: list<int> = new intList().Add(6);

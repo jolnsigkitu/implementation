@@ -22,19 +22,7 @@ namespace ITU.Lang.Core
 
             var prog = visitor.VisitProg(tree);
 
-            try
-            {
-                prog.Validate(new Environment());
-            }
-            catch (TranspilationException ex)
-            {
-                System.Console.Error.WriteLine(ex.Message);
-                var lines = ex.StackTrace.Split('\n');
-                System.Console.Error.WriteLine(string.Join("\n", lines[0..5]));
-                if (lines.Length - 5 > 0) System.Console.Error.WriteLine($"   ... {lines.Length - 5} more lines");
-                System.Environment.Exit(1);
-                return "";
-            }
+            prog.Validate(new Environment());
 
             return prog.ToString();
         }

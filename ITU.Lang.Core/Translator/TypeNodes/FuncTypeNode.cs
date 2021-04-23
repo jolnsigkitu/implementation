@@ -26,7 +26,6 @@ namespace ITU.Lang.Core.Translator.TypeNodes
             if (Handle != null)
             {
                 Handle.Validate(env);
-                // throw new System.NotImplementedException("FuncTypeNode does not handle GenericHandle yet");
             }
 
             var exprTypes = Exprs.Select(expr => expr.EvalType(env)).ToList();

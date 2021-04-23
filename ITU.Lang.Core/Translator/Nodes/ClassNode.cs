@@ -8,10 +8,12 @@ namespace ITU.Lang.Core.Translator.Nodes
     {
         public ClassType Type;
         IList<ClassMemberNode> Members;
-        public ClassNode(IList<ClassMemberNode> members, TokenLocation location) : base(location)
+        GenericHandleNode Handle;
+        public ClassNode(IList<ClassMemberNode> members, GenericHandleNode handle, TokenLocation location) : base(location)
         {
             Members = members;
             Type = new ClassType();
+            Handle = handle;
         }
 
         public override void Validate(Environment env)
@@ -27,11 +29,22 @@ namespace ITU.Lang.Core.Translator.Nodes
 
             using var _ = env.Scopes.Use();
 
-            env.Scopes.Values.Bind("this", new VariableBinding()
+            var thisBinding = new VariableBinding()
             {
                 Type = Type,
                 Members = members,
-            });
+            };
+
+            env.Scopes.Values.Bind("this", thisBinding);
+
+            if (Handle != null)
+            {
+                Handle.Validate(env);
+                var genericType = new GenericClassType(Type, Handle.Names.ToList());
+                Type = genericType;
+                binding.Type = genericType;
+                thisBinding.Type = genericType;
+            }
 
             foreach (var member in Members)
             {
@@ -44,7 +57,7 @@ namespace ITU.Lang.Core.Translator.Nodes
         public override string ToString()
         {
             var memberStrs = Members.Select(m => m.ToString(Type.Name));
-            return $"class {Type.Name} {{\n{string.Join("\n", memberStrs)}\n}}";
+            return $"class {Type.Name} {Handle} {{\n{string.Join("\n", memberStrs)}\n}}";
         }
     }
 }

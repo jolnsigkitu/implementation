@@ -1,4 +1,6 @@
 using ITU.Lang.Core.Translator.TypeNodes;
+using ITU.Lang.Core.Types;
+using System.Linq;
 
 namespace ITU.Lang.Core.Translator.Nodes
 {
@@ -21,10 +23,17 @@ namespace ITU.Lang.Core.Translator.Nodes
             {
                 var type = TypeNode.EvalType(env);
 
-                env.Scopes.Types.Bind(Name, new TypeBinding()
+                var binding = new TypeBinding()
                 {
                     Type = type,
-                });
+                };
+
+                if (type is SpecificClassType gct)
+                {
+                    binding.Members = env.Scopes.Types.GetBinding(gct.Name).Members;
+                }
+
+                env.Scopes.Types.Bind(Name, binding);
             }
             else
             {

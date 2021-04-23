@@ -85,7 +85,9 @@ functionArguments:
 invokeFunction: Name LeftParen arguments RightParen;
 
 instantiateObject:
-	New nestedName (LeftParen arguments RightParen)?;
+	New nestedName genericHandle? (
+		LeftParen arguments RightParen
+	)?;
 
 arguments: (expr Comma)* (expr)?;
 
@@ -101,7 +103,7 @@ typeExpr: typeRef | funcTypeExpr;
 
 typeRef: Name genericHandle?;
 
-classExpr: LeftBrace classMember* RightBrace;
+classExpr: genericHandle? LeftBrace classMember* RightBrace;
 
 funcTypeExpr:
 	genericHandle? funcTypeExprParamList FatArrow (

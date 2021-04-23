@@ -325,7 +325,9 @@ namespace ITU.Lang.Core.Translator
         public override ClassNode VisitClassExpr([NotNull] ClassExprContext context)
         {
             var members = context.classMember().Select(VisitClassMember).ToList();
-            return new ClassNode(members, GetLocation(context));
+            var handle = InvokeIf(context.genericHandle(), VisitGenericHandle);
+
+            return new ClassNode(members, handle, GetLocation(context));
         }
 
         public override ClassMemberNode VisitClassMember([NotNull] ClassMemberContext context)
@@ -339,10 +341,8 @@ namespace ITU.Lang.Core.Translator
             return new ClassMemberNode(name, expr, func, annotation, GetLocation(context));
         }
 
-        public override ExprNode VisitInstantiateObject([NotNull] InstantiateObjectContext context)
+        public override InstantiateObjectNode VisitInstantiateObject([NotNull] InstantiateObjectContext context)
         {
-            // New nestedName (LeftParen arguments RightParen)?;
-
             var names = context.nestedName().Name().Select(x => x.GetText()).ToList();
 
             var arguments = context.arguments()?.expr()?.Select(VisitExpr).ToList();
@@ -350,7 +350,9 @@ namespace ITU.Lang.Core.Translator
             // If no arguments has been passed, set to default list instead of empty
             arguments ??= new List<ExprNode>();
 
-            return new InstantiateObjectNode(names, arguments, GetLocation(context));
+            var handle = InvokeIf(context.genericHandle(), VisitGenericHandle);
+
+            return new InstantiateObjectNode(names, arguments, handle, GetLocation(context));
         }
         #endregion
 

@@ -66,14 +66,29 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                     throw new TranspilationException($"Cannot access undefined member {bindingName} on type {typ}", Location);
                 }
 
-                if (func != null)
-                {
-                    func.Binding = memberBinding;
-                    func.Validate(env);
-                }
-
                 binding = memberBinding;
                 typ = binding.Type;
+
+                if (ct is SpecificClassType sct)
+                {
+                    typ = sct.SpecifyMember(typ);
+                }
+
+                if (func != null)
+                {
+                    if (!(typ is FunctionType ft))
+                    {
+                        throw new TranspilationException($"Tried to invoke non-function member on class '{ct}'", Location);
+                    }
+                    func.Binding = new VariableBinding()
+                    {
+                        Name = memberBinding.Name,
+                        Type = ft,
+                    };
+                    func.Validate(env);
+                    func.Type = ft.ReturnType;
+                    typ = ft.ReturnType;
+                }
 
                 if (typ is ClassType classType)
                 {

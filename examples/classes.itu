@@ -31,6 +31,12 @@ type User = {
 
 type Nope = {};
 
+type Recursive = {
+    next = new Recursive();
+};
+
+new Recursive().next.next;
+
 // Instantiation of userland classes
 const john = new User("John", "Doe");
 println(john.fullName());

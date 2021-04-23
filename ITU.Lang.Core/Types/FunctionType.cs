@@ -13,6 +13,14 @@ namespace ITU.Lang.Core.Types
         public IList<Type> ParameterTypes = new List<Type>();
         public IEnumerable<string> ParameterNames = new List<string>();
 
+        public string AsNativeName()
+        {
+            var paramTypes = ParameterTypes.Select((t) => t.AsNativeName());
+            var paramStr = string.Join(",", paramTypes);
+
+            return $"({paramStr}) => {ReturnType.AsNativeName()}";
+        }
+
         public string AsTranslatedName()
         {
             var paramStr = GetTranslatedParameterList();
@@ -23,14 +31,6 @@ namespace ITU.Lang.Core.Types
             }
 
             return $"Func<{(paramStr != "" ? paramStr + "," : "")}{ReturnType.AsTranslatedName()}>";
-        }
-
-        public string AsNativeName()
-        {
-            var paramTypes = ParameterTypes.Select((t) => t.AsNativeName());
-            var paramStr = string.Join(",", paramTypes);
-
-            return $"({paramStr}) => {ReturnType.AsNativeName()}";
         }
 
         public string GetTranslatedParameterList()

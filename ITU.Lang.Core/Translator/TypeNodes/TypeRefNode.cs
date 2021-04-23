@@ -25,34 +25,31 @@ namespace ITU.Lang.Core.Translator.TypeNodes
 
             var typ = env.Scopes.Types.GetBinding(Name).Type;
 
-            if (Handle != null)
+            if (Handle == null)
             {
-                if (!(typ is IGenericType<Type> gt))
-                {
-                    throw new TranspilationException("Cannot specify generic types for non-generic type");
-                }
-
-                var identifiers = gt.GenericIdentifiers;
-
-                if (identifiers.Count != Handle.Names.Count())
-                {
-                    throw new TranspilationException($"Tried to resolve generic '{Name}' with {identifiers.Count} identifiers, but was provided {Handle.Names.Count()}");
-                }
-
-                var names = new Dictionary<string, Type>();
-                foreach (var (n, id) in Handle.Names.Zip(identifiers))
-                {
-                    if (!env.Scopes.Types.HasBinding(n))
-                        throw new TranspilationException($"Undefined type '{n}'", Handle.Location);
-
-                    var binding = env.Scopes.Types.GetBinding(n);
-                    names.Add(id, binding.Type);
-                }
-
-                typ = gt.Specify(names);
+                return typ;
             }
 
-            return typ;
+            return SpecifyGenericTypeRef(env, typ);
+        }
+
+        private Type SpecifyGenericTypeRef(Environment env, Type typ)
+        {
+            if (!(typ is IGenericType<Type> gt))
+            {
+                throw new TranspilationException("Cannot specify generic types for non-generic type");
+            }
+
+            var identifiers = gt.GenericIdentifiers;
+
+            if (identifiers.Count != Handle.Names.Count())
+            {
+                throw new TranspilationException($"Tried to resolve generic '{Name}' with {identifiers.Count} identifiers, but was provided {Handle.Names.Count()}");
+            }
+
+            var names = Handle.ResolveHandle(identifiers, env);
+
+            return gt.Specify(names);
         }
     }
 }

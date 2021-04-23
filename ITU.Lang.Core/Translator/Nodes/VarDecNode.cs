@@ -43,6 +43,7 @@ namespace ITU.Lang.Core.Translator.Nodes
                     throw new TranspilationException($"Cannot declare variable of unknown type '{t.Name}'.", Location);
                 }
                 var classBinding = env.Scopes.Types.GetBinding(t.Name);
+
                 members = classBinding.Members;
             }
 

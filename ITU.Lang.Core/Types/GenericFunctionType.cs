@@ -82,7 +82,7 @@ namespace ITU.Lang.Core.Types
             {
                 if (!(specificTypes.TryGetValue(identifier.Identifier, out var specType)))
                 {
-                    throw new TranspilationException($"Cannot find specification of generic type {identifier.Identifier}");
+                    throw new TranspilationException($"Cannot specify generic type '{identifier.Identifier}'");
                 }
                 return specType;
             }

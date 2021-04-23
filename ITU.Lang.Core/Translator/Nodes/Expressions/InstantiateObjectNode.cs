@@ -9,18 +9,20 @@ namespace ITU.Lang.Core.Translator.Nodes
     {
         public IList<string> Names { get; private set; }
         public IList<ExprNode> Exprs { get; }
+        public GenericHandleNode Handle { get; }
 
-        public InstantiateObjectNode(IList<string> names, IList<ExprNode> exprs, TokenLocation location) : base(location)
+        public InstantiateObjectNode(IList<string> names, IList<ExprNode> exprs, GenericHandleNode handle, TokenLocation location) : base(location)
         {
             Names = names;
             Exprs = exprs;
+            Handle = handle;
         }
 
         protected override Type ValidateExpr(Environment env)
         {
             if (Names.Count > 1)
             {
-                throw new System.NotImplementedException("Instantiation of nested objects is not supported yet.");
+                throw new System.NotImplementedException("Instantiation of namespaced objects is not supported yet.");
             }
 
             var name = Names[0];
@@ -34,7 +36,21 @@ namespace ITU.Lang.Core.Translator.Nodes
 
             if (!(typeBinding.Type is ClassType classType))
             {
-                throw new TranspilationException($"Cannot instantiate non-class value {name}", Location);
+                throw new TranspilationException($"Cannot instantiate non-class value '{name}'", Location);
+            }
+
+            var typ = typeBinding.Type;
+
+            if (Handle != null)
+            {
+                if (!(typ is GenericClassType ct))
+                {
+                    throw new TranspilationException($"Cannot specify generic identifiers for non-generic class '{name}'", Location);
+                }
+
+                var resolution = Handle.ResolveHandle(ct.GenericIdentifiers, env);
+
+                typ = new SpecificClassType(ct, resolution);
             }
 
             foreach (var expr in Exprs)
@@ -49,7 +65,7 @@ namespace ITU.Lang.Core.Translator.Nodes
                 AssertExprsMatchesConstructor(funcType);
             }
 
-            return typeBinding.Type;
+            return typ;
         }
 
         private void AssertExprsMatchesConstructor(FunctionType funcType)
@@ -80,7 +96,7 @@ namespace ITU.Lang.Core.Translator.Nodes
         {
             var name = Names[0];
             var exprs = string.Join(", ", Exprs);
-            return $"new {name}({exprs})";
+            return $"new {name}{Handle}({exprs})";
         }
     }
 }
