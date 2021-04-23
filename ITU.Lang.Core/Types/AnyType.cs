@@ -13,7 +13,5 @@ namespace ITU.Lang.Core.Types
         public override int GetHashCode() => 13;
 
         public override string ToString() => "any";
-
-        public void Validate(Scope<TypeBinding> scope) { }
     }
 }

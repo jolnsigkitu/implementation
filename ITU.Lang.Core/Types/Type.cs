@@ -7,6 +7,5 @@ namespace ITU.Lang.Core.Types
     {
         string AsTranslatedName();
         string AsNativeName();
-        void Validate(Scope<TypeBinding> scope);
     }
 }

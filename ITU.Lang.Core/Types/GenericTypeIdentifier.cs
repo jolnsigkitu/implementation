@@ -20,10 +20,5 @@ namespace ITU.Lang.Core.Types
         public override int GetHashCode() => 17;
 
         public override string ToString() => Identifier;
-
-        public void Validate(Scope<TypeBinding> scope)
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }

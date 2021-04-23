@@ -8,21 +8,22 @@ namespace ITU.Lang.Core.Types
     {
         public GenericFunctionType() { }
 
-        public GenericFunctionType(FunctionType func)
+        public GenericFunctionType(FunctionType func, IList<string> genericIdentifiers)
         {
             IsLambda = func.IsLambda;
             ReturnType = func.ReturnType;
             ParameterNames = func.ParameterNames;
             ParameterTypes = func.ParameterTypes;
+            GenericIdentifiers = genericIdentifiers;
         }
 
         public IList<string> GenericIdentifiers { get; set; }
 
-        public IDictionary<string, Type> Resolve(IEnumerable<Type> expressions)
+        public IDictionary<string, Type> Resolve(IEnumerable<Type> parameterExpressions)
         {
             var specificTypes = new Dictionary<string, Type>();
 
-            foreach (var (paramType, exprType) in ParameterTypes.Zip(expressions))
+            foreach (var (paramType, exprType) in ParameterTypes.Zip(parameterExpressions))
             {
                 if (paramType is GenericTypeIdentifier id)
                 {
@@ -88,7 +89,5 @@ namespace ITU.Lang.Core.Types
 
             return type;
         }
-
-        public override void Validate(Scope<TypeBinding> scope) { }
     }
 }

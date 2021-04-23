@@ -31,7 +31,5 @@ namespace ITU.Lang.Core.Types
                 return Name.GetHashCode() * seed;
             }
         }
-
-        public void Validate(Scope<TypeBinding> scope) { }
     }
 }

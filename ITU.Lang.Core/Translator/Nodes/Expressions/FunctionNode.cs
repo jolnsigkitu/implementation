@@ -55,7 +55,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                 ParameterNames = ParameterList.EvaluatedNamePairs.Select(x => x.Item1).ToList(),
             };
 
-            return Handle != null ? new GenericFunctionType(result) : result;
+            return Handle != null ? new GenericFunctionType(result, Handle.Names.ToList()) : result;
         }
 
         public override string ToString()

@@ -12,8 +12,6 @@ namespace ITU.Lang.Core.Types
 
         public override int GetHashCode() => 5;
 
-        public void Validate(Scope<TypeBinding> scope) { }
-
         public override string ToString() => AsNativeName();
     }
 }

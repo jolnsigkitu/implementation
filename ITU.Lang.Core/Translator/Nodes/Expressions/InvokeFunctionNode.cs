@@ -42,6 +42,18 @@ namespace ITU.Lang.Core.Translator.Nodes
                 throw new TranspilationException($"Expected {paramTypes.Count()} parameter(s) when invoking function '{Name}', but got {Exprs.Count()}", Location);
             }
 
+            var func = ft;
+
+            var exprTypes = Exprs.Select(e => e.Type);
+
+            if (ft is GenericFunctionType generic)
+            {
+                var resolvedGenerics = generic.Resolve(exprTypes);
+
+                func = generic.Specify(resolvedGenerics);
+                paramTypes = func.ParameterTypes;
+            }
+
             foreach (var (expr, type) in Exprs.Zip(paramTypes))
             {
                 expr.Validate(env);
@@ -51,7 +63,7 @@ namespace ITU.Lang.Core.Translator.Nodes
             // We re-assign the name such that it will be converted properly
             Name = Binding.Name;
 
-            return ft.ReturnType;
+            return func.ReturnType;
         }
 
         public override string ToString() => $"{Name}({string.Join(", ", Exprs)})";

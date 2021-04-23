@@ -21,9 +21,12 @@ namespace ITU.Lang.Core.Translator.TypeNodes
 
         public override Type EvalType(Environment env)
         {
+            using var _ = env.Scopes.Use();
+
             if (Handle != null)
             {
-                throw new System.NotImplementedException("FuncTypeNode does not handle GenericHandle yet");
+                Handle.Validate(env);
+                // throw new System.NotImplementedException("FuncTypeNode does not handle GenericHandle yet");
             }
 
             var exprTypes = Exprs.Select(expr => expr.EvalType(env)).ToList();
@@ -36,7 +39,7 @@ namespace ITU.Lang.Core.Translator.TypeNodes
                 ParameterTypes = exprTypes,
             };
 
-            return Handle != null ? new GenericFunctionType(result) : result;
+            return Handle != null ? new GenericFunctionType(result, Handle.Names.ToList()) : result;
         }
     }
 }

@@ -71,7 +71,5 @@ namespace ITU.Lang.Core.Types
         }
 
         public override string ToString() => AsNativeName();
-
-        public virtual void Validate(Scope<TypeBinding> scope) { }
     }
 }
