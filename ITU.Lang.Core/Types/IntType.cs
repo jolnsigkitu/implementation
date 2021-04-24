@@ -12,6 +12,6 @@ namespace ITU.Lang.Core.Types
 
         public override int GetHashCode() => 3;
 
-        public override string ToString() => "int";
+        public override string ToString() => "new IntType()";
     }
 }

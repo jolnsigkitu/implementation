@@ -58,8 +58,6 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
             foreach (var link in Chain.Chain)
             {
-
-                System.Console.WriteLine(binding);
                 if (!(binding.Type is ClassType) || binding.Members == null)
                 {
                     throw new TranspilationException("Cannot access member on non-object", Location);

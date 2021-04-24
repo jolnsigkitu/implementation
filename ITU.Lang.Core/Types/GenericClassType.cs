@@ -22,15 +22,9 @@ namespace ITU.Lang.Core.Types
             return new SpecificClassType(this, specificTypes);
         }
 
-        // public IDictionary<string, Type> Resolve(IList<Type> types)
-        // {
-        //     return GenericIdentifiers.Zip(types, (i, t) => (i, t)).ToDictionary(member => member.Item1, member => member.Item2);
-        // }
+        public override string AsTranslatedName() => AsNativeName();
+        public override string AsNativeName() => $"{Name}<{string.Join(", ", GenericIdentifiers)}>";
 
-        public override string AsTranslatedName() => ToString();
-        public override string AsNativeName() => ToString();
-
-        public override string ToString() => $"{Name}<{string.Join(", ", GenericIdentifiers)}>";
-        // $"GenericClassType: {{Name: {Name}, Members: [{string.Join(", ", Members.Select(m => m.ToString()))}]}}";
+        public override string ToString() => $"new GenericClassType() {{ Name = \"{Name}\", GenericIdentifiers = new List<string>() {{ \"{string.Join("\", \"", GenericIdentifiers)}\" }} }}";
     }
 }

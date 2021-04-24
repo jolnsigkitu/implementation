@@ -12,6 +12,6 @@ namespace ITU.Lang.Core.Types
 
         public override int GetHashCode() => 5;
 
-        public override string ToString() => AsNativeName();
+        public override string ToString() => "new StringType()";
     }
 }

@@ -19,6 +19,6 @@ namespace ITU.Lang.Core.Types
 
         public override int GetHashCode() => 17;
 
-        public override string ToString() => Identifier;
+        public override string ToString() => $"new GenericTypeIdentifier(\"{Identifier}\")";
     }
 }

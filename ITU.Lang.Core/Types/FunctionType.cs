@@ -70,6 +70,6 @@ namespace ITU.Lang.Core.Types
             }
         }
 
-        public override string ToString() => AsNativeName();
+        public override string ToString() => $"new FunctionType(){{ IsLambda = {(IsLambda ? "true" : "false")}, ReturnType = {ReturnType}, ParameterNames = new List<string>() {{ \"{string.Join("\", \"", ParameterNames)}\" }}, ParameterTypes = new List<Type>() {{ {string.Join(", ", ParameterTypes)} }} }}";
     }
 }

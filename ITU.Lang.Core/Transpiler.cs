@@ -22,7 +22,10 @@ namespace ITU.Lang.Core
 
             var prog = visitor.VisitProg(tree);
 
-            prog.Validate(new Environment());
+            var env = new Environment();
+            prog.Validate(env);
+
+            System.Console.WriteLine(env.Scopes.Types);
 
             return prog.ToString();
         }

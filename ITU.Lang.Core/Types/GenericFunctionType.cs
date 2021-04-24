@@ -82,12 +82,15 @@ namespace ITU.Lang.Core.Types
             {
                 if (!(specificTypes.TryGetValue(identifier.Identifier, out var specType)))
                 {
-                    throw new TranspilationException($"Cannot specify generic type '{identifier.Identifier}'");
+                    System.Console.WriteLine(string.Join(",", specificTypes));
+                    throw new TranspilationException($"Cannot specify generic type '{identifier.Identifier}' in {AsNativeName()}");
                 }
                 return specType;
             }
 
             return type;
         }
+
+        public override string ToString() => $"new GenericFunctionType(){{ IsLambda = {(IsLambda ? "true" : "false")}, ReturnType = {ReturnType}, ParameterNames = new List<string>() {{ \"{string.Join("\", \"", ParameterNames ?? new string[0])}\" }}, ParameterTypes = new List<Type>() {{ {string.Join(", ", ParameterTypes ?? new Type[0])} }}, GenericIdentifiers = new List<string>() {{ \"{string.Join("\", \"", GenericIdentifiers ?? new string[0])}\" }} }}";
     }
 }

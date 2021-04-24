@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using ITU.Lang.Core.Types;
 
 namespace ITU.Lang.Core.Translator
@@ -13,7 +14,13 @@ namespace ITU.Lang.Core.Translator
 
         public override string ToString()
         {
-            return $"{{Name: {Name?.ToString() ?? "null"}, Type: {Type?.ToString() ?? "null"}, IsConst: {IsConst}, Members: {Members?.ToString() ?? "null"}}}";
+            var name = Name == null ? "null" : $"\"{Name}\"";
+            var type = Type == null ? "null" : Type.ToString();
+            var members = string.Join(", ", Members?.Select(member => $"{{ \"{member.Key}\", {member.Value} }}") ?? new string[0]);
+            var memberDictStr = string.IsNullOrEmpty(members)
+                ? ""
+                : $", Members = new Dictionary<string, VariableBinding>() {{ {members} }}";
+            return $"new VariableBinding() {{ Name = {name}, Type = {type}, IsConst = {(IsConst ? "true" : "false")}{memberDictStr}}}";
         }
     }
 }

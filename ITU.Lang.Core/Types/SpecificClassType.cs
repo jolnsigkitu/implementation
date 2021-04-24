@@ -20,11 +20,11 @@ namespace ITU.Lang.Core.Types
 
         public override string AsTranslatedName()
         {
-            var setGenerics = GenericIdentifiers.Select(id => SpecificTypes[id]);
+            var setGenerics = GenericIdentifiers.Select(id => SpecificTypes[id].AsTranslatedName());
             return $"{Name}<{string.Join(", ", setGenerics)}>";
         }
 
-        public override string ToString() => AsTranslatedName();
+        public override string AsNativeName() => AsTranslatedName();
 
         public Type SpecifyMember(Type inputType)
         {
@@ -53,6 +53,13 @@ namespace ITU.Lang.Core.Types
 
             // inputType should not be a composite type or generic identifier
             return inputType;
+        }
+
+        public override string ToString()
+        {
+            var giString = string.Join("\", \"", GenericIdentifiers);
+            var stString = string.Join(", ", SpecificTypes.Select(member => $"{{ \"{member.Key}\", {member.Value} }}"));
+            return $"new SpecificClassType() {{ Name = \"{Name}\", GenericIdentifiers = new List<string>() {{ \"{giString}\" }}, SpecificTypes = new Dictionary<string, Type>() {{  }} }}";
         }
     }
 }
