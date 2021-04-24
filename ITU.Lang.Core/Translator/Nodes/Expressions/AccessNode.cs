@@ -49,10 +49,17 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                 throw new TranspilationException("Cannot access member on non-object", Location);
             }
 
+            if (!env.Scopes.Types.HasBinding(ct.Name))
+            {
+                throw new TranspilationException($"Cannot access member on undefined type '{ct.Name}'", Location);
+            }
+
             IBinding binding = env.Scopes.Types.GetBinding(ct.Name);
 
             foreach (var link in Chain.Chain)
             {
+
+                System.Console.WriteLine(binding);
                 if (!(binding.Type is ClassType) || binding.Members == null)
                 {
                     throw new TranspilationException("Cannot access member on non-object", Location);

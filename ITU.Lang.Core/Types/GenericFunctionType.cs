@@ -6,6 +6,7 @@ namespace ITU.Lang.Core.Types
 {
     public class GenericFunctionType : FunctionType, IGenericType<FunctionType>
     {
+        public IList<string> GenericIdentifiers { get; set; }
         public GenericFunctionType() { }
 
         public GenericFunctionType(FunctionType func, IList<string> genericIdentifiers)
@@ -17,7 +18,6 @@ namespace ITU.Lang.Core.Types
             GenericIdentifiers = genericIdentifiers;
         }
 
-        public IList<string> GenericIdentifiers { get; set; }
 
         public IDictionary<string, Type> Resolve(IEnumerable<Type> parameterExpressions)
         {

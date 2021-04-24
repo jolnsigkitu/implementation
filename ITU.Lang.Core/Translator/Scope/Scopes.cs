@@ -83,6 +83,75 @@ namespace ITU.Lang.Core.Translator
                 },
                 IsConst = true,
             });
+
+            #region Signals
+            var PushSignal = new TypeBinding()
+            {
+                Type = new GenericClassType()
+                {
+                    Name = "PushSignal",
+                    GenericIdentifiers = new List<string>() { "TInput" },
+                },
+                Members = new Dictionary<string, VariableBinding>(),
+            };
+
+            PushSignal.Members.Add("Map", new VariableBinding()
+            {
+                Name = "Map",
+                Type = new GenericFunctionType()
+                {
+                    GenericIdentifiers = new List<string>() { "TResult" },
+                    IsLambda = false,
+                    ReturnType = PushSignal.Type,
+                    ParameterNames = new List<string>() {
+                        "mapper"
+                    },
+                    ParameterTypes = new List<Type>() {
+                        new FunctionType()
+                        {
+                            IsLambda = false,
+                            ReturnType = new GenericTypeIdentifier("TResult"),
+                            ParameterNames = new List<string>() {"value"},
+                            ParameterTypes = new List<Type>() {new GenericTypeIdentifier("TInput")},
+                        }
+                    }
+                }
+            });
+
+            Types.Bind("PushSignal", PushSignal);
+
+            var SignalGlobal = new TypeBinding()
+            {
+                Type = new ClassType()
+                {
+                    Name = "SignalGlobal",
+                },
+                Members = new Dictionary<string, VariableBinding>(),
+            };
+
+            SignalGlobal.Members.Add("Timer", new VariableBinding()
+            {
+                Name = "Timer",
+                Type = new FunctionType()
+                {
+                    ParameterNames = new List<string>() { "millisecondInterval" },
+                    ParameterTypes = new List<Type>() { new IntType() },
+                    ReturnType = PushSignal.Type,
+                }
+            });
+
+
+            Types.Bind("SignalGlobal", SignalGlobal);
+
+            Values.Bind("Signal", new VariableBinding()
+            {
+                Name = "Signal",
+                Type = SignalGlobal.Type,
+                Members = SignalGlobal.Members,
+            });
+
+
+            #endregion
         }
     }
 }
