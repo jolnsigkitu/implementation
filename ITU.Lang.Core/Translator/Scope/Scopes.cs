@@ -49,6 +49,8 @@ namespace ITU.Lang.Core.Translator
             }
         }
 
+        public override string ToString() => $"{{ Values: {Values}, Types: {Types} }}";
+
         private void MakeGlobalScope()
         {
             Push();

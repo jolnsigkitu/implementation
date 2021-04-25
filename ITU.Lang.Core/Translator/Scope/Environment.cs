@@ -12,5 +12,7 @@ namespace ITU.Lang.Core.Translator
         public OperatorFactory Operators = OperatorFactoryOperators.InitializeOperators(new OperatorFactory());
 
         public IList<ClassNode> Classes = new List<ClassNode>();
+
+        public override string ToString() => $"{{ Scopes: {Scopes}, Classes: {Classes} }}";
     }
 }

@@ -16,6 +16,11 @@ namespace ITU.Lang.Tests
         [InlineData("loop.itu")]
         [InlineData("if-else.itu")]
         [InlineData("operators.itu")]
+        [InlineData("precedence.itu")]
+        [InlineData("functions.itu")]
+        [InlineData("genericFunctions.itu")]
+        [InlineData("classes.itu")]
+        [InlineData("genericClasses.itu")]
         public void CanDoFile(string filePath)
         {
             string fileContent = File.ReadAllText("../../../../examples/" + filePath);
