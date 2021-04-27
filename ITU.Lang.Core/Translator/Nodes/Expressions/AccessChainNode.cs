@@ -56,16 +56,16 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
             if (memberType is GenericFunctionType gft)
             {
-                var exprTypes = Function.Exprs.Select(e =>
-                {
-                    e.Validate(env);
-                    return e.Type;
-                });
+                // var exprTypes = Function.Exprs.Select(e =>
+                // {
+                //     e.Validate(env);
+                //     return e.Type;
+                // });
 
-                System.Console.WriteLine($"Func exprs: {string.Join(", ", exprTypes)}");
-                var resolutions = gft.Resolve(exprTypes);
-                System.Console.WriteLine($"Resolutions ({resolutions.Count}): {string.Join(", ", resolutions)}");
-                memberType = gft.Specify(resolutions);
+                // System.Console.WriteLine($"Func exprs: {string.Join(", ", exprTypes)}");
+                // var resolutions = gft.Resolve(exprTypes);
+                // System.Console.WriteLine($"Resolutions ({resolutions.Count}): {string.Join(", ", resolutions)}");
+                // memberType = gft.Specify(resolutions);
             }
 
             if (classType is SpecificClassType sct)
