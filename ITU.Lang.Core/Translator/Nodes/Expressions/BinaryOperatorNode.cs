@@ -19,7 +19,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Expr1.Validate(env);
             Expr2.Validate(env);
 
-            return env.Operators.Binary.Get(Operator, Expr1.Type, Expr2.Type);
+            return env.Operators.Binary.Get(Operator, Expr1.Type, Expr2.Type, Location);
         }
 
         public override string ToString() => $"{Expr1} {Operator} {Expr2}";

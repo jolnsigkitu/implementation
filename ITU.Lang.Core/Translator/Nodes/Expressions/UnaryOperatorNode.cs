@@ -20,7 +20,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
             var collection = IsPrefix ? env.Operators.UnaryPrefix : env.Operators.UnaryPostfix;
 
-            return collection.Get(Operator, Expr.Type);
+            return collection.Get(Operator, Expr.Type, Location);
         }
 
         public override string ToString()

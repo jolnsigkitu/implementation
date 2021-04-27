@@ -33,13 +33,14 @@ namespace ITU.Lang.Core.Operators
                 innerDict[returnType] = inputType;
             }
 
-            public Type Get(string op, Type inputType)
+            public Type Get(string op, Type inputType, TokenLocation loc = null)
             {
                 dict.TryGetValue(op, out var innerDict);
                 if (innerDict == null)
                 {
                     throw new TranspilationException(
-                        $"Attempting to use undeclared unary operator '{op}'"
+                        $"Attempting to use undeclared unary operator '{op}'",
+                        loc
                     );
                 }
 
@@ -48,7 +49,8 @@ namespace ITU.Lang.Core.Operators
                 if (returnType == null)
                 {
                     throw new TranspilationException(
-                        $"Operator '{op}' is not applicable to expression of type '{inputType.AsNativeName()}'"
+                        $"Operator '{op}' is not applicable to expression of type '{inputType.AsNativeName()}'",
+                        loc
                     );
                 }
 
@@ -76,12 +78,12 @@ namespace ITU.Lang.Core.Operators
                 innerDict[inputTypes] = returnType;
             }
 
-            public Type Get(string op, Type inputType1, Type inputType2)
+            public Type Get(string op, Type inputType1, Type inputType2, TokenLocation loc = null)
             {
                 dict.TryGetValue(op, out var innerDict);
                 if (innerDict == null)
                 {
-                    throw new TranspilationException($"Attempting to use undeclared binary operator '{op}'");
+                    throw new TranspilationException($"Attempting to use undeclared binary operator '{op}'", loc);
                 }
 
                 innerDict.TryGetValue((inputType1, inputType2), out var returnType);
@@ -89,7 +91,8 @@ namespace ITU.Lang.Core.Operators
                 if (returnType == null)
                 {
                     throw new TranspilationException(
-                        $"Operator '{op}' is not applicable to expression of type '({inputType1.AsNativeName()}, {inputType2.AsNativeName()})'"
+                        $"Operator '{op}' is not applicable to expression of type '({inputType1.AsNativeName()}, {inputType2.AsNativeName()})'",
+                        loc
                     );
                 }
 
