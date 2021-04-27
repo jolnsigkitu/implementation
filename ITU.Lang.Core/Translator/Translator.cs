@@ -39,7 +39,7 @@ namespace ITU.Lang.Core.Translator
 
         public override StatementNode VisitStatement([NotNull] StatementContext context)
         {
-            return VisitFirstChild<StatementNode>(new ParserRuleContext[] {
+            return this.VisitFirstChild<StatementNode, Node>(new ParserRuleContext[] {
                 context.semiStatement(),
                 context.ifStatement(),
                 context.forStatement(),
@@ -53,7 +53,7 @@ namespace ITU.Lang.Core.Translator
         public override SemiStatementNode VisitSemiStatement([NotNull] SemiStatementContext context)
         {
             var inlineStatement = context.inlineStatement();
-            var child = VisitFirstChild<Node>(new ParserRuleContext[] {
+            var child = this.VisitFirstChild<Node, Node>(new ParserRuleContext[] {
                 inlineStatement.assign(),
                 inlineStatement.vardec(),
                 inlineStatement.typedec(),
@@ -83,7 +83,7 @@ namespace ITU.Lang.Core.Translator
 
         public override ExprNode VisitTerm([NotNull] TermContext context)
         {
-            return VisitFirstChild<ExprNode>(new ParserRuleContext[] {
+            return this.VisitFirstChild<ExprNode, Node>(new ParserRuleContext[] {
                 context.literal(),
                 context.access(),
                 context.function(),
@@ -93,7 +93,7 @@ namespace ITU.Lang.Core.Translator
         #region Literals
         public override ExprNode VisitLiteral([NotNull] LiteralContext context)
         {
-            return VisitFirstChild<ExprNode>(new ParserRuleContext[] {
+            return this.VisitFirstChild<ExprNode, Node>(new ParserRuleContext[] {
                 context.integer(),
                 context.@bool(),
                 context.stringLiteral(),
@@ -129,7 +129,7 @@ namespace ITU.Lang.Core.Translator
             var name = typedName.Name().GetText();
             var expr = VisitExpr(context.expr());
             var isConst = context.Const() != null;
-            var typeAnnotation = InvokeIf(typedName.typeAnnotation(), typeEvaluator.VisitTypeAnnotation);
+            var typeAnnotation = typedName.typeAnnotation().Invoke(typeEvaluator.VisitTypeAnnotation);
 
             return new VarDecNode(name, isConst, expr, typeAnnotation, GetLocation(context));
         }
@@ -137,8 +137,8 @@ namespace ITU.Lang.Core.Translator
         public override TypeDecNode VisitTypedec([NotNull] TypedecContext context)
         {
             var name = context.Name().GetText();
-            var typeDecNode = InvokeIf(context.typeExpr(), typeEvaluator.VisitTypeExpr);
-            var classDecNode = InvokeIf(context.classExpr(), VisitClassExpr);
+            var typeDecNode = context.typeExpr().Invoke(typeEvaluator.VisitTypeExpr);
+            var classDecNode = context.classExpr().Invoke(VisitClassExpr);
 
             // Since name is not available in ClassExprContext we monkey-patch it in here
             if (classDecNode != null)
@@ -152,7 +152,7 @@ namespace ITU.Lang.Core.Translator
         public override AccessNode VisitAccess([NotNull] AccessContext context)
         {
             var name = context.Name()?.GetText();
-            var expr = VisitFirstChild<ExprNode>(new ParserRuleContext[] {
+            var expr = this.VisitFirstChild<ExprNode, Node>(new ParserRuleContext[] {
                 context.invokeFunction(),
                 context.instantiateObject(),
                 context.expr(),
@@ -161,7 +161,7 @@ namespace ITU.Lang.Core.Translator
             // No need to check for right parenthesis because of parser rules enforcing matching parens
             var hasParens = context.LeftParen() != null;
 
-            var chain = InvokeIf(context.accessChain(), VisitAccessChain);
+            var chain = context.accessChain().Invoke(VisitAccessChain);
 
             return new AccessNode(name, expr, chain, hasParens, GetLocation(context));
         }
@@ -205,13 +205,13 @@ namespace ITU.Lang.Core.Translator
             if (blockFun == null && lambdaFun == null) return null;
 
             var handleCtx = blockFun?.genericHandle() ?? lambdaFun?.genericHandle();
-            var handle = InvokeIf(handleCtx, VisitGenericHandle);
+            var handle = handleCtx.Invoke(VisitGenericHandle);
 
             var parameterListCtx = blockFun?.functionParameterList() ?? lambdaFun.functionParameterList();
-            var parameterList = InvokeIf(parameterListCtx, VisitFunctionParameterList);
+            var parameterList = parameterListCtx.Invoke(VisitFunctionParameterList);
 
-            var blockFunctionBody = InvokeIf(blockFun?.block(), VisitBlock);
-            var lambdaFunctionBody = InvokeIf(lambdaFun?.expr(), VisitExpr);
+            var blockFunctionBody = blockFun?.block().Invoke(VisitBlock);
+            var lambdaFunctionBody = lambdaFun?.expr().Invoke(VisitExpr);
             var body = blockFunctionBody ?? lambdaFunctionBody;
 
             var isLambda = lambdaFunctionBody != null;
@@ -228,7 +228,7 @@ namespace ITU.Lang.Core.Translator
             var types = args.typeAnnotation().Select(t => typeEvaluator.VisitTypeExpr(t.typeExpr()));
             var nameTypePairs = names.Zip(types, (n, t) => (n, t));
 
-            var typeAnnotation = InvokeIf(context.typeAnnotation(), typeEvaluator.VisitTypeAnnotation);
+            var typeAnnotation = context.typeAnnotation().Invoke(typeEvaluator.VisitTypeAnnotation);
 
             var returnType = context.Void() != null
                 ? new StaticTypeNode(new VoidType())
@@ -241,14 +241,14 @@ namespace ITU.Lang.Core.Translator
         {
             var name = context.Name().GetText();
             var arguments = context.arguments()?.expr()?.Select(VisitExpr);
-            var handle = InvokeIf(context.genericHandle(), VisitGenericHandle);
+            var handle = context.genericHandle().Invoke(VisitGenericHandle);
 
             return new InvokeFunctionNode(name, arguments, handle, GetLocation(context));
         }
 
         public override BlockNode VisitBlock([NotNull] BlockContext context)
         {
-            var statements = InvokeIf(context.statements(), VisitStatements);
+            var statements = context.statements().Invoke(VisitStatements);
             return new BlockNode(statements, GetLocation(context));
         }
 
@@ -271,7 +271,7 @@ namespace ITU.Lang.Core.Translator
             var block = VisitBlock(context.block());
 
             var elseIfStatements = context.elseIfStatement().Select(VisitElseIfStatement);
-            var elseStatement = InvokeIf(context.elseStatement(), VisitElseStatement);
+            var elseStatement = context.elseStatement().Invoke(VisitElseStatement);
 
             return new IfStatementNode(expr, block, elseIfStatements, elseStatement, GetLocation(context));
         }
@@ -294,8 +294,8 @@ namespace ITU.Lang.Core.Translator
         {
             var expr = VisitExpr(context.expr());
 
-            var block = InvokeIf(context.block(), VisitBlock);
-            var statement = InvokeIf(context.statement(), VisitStatement);
+            var block = context.block().Invoke(VisitBlock);
+            var statement = context.statement().Invoke(VisitStatement);
 
             return new WhileStatementNode(expr, block, statement, GetLocation(context));
         }
@@ -304,26 +304,26 @@ namespace ITU.Lang.Core.Translator
         {
             var expr = VisitExpr(context.expr());
 
-            var block = InvokeIf(context.block(), VisitBlock);
+            var block = context.block().Invoke(VisitBlock);
 
             return new DoWhileStatementNode(expr, block, GetLocation(context));
         }
 
         public override ForStatementNode VisitForStatement([NotNull] ForStatementContext context)
         {
-            var declaration = InvokeIf(context.forDecStatement()?.inlineStatement(), VisitInlineStatement);
-            var condition = InvokeIf(context.forConExpression()?.expr(), VisitExpr);
-            var increment = InvokeIf(context.forIncStatement()?.inlineStatement(), VisitInlineStatement);
-            var block = InvokeIf(context.block(), VisitBlock);
-            var statement = InvokeIf(context.statement(), VisitStatement);
+            var declaration = context.forDecStatement()?.inlineStatement().Invoke(VisitInlineStatement);
+            var condition = context.forConExpression()?.expr().Invoke(VisitExpr);
+            var increment = context.forIncStatement()?.inlineStatement().Invoke(VisitInlineStatement);
+            var block = context.block().Invoke(VisitBlock);
+            var statement = context.statement().Invoke(VisitStatement);
             var body = (Node)block ?? statement;
             return new ForStatementNode(declaration, condition, increment, body, GetLocation(context));
         }
 
         public override LoopStatementNode VisitLoopStatement([NotNull] LoopStatementContext context)
         {
-            var block = InvokeIf(context.block(), VisitBlock);
-            var statement = InvokeIf(context.statement(), VisitStatement);
+            var block = context.block().Invoke(VisitBlock);
+            var statement = context.statement().Invoke(VisitStatement);
             var body = (Node)block ?? statement;
 
             return new LoopStatementNode(body, GetLocation(context));
@@ -333,7 +333,7 @@ namespace ITU.Lang.Core.Translator
         public override ClassNode VisitClassExpr([NotNull] ClassExprContext context)
         {
             var members = context.classMember().Select(VisitClassMember).ToList();
-            var handle = InvokeIf(context.genericHandle(), VisitGenericHandle);
+            var handle = context.genericHandle().Invoke(VisitGenericHandle);
 
             return new ClassNode(members, handle, GetLocation(context));
         }
@@ -342,10 +342,10 @@ namespace ITU.Lang.Core.Translator
         {
             var name = context.Name().GetText();
             // Signify Field member
-            var expr = InvokeIf(context.expr(), VisitExpr);
+            var expr = context.expr().Invoke(VisitExpr);
             // Signify Method member
             var func = InnerVisitFunction(context.blockFunction(), context.lambdaFunction());
-            var annotation = InvokeIf(context.typeAnnotation(), typeEvaluator.VisitTypeAnnotation);
+            var annotation = context.typeAnnotation().Invoke(typeEvaluator.VisitTypeAnnotation);
             return new ClassMemberNode(name, expr, func, annotation, GetLocation(context));
         }
 
@@ -358,24 +358,11 @@ namespace ITU.Lang.Core.Translator
             // If no arguments has been passed, set to default list instead of empty
             arguments ??= new List<ExprNode>();
 
-            var handle = InvokeIf(context.genericHandle(), VisitGenericHandle);
+            var handle = context.genericHandle().Invoke(VisitGenericHandle);
 
             return new InstantiateObjectNode(names, arguments, handle, GetLocation(context));
         }
         #endregion
-
-        private T VisitFirstChild<T>(ParserRuleContext[] children) where T : Node
-        {
-            var child = children.FirstOrDefault(s => s != null);
-            if (child == null)
-            {
-                return default(T);
-            }
-            return (T)Visit(child);
-        }
-
-        private R InvokeIf<T, R>(T value, System.Func<T, R> func) =>
-            value != null ? func(value) : default(R);
 
         private TokenLocation GetLocation(ISyntaxTree node)
         {

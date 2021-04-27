@@ -49,29 +49,29 @@ namespace ITU.Lang.Core.Translator.Nodes
 
             if (ft is GenericFunctionType generic)
             {
-                if (Handle != null)
-                {
-                    var resolutions = Handle.Names
-                        .Zip(generic.GenericIdentifiers)
-                        .ToDictionary((pair) => pair.Second, (pair) =>
-                        {
-                            if (!env.Scopes.Types.HasBinding(pair.First))
-                            {
-                                throw new TranspilationException($"Cannot find type '{pair.First}'", Handle.Location);
-                            }
-                            return env.Scopes.Types.GetBinding(pair.First).Type;
-                        });
+                // if (Handle != null)
+                // {
+                //     var resolutions = Handle.Names
+                //         .Zip(generic.GenericIdentifiers)
+                //         .ToDictionary((pair) => pair.Second, (pair) =>
+                //         {
+                //             if (!env.Scopes.Types.HasBinding(pair.First))
+                //             {
+                //                 throw new TranspilationException($"Cannot find type '{pair.First}'", Handle.Location);
+                //             }
+                //             return env.Scopes.Types.GetBinding(pair.First).Type;
+                //         });
 
-                    func = generic.Specify(resolutions);
-                }
-                else
-                {
-                    var resolvedGenerics = generic.Resolve(exprTypes);
+                //     func = generic.Specify(resolutions);
+                // }
+                // else
+                // {
+                //     var resolvedGenerics = generic.Resolve(exprTypes);
 
-                    func = generic.Specify(resolvedGenerics);
-                }
+                //     func = generic.Specify(resolvedGenerics);
+                // }
 
-                paramTypes = func.ParameterTypes;
+                // paramTypes = func.ParameterTypes;
             }
             else if (Handle != null)
             {

@@ -56,6 +56,14 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
             if (memberType is GenericFunctionType gft)
             {
+                if (Function.Handle == null)
+                {
+                    throw new TranspilationException($"Invocation of generic function requires {gft.GenericIdentifiers.Count} generic arguments, but got none.", Function.Location);
+                }
+                Function.Handle
+                    .ResolveHandleBindings(gft.GenericIdentifiers, env)
+                    .ForEach(pair => env.Scopes.Types.Bind(pair.Key, pair.Value));
+
                 // var exprTypes = Function.Exprs.Select(e =>
                 // {
                 //     e.Validate(env);

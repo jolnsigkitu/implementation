@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Antlr4.Runtime;
 using ITU.Lang.Core.Types;
 
 namespace ITU.Lang.Core.Translator.Nodes
@@ -24,6 +23,20 @@ namespace ITU.Lang.Core.Translator.Nodes
             }
         }
 
+        public IDictionary<string, TypeBinding> ResolveHandleBindings(IList<string> identifiers, Environment env)
+        {
+            var resolvedBindings = new Dictionary<string, TypeBinding>();
+            foreach (var (n, id) in Names.Zip(identifiers))
+            {
+                if (!env.Scopes.Types.HasBinding(n))
+                    throw new TranspilationException($"Undefined type '{n}'", Location);
+
+                var binding = env.Scopes.Types.GetBinding(n);
+                resolvedBindings.Add(id, binding);
+            }
+            return resolvedBindings;
+        }
+
         /// <summary>
         /// Resolve the parameter list of identifiers to the types contained within this handle.
         /// </summary>
@@ -36,16 +49,7 @@ namespace ITU.Lang.Core.Translator.Nodes
         /// <returns>A dictionary mapping from the generic identifiers to the resolved types.</returns>
         public IDictionary<string, Type> ResolveHandle(IList<string> identifiers, Environment env)
         {
-            var resolvedNames = new Dictionary<string, Type>();
-            foreach (var (n, id) in Names.Zip(identifiers))
-            {
-                if (!env.Scopes.Types.HasBinding(n))
-                    throw new TranspilationException($"Undefined type '{n}'", Location);
-
-                var binding = env.Scopes.Types.GetBinding(n);
-                resolvedNames.Add(id, binding.Type);
-            }
-            return resolvedNames;
+            return ResolveHandleBindings(identifiers, env).ToDictionary(pair => pair.Key, pair => pair.Value.Type);
         }
 
         public override string ToString()
