@@ -47,9 +47,9 @@ literal: integer | bool | stringLiteral | charLiteral;
 nestedName: Name (Dot Name)*;
 
 access: (
-		Name
+		instantiateObject
 		| invokeFunction
-		| instantiateObject
+		| Name
 		| LeftParen expr RightParen
 	) accessChain?;
 

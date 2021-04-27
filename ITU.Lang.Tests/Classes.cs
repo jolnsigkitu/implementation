@@ -52,5 +52,15 @@ namespace ITU.Lang.Tests
 
             Assert.Contains("Class constructor takes 1 parameters, but got 0", ex.Message);
         }
+
+        /*
+        type Account = <T> {  };
+
+        type User = <T> {
+            GetAccount<U>() => new Account<U>();
+        };
+
+        let a: Account<int> = new User<boolean>().GetAccount<int>();
+        */
     }
 }

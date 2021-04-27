@@ -7,19 +7,17 @@ namespace ITU.Lang.Core.Translator.Nodes
 {
     public class InvokeFunctionNode : ExprNode
     {
-        public string Name { get; private set; }
-        public IEnumerable<ExprNode> Exprs { get; }
-        public GenericHandleNode Handle { get; }
+        public string Name { get; protected set; }
+        public IEnumerable<ExprNode> Exprs { get; protected set; }
         public VariableBinding Binding { get; set; }
 
-        public InvokeFunctionNode(string name, IEnumerable<ExprNode> exprs, GenericHandleNode handle, TokenLocation location) : base(location)
+        public InvokeFunctionNode(string name, IEnumerable<ExprNode> exprs, TokenLocation location) : base(location)
         {
             Name = name;
             Exprs = exprs;
-            Handle = handle;
         }
 
-        protected override Type ValidateExpr(Environment env)
+        protected virtual FunctionType EnsureValidBinding(Environment env)
         {
             if (Binding == null)
             {
@@ -36,49 +34,26 @@ namespace ITU.Lang.Core.Translator.Nodes
                 throw new TranspilationException($"Cannot invoke non-invokable '{Name}'", Location);
             }
 
+            return ft;
+        }
+
+        protected void AssertParameterCount(FunctionType ft)
+        {
             var paramTypes = ft.ParameterTypes;
 
             if (paramTypes.Count() != Exprs.Count())
             {
                 throw new TranspilationException($"Expected {paramTypes.Count()} parameter(s) when invoking function '{Name}', but got {Exprs.Count()}", Location);
             }
+        }
 
-            var func = ft;
+        protected override Type ValidateExpr(Environment env)
+        {
+            var func = EnsureValidBinding(env);
 
-            var exprTypes = Exprs.Select(e => e.Type);
+            AssertParameterCount(func);
 
-            if (ft is GenericFunctionType generic)
-            {
-                // if (Handle != null)
-                // {
-                //     var resolutions = Handle.Names
-                //         .Zip(generic.GenericIdentifiers)
-                //         .ToDictionary((pair) => pair.Second, (pair) =>
-                //         {
-                //             if (!env.Scopes.Types.HasBinding(pair.First))
-                //             {
-                //                 throw new TranspilationException($"Cannot find type '{pair.First}'", Handle.Location);
-                //             }
-                //             return env.Scopes.Types.GetBinding(pair.First).Type;
-                //         });
-
-                //     func = generic.Specify(resolutions);
-                // }
-                // else
-                // {
-                //     var resolvedGenerics = generic.Resolve(exprTypes);
-
-                //     func = generic.Specify(resolvedGenerics);
-                // }
-
-                // paramTypes = func.ParameterTypes;
-            }
-            else if (Handle != null)
-            {
-                throw new TranspilationException($"Cannot specify generic arguments for non-generic function '{Name}'", Handle.Location);
-            }
-
-            foreach (var (expr, type) in Exprs.Zip(paramTypes))
+            foreach (var (expr, type) in Exprs.Zip(func.ParameterTypes))
             {
                 expr.Validate(env);
                 expr.AssertType(type);
@@ -90,6 +65,6 @@ namespace ITU.Lang.Core.Translator.Nodes
             return func.ReturnType;
         }
 
-        public override string ToString() => $"{Name}{Handle}({string.Join(", ", Exprs)})";
+        public override string ToString() => $"{Name}({string.Join(", ", Exprs)})";
     }
 }

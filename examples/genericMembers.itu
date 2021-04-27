@@ -12,10 +12,15 @@ type Generic = <T> {
 const generic = new Generic<int>(5);
 
 // Level 1: explicit defined function generic
-generic.Map<int>((val: int): int => val+1);
+// generic.Map<int>((val: int): int => val+1);
+
+// Level 1.2: Handle explicitly defined function generics as first part of the access chain
+const factory = <T>(arg: T) => new Generic<T>(arg);
+
+factory<int>(5).Map<int>((val: int): int => val+2);
 
 // Level 2: Infer match from return value
-// generic.Map<int>((val: int) => val+1);
+// generic.Map<int>((val: int) => val+3);
 
 // Level 3: inferred handle from argument and return type
-// generic.Map((val: int) => val+2);
+// generic.Map((val: int) => val+4);

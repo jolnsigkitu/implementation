@@ -23,6 +23,9 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
         protected override Type ValidateExpr(Environment env)
         {
+            // We use a scope to temporarily assign generic identifiers to resolved types for digging deeper
+            using var _ = env.Scopes.Use();
+
             FirstExpr?.Validate(env);
             Type typ = FirstExpr?.Type;
 
@@ -46,8 +49,6 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
         private Type ValidateChain(Environment env, Type typ)
         {
-            using var _ = env.Scopes.Use();
-
             if (!(typ is ClassType ct))
             {
                 throw new TranspilationException("Cannot access member on non-object", Location);

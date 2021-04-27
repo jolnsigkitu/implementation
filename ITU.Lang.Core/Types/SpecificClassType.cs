@@ -26,34 +26,54 @@ namespace ITU.Lang.Core.Types
 
         public override string AsNativeName() => AsTranslatedName();
 
-        public Type SpecifyMember(Type inputType)
+        private (Type typ, IList<string> GenericIdentifiers) SpecifyMemberInner(Type inputType)
         {
             if (inputType is GenericTypeIdentifier gti)
-                return SpecificTypes[gti.Identifier];
-
-            if (inputType is IGenericType<Type> gt)
-                throw new TranspilationException($"We cannot handle inner generics from {string.Join(", ", SpecificTypes)}: {inputType}");
+            {
+                if (SpecificTypes.TryGetValue(gti.Identifier, out var typ))
+                    return (typ, null);
+                return (gti, new List<string>() { gti.Identifier });
+            }
 
             if (inputType is FunctionType ft)
-                return new FunctionType()
+            {
+                var (returnType, returnGenerics) = SpecifyMemberInner(ft.ReturnType);
+                var paramTypes = ft.ParameterTypes.Select(t => SpecifyMemberInner(t));
+                var generics = new List<string>();
+
+                if (returnGenerics != null) generics.AddRange(returnGenerics);
+
+                generics.AddRange(
+                    paramTypes
+                        .Where(p => p.GenericIdentifiers != null)
+                        .SelectMany(p => p.GenericIdentifiers)
+                );
+
+                var func = new FunctionType()
                 {
-                    ReturnType = SpecifyMember(ft.ReturnType),
+                    ReturnType = returnType,
                     IsLambda = ft.IsLambda,
                     ParameterNames = ft.ParameterNames,
-                    ParameterTypes = ft.ParameterTypes.Select(t => SpecifyMember(t)).ToList(),
+                    ParameterTypes = paramTypes.Select(p => p.typ).ToList(),
                 };
 
+                func = generics.Count == 0 ? func : new GenericFunctionType(func, generics);
+                return (func, generics);
+            }
+
             if (inputType is SpecificClassType sct)
-                return new SpecificClassType()
+                return (new SpecificClassType()
                 {
                     Name = sct.Name,
                     GenericIdentifiers = sct.GenericIdentifiers,
                     SpecificTypes = this.SpecificTypes,
-                };
+                }, null);
 
             // inputType should not be a composite type or generic identifier
-            return inputType;
+            return (inputType, null);
         }
+
+        public Type SpecifyMember(Type inputType) => SpecifyMemberInner(inputType).typ;
 
         public override string ToString()
         {

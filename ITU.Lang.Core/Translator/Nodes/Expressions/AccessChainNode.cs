@@ -54,13 +54,13 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
             var memberType = memberBinding.Type;
 
-            if (memberType is GenericFunctionType gft)
+            if (Function is InvokeGenericFunctionNode genericFunction && memberType is GenericFunctionType gft)
             {
-                if (Function.Handle == null)
+                if (genericFunction.Handle == null)
                 {
                     throw new TranspilationException($"Invocation of generic function requires {gft.GenericIdentifiers.Count} generic arguments, but got none.", Function.Location);
                 }
-                Function.Handle
+                genericFunction.Handle
                     .ResolveHandleBindings(gft.GenericIdentifiers, env)
                     .ForEach(pair => env.Scopes.Types.Bind(pair.Key, pair.Value));
 
@@ -75,6 +75,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                 // System.Console.WriteLine($"Resolutions ({resolutions.Count}): {string.Join(", ", resolutions)}");
                 // memberType = gft.Specify(resolutions);
             }
+
 
             if (classType is SpecificClassType sct)
             {

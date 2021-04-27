@@ -243,7 +243,9 @@ namespace ITU.Lang.Core.Translator
             var arguments = context.arguments()?.expr()?.Select(VisitExpr);
             var handle = context.genericHandle().Invoke(VisitGenericHandle);
 
-            return new InvokeFunctionNode(name, arguments, handle, GetLocation(context));
+            var func = new InvokeFunctionNode(name, arguments, GetLocation(context));
+
+            return handle != null ? new InvokeGenericFunctionNode(func, handle) : func;
         }
 
         public override BlockNode VisitBlock([NotNull] BlockContext context)
