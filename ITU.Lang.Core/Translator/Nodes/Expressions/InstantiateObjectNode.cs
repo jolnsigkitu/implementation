@@ -33,6 +33,9 @@ namespace ITU.Lang.Core.Translator.Nodes
             }
 
             var typeBinding = env.Scopes.Types.GetBinding(name);
+            var hasConstructor = typeBinding.Members.TryGetValue("constructor", out var constructor);
+            var constructorType = hasConstructor ? constructor.Type : null;
+
 
             if (!(typeBinding.Type is ClassType classType))
             {
@@ -50,7 +53,12 @@ namespace ITU.Lang.Core.Translator.Nodes
 
                 var resolution = Handle.ResolveHandle(ct.GenericIdentifiers, env);
 
-                typ = new SpecificClassType(ct, resolution);
+                var specClass = new SpecificClassType(ct, resolution);
+                typ = specClass;
+                if (hasConstructor)
+                {
+                    constructorType = specClass.SpecifyMember(constructor.Type);
+                }
             }
 
             foreach (var expr in Exprs)
@@ -58,11 +66,9 @@ namespace ITU.Lang.Core.Translator.Nodes
                 expr.Validate(env);
             }
 
-            if (typeBinding.Members.TryGetValue("constructor", out var constructor))
+            if (hasConstructor)
             {
-                var funcType = (FunctionType)constructor.Type;
-
-                AssertExprsMatchesConstructor(funcType);
+                AssertExprsMatchesConstructor((FunctionType)constructorType);
             }
 
             return typ;

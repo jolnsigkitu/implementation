@@ -31,8 +31,8 @@ namespace ITU.Lang.Core.Types
             if (inputType is GenericTypeIdentifier gti)
                 return SpecificTypes[gti.Identifier];
 
-            if (inputType is IGenericType<Type>)
-                throw new TranspilationException("We cannot handle inner generics");
+            if (inputType is IGenericType<Type> gt)
+                throw new TranspilationException($"We cannot handle inner generics from {string.Join(", ", SpecificTypes)}: {inputType}");
 
             if (inputType is FunctionType ft)
                 return new FunctionType()

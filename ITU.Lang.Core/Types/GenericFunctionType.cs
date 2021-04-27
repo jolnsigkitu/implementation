@@ -18,7 +18,6 @@ namespace ITU.Lang.Core.Types
             GenericIdentifiers = genericIdentifiers;
         }
 
-
         public IDictionary<string, Type> Resolve(IEnumerable<Type> parameterExpressions)
         {
             var specificTypes = new Dictionary<string, Type>();
@@ -58,6 +57,8 @@ namespace ITU.Lang.Core.Types
 
         public FunctionType Specify(IDictionary<string, Type> specificTypes)
         {
+            System.Console.WriteLine(specificTypes != null ? string.Join(", ", specificTypes) : "null");
+            System.Console.WriteLine(specificTypes.Count);
             var returnType = SpecifyFuncType(ReturnType, specificTypes);
 
             var paramTypes = ParameterTypes.Select((typ) => SpecifyFuncType(typ, specificTypes)).ToList();

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Antlr4.Runtime;
 using ITU.Lang.Core.Types;
 
@@ -60,46 +62,16 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             {
                 if (!(binding.Type is ClassType) || binding.Members == null)
                 {
-                    throw new TranspilationException("Cannot access member on non-object", Location);
+                    throw new TranspilationException("Cannot access member on non-object");
                 }
 
-                var func = (InvokeFunctionNode)link?.Function;
-                var bindingName = link.Function != null ? func.Name : link.Name;
+                binding = link.Access(env, binding, ct);
 
-                if (!binding.Members.TryGetValue(bindingName, out var memberBinding))
-                {
-                    throw new TranspilationException($"Cannot access undefined member {bindingName} on type {typ}", Location);
-                }
-
-                binding = memberBinding;
-                typ = binding.Type;
-
-                if (ct is SpecificClassType sct)
-                {
-                    typ = sct.SpecifyMember(typ);
-                }
-
-                if (func != null)
-                {
-                    if (!(typ is FunctionType ft))
-                    {
-                        throw new TranspilationException($"Tried to invoke non-function member on class '{ct}'", Location);
-                    }
-                    func.Binding = new VariableBinding()
-                    {
-                        Name = memberBinding.Name,
-                        Type = ft,
-                    };
-                    func.Validate(env);
-                    func.Type = ft.ReturnType;
-                    typ = ft.ReturnType;
-                }
-
-                if (typ is ClassType classType)
+                if (binding.Type is ClassType classType)
                 {
                     if (!env.Scopes.Types.HasBinding(classType.Name))
                     {
-                        throw new TranspilationException($"Unknown type {classType.Name}.", Location);
+                        throw new TranspilationException($"Unknown type {classType.Name}.");
                     }
 
                     binding = env.Scopes.Types.GetBinding(classType.Name);

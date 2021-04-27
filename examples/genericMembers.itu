@@ -1,0 +1,21 @@
+type Generic = <T> {
+    value: T;
+    constructor(_value: T) {
+        value = _value;
+    }
+
+    Map<U>(mapper: (T) => U) => mapper(value);
+
+    Normal() => 1;
+};
+
+const generic = new Generic<int>(5);
+
+// Level 1: explicit defined function generic
+generic.Map<int>((val: int): int => val+1);
+
+// Level 2: Infer match from return value
+// generic.Map<int>((val: int) => val+1);
+
+// Level 3: inferred handle from argument and return type
+// generic.Map((val: int) => val+2);

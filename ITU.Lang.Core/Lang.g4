@@ -53,7 +53,7 @@ access: (
 		| LeftParen expr RightParen
 	) accessChain?;
 
-accessChain: Dot (Name | invokeFunction) accessChain?;
+accessChain: Dot (invokeFunction | Name) accessChain?;
 
 vardec: (Const | Let) typedName Eq expr;
 
@@ -82,7 +82,8 @@ genericHandle: LessThan (Name Comma)* Name GreaterThan;
 functionArguments:
 	| (Name typeAnnotation Comma)* (Name typeAnnotation)?;
 
-invokeFunction: Name LeftParen arguments RightParen;
+invokeFunction:
+	Name genericHandle? LeftParen arguments RightParen;
 
 instantiateObject:
 	New nestedName genericHandle? (
@@ -93,8 +94,6 @@ arguments: (expr Comma)* (expr)?;
 
 typedName: Name typeAnnotation?;
 typeAnnotation: Colon typeExpr;
-
-// const foo: { name: string } =
 
 // Type expressions
 typedec: Type Name Eq (typeExpr | classExpr);

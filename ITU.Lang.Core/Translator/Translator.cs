@@ -168,15 +168,20 @@ namespace ITU.Lang.Core.Translator
 
         public override AccessChainNode VisitAccessChain([NotNull] AccessChainContext context)
         {
-            var list = new List<ChainNode>();
+            var list = new List<AccessChainLink>();
 
             for (var rest = context; rest != null; rest = rest.accessChain())
             {
-                list.Add(new ChainNode
+                if (rest.Name() != null)
                 {
-                    Name = rest.Name()?.GetText(),
-                    Function = InvokeIf(rest.invokeFunction(), VisitInvokeFunction),
-                });
+
+                    list.Add(new NameAccessChainLink(rest.Name().GetText()));
+                }
+                else
+                {
+                    var node = VisitInvokeFunction(rest.invokeFunction());
+                    list.Add(new FunctionAccessChainLink(node));
+                }
             }
 
             return new AccessChainNode(list, GetLocation(context));
@@ -211,6 +216,8 @@ namespace ITU.Lang.Core.Translator
 
             var isLambda = lambdaFunctionBody != null;
 
+            // System.Console.WriteLine($"Defining function with arguments {string.Join(", ", parameterList)} of length {parameterList.NameTypePairs.Count()}");
+
             return new FunctionNode(parameterList, body, handle, isLambda, GetLocation(((ISyntaxTree)blockFun) ?? lambdaFun));
         }
 
@@ -234,8 +241,9 @@ namespace ITU.Lang.Core.Translator
         {
             var name = context.Name().GetText();
             var arguments = context.arguments()?.expr()?.Select(VisitExpr);
+            var handle = InvokeIf(context.genericHandle(), VisitGenericHandle);
 
-            return new InvokeFunctionNode(name, arguments, GetLocation(context));
+            return new InvokeFunctionNode(name, arguments, handle, GetLocation(context));
         }
 
         public override BlockNode VisitBlock([NotNull] BlockContext context)

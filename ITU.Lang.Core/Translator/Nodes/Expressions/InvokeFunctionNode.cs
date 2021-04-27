@@ -9,13 +9,14 @@ namespace ITU.Lang.Core.Translator.Nodes
     {
         public string Name { get; private set; }
         public IEnumerable<ExprNode> Exprs { get; }
-
+        public GenericHandleNode Handle { get; }
         public VariableBinding Binding { get; set; }
 
-        public InvokeFunctionNode(string name, IEnumerable<ExprNode> exprs, TokenLocation location) : base(location)
+        public InvokeFunctionNode(string name, IEnumerable<ExprNode> exprs, GenericHandleNode handle, TokenLocation location) : base(location)
         {
             Name = name;
             Exprs = exprs;
+            Handle = handle;
         }
 
         protected override Type ValidateExpr(Environment env)
@@ -48,10 +49,33 @@ namespace ITU.Lang.Core.Translator.Nodes
 
             if (ft is GenericFunctionType generic)
             {
-                var resolvedGenerics = generic.Resolve(exprTypes);
+                if (Handle != null)
+                {
+                    var resolutions = Handle.Names
+                        .Zip(generic.GenericIdentifiers)
+                        .ToDictionary((pair) => pair.Second, (pair) =>
+                        {
+                            if (!env.Scopes.Types.HasBinding(pair.First))
+                            {
+                                throw new TranspilationException($"Cannot find type '{pair.First}'", Handle.Location);
+                            }
+                            return env.Scopes.Types.GetBinding(pair.First).Type;
+                        });
 
-                func = generic.Specify(resolvedGenerics);
+                    func = generic.Specify(resolutions);
+                }
+                else
+                {
+                    var resolvedGenerics = generic.Resolve(exprTypes);
+
+                    func = generic.Specify(resolvedGenerics);
+                }
+
                 paramTypes = func.ParameterTypes;
+            }
+            else if (Handle != null)
+            {
+                throw new TranspilationException($"Cannot specify generic arguments for non-generic function '{Name}'", Handle.Location);
             }
 
             foreach (var (expr, type) in Exprs.Zip(paramTypes))
@@ -66,6 +90,6 @@ namespace ITU.Lang.Core.Translator.Nodes
             return func.ReturnType;
         }
 
-        public override string ToString() => $"{Name}({string.Join(", ", Exprs)})";
+        public override string ToString() => $"{Name}{Handle}({string.Join(", ", Exprs)})";
     }
 }
