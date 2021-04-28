@@ -1,4 +1,5 @@
 ﻿@using System.Threading
+@inject IJSRuntime JSRuntime
 
 <div class="flex flex-col items-center justify-center w-full h-full pt-12">
     <div class="text-center">
@@ -46,7 +47,7 @@
 
     private Timer timer;
 
-    private void OnInputChanged(ChangeEventArgs evt)
+    private async Task OnInputChanged(ChangeEventArgs evt)
     {
         if (!hasStarted)
         {
@@ -63,6 +64,8 @@
             words.NextWord();
             // TODO: Add word to signal to get stats
             Input = "";
+
+            await JSRuntime.InvokeVoidAsync("BlazorScrollChildIntoView", "#targetContainer", ".current");
         }
     }
 
