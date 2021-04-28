@@ -34,7 +34,7 @@
     private ElementReference textInput { get; set; }
 
     private Words words = new Words();
-    private SignalSink<Word> sink = new SignalSink<Word>();
+    private SignalSink<CompletedWord> sink = new SignalSink<CompletedWord>();
     /*
     TODO: Introduce our programming language
     private Statistics stats = new Statistics(sink.Signal);
@@ -48,12 +48,12 @@
 
     private Timer timer;
 
-    /*
+
     protected override void OnInitialized()
     {
-    sink.Signal.ForEach(word => Console.WriteLine(word.FullContent));
+        sink.Signal.ForEach(word => Console.WriteLine(word.CompletedAt));
     }
-    */
+
 
     private async Task OnInputChanged(ChangeEventArgs evt)
     {

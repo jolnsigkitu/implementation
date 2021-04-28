@@ -8,7 +8,7 @@ namespace ITU.Lang.SampleProgram.Lib
     {
         public List<Word> Future { get; private set; }
         public Word Current { get; private set; }
-        public List<Word> Previous { get; private set; }
+        public List<CompletedWord> Previous { get; private set; }
 
         public List<Word> Attempted
         {
@@ -24,13 +24,13 @@ namespace ITU.Lang.SampleProgram.Lib
         public Words()
         {
             Future = MakeFutureWords();
-            Previous = new List<Word>();
+            Previous = new List<CompletedWord>();
             UpdateCurrent();
         }
 
-        public Word NextWord()
+        public CompletedWord NextWord()
         {
-            var completed = Current;
+            var completed = new CompletedWord(Current, DateTime.Now);
             Previous.Add(completed);
             UpdateCurrent();
             if (Future.Count <= 6)
@@ -62,6 +62,12 @@ namespace ITU.Lang.SampleProgram.Lib
         {
             FullContent = fullContent;
             ComputeSegments("");
+        }
+
+        public Word(Word word)
+        {
+            FullContent = word.FullContent;
+            Segments = word.Segments;
         }
 
         public void ComputeSegments(string value)
@@ -134,6 +140,16 @@ namespace ITU.Lang.SampleProgram.Lib
             Segments = newSegments;
         }
     }
+
+    public class CompletedWord : Word
+    {
+        public DateTime CompletedAt { get; private set; }
+        public CompletedWord(Word word, DateTime completedAt) : base(word)
+        {
+            CompletedAt = completedAt;
+        }
+    }
+
 
     public class Segment
     {
