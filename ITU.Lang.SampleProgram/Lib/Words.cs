@@ -6,11 +6,11 @@ namespace ITU.Lang.SampleProgram.Lib
 {
     public class Words
     {
-        public IList<Word> Future { get; private set; }
+        public List<Word> Future { get; private set; }
         public Word Current { get; private set; }
-        public IList<Word> Previous { get; private set; }
+        public List<Word> Previous { get; private set; }
 
-        public IList<Word> Attempted
+        public List<Word> Attempted
         {
             get
             {
@@ -23,7 +23,7 @@ namespace ITU.Lang.SampleProgram.Lib
 
         public Words()
         {
-            Future = WordDictionary.GetRandomWords(20).Select(c => new Word(c)).ToList();
+            Future = MakeFutureWords();
             Previous = new List<Word>();
             UpdateCurrent();
         }
@@ -32,6 +32,10 @@ namespace ITU.Lang.SampleProgram.Lib
         {
             Previous.Add(Current);
             UpdateCurrent();
+            if (Future.Count <= 6)
+            {
+                Future.AddRange(MakeFutureWords());
+            }
         }
 
         private void UpdateCurrent()
@@ -39,6 +43,11 @@ namespace ITU.Lang.SampleProgram.Lib
             // See if there is a method like shift
             Current = Future[0];
             Future.RemoveAt(0);
+        }
+
+        private List<Word> MakeFutureWords()
+        {
+            return WordDictionary.GetRandomWords(20).Select(c => new Word(c)).ToList();
         }
     }
 

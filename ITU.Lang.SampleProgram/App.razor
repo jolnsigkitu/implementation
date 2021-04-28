@@ -1,8 +1,10 @@
-﻿<div class="flex flex-col items-center justify-center w-full h-full pt-12">
+﻿@using System.Threading
+
+<div class="flex flex-col items-center justify-center w-full h-full pt-12">
     <div class="text-center">
         <div class="text-6xl">@wpm wpm</div>
         <div class="flex items-baseline justify-center">
-            <div>@timer</div>
+            <div>@elapsedTime</div>
             <div>&middot;</div>
             <div>@accuracy %</div>
         </div>
@@ -13,7 +15,6 @@
             @oninput="OnInputChanged" value="@Input" />
     </div>
     <div id="targetContainer" class="w-full h-60 max-w-2xl text-xl overflow-y-auto">
-        @* TODO: PRINT SEGMENTS with correct classes *@
         @foreach (var word in words.Previous)
         {
             <WordResult Word="@word" />
@@ -37,16 +38,13 @@
     private Statistics stats = new Statistics();
     */
     private string wpm = "0";
-    private string timer = "00:00";
+    private string elapsedTime = "00:00:00";
     private string accuracy = "0";
     private bool hasStarted = false;
 
     public string Input { get; set; }
 
-    protected override void OnInitialized()
-    {
-        System.Console.WriteLine(words.Current.FullContent);
-    }
+    private Timer timer;
 
     private void OnInputChanged(ChangeEventArgs evt)
     {
@@ -59,21 +57,27 @@
         Input = evt.Value.ToString();
 
         words.Current.ComputeSegments(Input);
-        System.Console.WriteLine($"({words.Current.Segments.Count}): {string.Join(", ", words.Current.Segments)}");
 
         if (Input.EndsWith(" "))
         {
             words.NextWord();
+            // TODO: Add word to signal to get stats
             Input = "";
         }
-
-
-        //elements = renderWords(words);
     }
 
     private void StartStatsTimer()
     {
+        var start = DateTime.Now;
+        timer = new Timer(async (o) =>
+        {
+            var now = DateTime.Now;
+            var diff = now - start;
+            elapsedTime = diff.Duration().ToString(@"hh\:mm\:ss");
 
+            // Manually call StateHasChanged, since the user did not perform these state updates
+            StateHasChanged();
+        }, null, 500, 500);
     }
 
     public async Task FocusTextInput() => await textInput.FocusAsync();
