@@ -150,7 +150,6 @@ namespace ITU.Lang.SampleProgram.Lib
         }
     }
 
-
     public class Segment
     {
         public string Text { get; set; }

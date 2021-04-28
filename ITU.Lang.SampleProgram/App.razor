@@ -3,11 +3,11 @@
 
 <div class="flex flex-col items-center justify-center w-full h-full pt-12">
     <div class="text-center">
-        <div class="text-6xl">@wpm wpm</div>
+        <div class="text-6xl">@engine.Wpm wpm</div>
         <div class="flex items-baseline justify-center">
             <div>@elapsedTime</div>
             <div>&middot;</div>
-            <div>@accuracy %</div>
+            <div>@engine.Accuracy.ToString("0.00") %</div>
         </div>
     </div>
     <div class="flex justify-center items-center w-full p-2 m-4 bg-gray-100 focus-within:bg-gray-200"
@@ -35,13 +35,8 @@
 
     private Words words = new Words();
     private SignalSink<CompletedWord> sink = new SignalSink<CompletedWord>();
-    /*
-    TODO: Introduce our programming language
-    private Statistics stats = new Statistics(sink.Signal);
-    */
-    private string wpm = "0";
+    private Engine engine;
     private string elapsedTime = "00:00:00";
-    private string accuracy = "0";
     private bool hasStarted = false;
 
     public string Input { get; set; }
@@ -51,7 +46,7 @@
 
     protected override void OnInitialized()
     {
-        sink.Signal.ForEach(word => Console.WriteLine(word.CompletedAt));
+        engine = new Engine(sink.Signal);
     }
 
 
@@ -65,8 +60,6 @@
 
         Input = evt.Value.ToString();
 
-        words.Current.ComputeSegments(Input);
-
         if (Input.EndsWith(" "))
         {
             var completedWord = words.NextWord();
@@ -74,14 +67,15 @@
             Input = "";
 
             await JSRuntime.InvokeVoidAsync("BlazorScrollChildIntoView", "#targetContainer", ".current");
+            return;
         }
+
+        words.Current.ComputeSegments(Input);
     }
 
     private void StartStats()
     {
         var start = DateTime.Now;
-
-        //stats.Start = start;
 
         timer = new Timer((o) =>
         {

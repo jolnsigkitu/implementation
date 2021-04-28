@@ -21,7 +21,15 @@ namespace ITU.Lang.StandardLib
         public static ProducerSignal<TInput> Produce(Action<Action<TInput>> producer) => new ProducerSignal<TInput>(producer);
     }
 
-    public abstract class ChainablePushSignal<TInput, TOutput> : PushSignal<TInput>
+    public interface ForwardablePushSignal<TOutput>
+    {
+        MapSignal<TOutput, TResult> Map<TResult>(Func<TOutput, TResult> mapper);
+        ReduceSignal<TOutput, TResult> Reduce<TResult>(Func<TResult, TOutput, TResult> reducer, TResult defaultResult = default(TResult));
+        FilterSignal<TOutput> Filter(Predicate<TOutput> filter);
+        ForEachSignal<TOutput> ForEach(Action<TOutput> func);
+    }
+
+    public abstract class ChainablePushSignal<TInput, TOutput> : PushSignal<TInput>, ForwardablePushSignal<TOutput>
     {
         protected IList<PushSignal<TOutput>> next = new List<PushSignal<TOutput>>();
 
