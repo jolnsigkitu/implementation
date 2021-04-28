@@ -50,6 +50,7 @@ namespace ITU.Lang.SampleProgram.Lib
         public Word(string fullContent)
         {
             FullContent = fullContent;
+            ComputeSegments("");
         }
 
         public void ComputeSegments(string value)
@@ -129,9 +130,6 @@ namespace ITU.Lang.SampleProgram.Lib
         public bool Incorrect { get; set; }
         public bool Attempted { get; set; }
 
-        public override string ToString()
-        {
-            return $"Text: {Text}, Incorrect: {Incorrect}, Attempted: {Attempted}";
-        }
+        public override string ToString() => $"Text: {Text}, Incorrect: {Incorrect}, Attempted: {Attempted}";
     }
 }

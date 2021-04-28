@@ -1,8 +1,22 @@
-<span class="inline-block">
-    @Word.FullContent
+<span class="inline-block mr-2 @(new ClassNames() {
+    ["bg-gray-200"] = IsCurrent,
+})">
+    @foreach (var segment in Word.Segments)
+    {
+        <span class="@(new ClassNames() {
+            ["font-bold"] = segment.Attempted,
+            ["text-red-500"] = segment.Incorrect,
+            ["text-green-500"] = !segment.Incorrect && segment.Attempted,
+        })">
+            @segment.Text
+        </span>
+    }
 </span>
 
 @code {
     [Parameter]
     public Word Word { get; set; }
+
+    [Parameter]
+    public bool IsCurrent { get; set; } = false;
 }
