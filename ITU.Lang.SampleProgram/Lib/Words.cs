@@ -1,11 +1,12 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace ITU.Lang.SampleProgram.Lib
 {
     public class Words
     {
-        public IList<string> Future { get; private set; }
+        public IList<Word> Future { get; private set; }
         public Word Current { get; private set; }
         public IList<Word> Previous { get; private set; }
 
@@ -22,7 +23,7 @@ namespace ITU.Lang.SampleProgram.Lib
 
         public Words()
         {
-            Future = WordDictionary.GetRandomWords(20);
+            Future = WordDictionary.GetRandomWords(20).Select(c => new Word(c)).ToList();
             Previous = new List<Word>();
             UpdateCurrent();
         }
@@ -36,10 +37,8 @@ namespace ITU.Lang.SampleProgram.Lib
         private void UpdateCurrent()
         {
             // See if there is a method like shift
-            var newWord = Future[0];
+            Current = Future[0];
             Future.RemoveAt(0);
-
-            Current = new Word(newWord);
         }
     }
 
