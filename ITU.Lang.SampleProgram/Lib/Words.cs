@@ -28,14 +28,16 @@ namespace ITU.Lang.SampleProgram.Lib
             UpdateCurrent();
         }
 
-        public void NextWord()
+        public Word NextWord()
         {
-            Previous.Add(Current);
+            var completed = Current;
+            Previous.Add(completed);
             UpdateCurrent();
             if (Future.Count <= 6)
             {
                 Future.AddRange(MakeFutureWords());
             }
+            return completed;
         }
 
         private void UpdateCurrent()

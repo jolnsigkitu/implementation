@@ -34,9 +34,10 @@
     private ElementReference textInput { get; set; }
 
     private Words words = new Words();
+    private SignalSink<Word> sink = new SignalSink<Word>();
     /*
     TODO: Introduce our programming language
-    private Statistics stats = new Statistics();
+    private Statistics stats = new Statistics(sink.Signal);
     */
     private string wpm = "0";
     private string elapsedTime = "00:00:00";
@@ -46,6 +47,13 @@
     public string Input { get; set; }
 
     private Timer timer;
+
+    /*
+    protected override void OnInitialized()
+    {
+    sink.Signal.ForEach(word => Console.WriteLine(word.FullContent));
+    }
+    */
 
     private async Task OnInputChanged(ChangeEventArgs evt)
     {
@@ -61,7 +69,8 @@
 
         if (Input.EndsWith(" "))
         {
-            words.NextWord();
+            var completedWord = words.NextWord();
+            sink.Push(completedWord);
             // TODO: Add word to signal to get stats
             Input = "";
 
@@ -72,7 +81,7 @@
     private void StartStatsTimer()
     {
         var start = DateTime.Now;
-        timer = new Timer(async (o) =>
+        timer = new Timer((o) =>
         {
             var now = DateTime.Now;
             var diff = now - start;
