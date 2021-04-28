@@ -60,7 +60,7 @@
         if (!hasStarted)
         {
             hasStarted = true;
-            StartStatsTimer();
+            StartStats();
         }
 
         Input = evt.Value.ToString();
@@ -71,16 +71,18 @@
         {
             var completedWord = words.NextWord();
             sink.Push(completedWord);
-            // TODO: Add word to signal to get stats
             Input = "";
 
             await JSRuntime.InvokeVoidAsync("BlazorScrollChildIntoView", "#targetContainer", ".current");
         }
     }
 
-    private void StartStatsTimer()
+    private void StartStats()
     {
         var start = DateTime.Now;
+
+        //stats.Start = start;
+
         timer = new Timer((o) =>
         {
             var now = DateTime.Now;

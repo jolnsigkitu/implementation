@@ -33,7 +33,7 @@ namespace ITU.Lang.SampleProgram.Lib
             var completed = new CompletedWord(Current, DateTime.Now);
             Previous.Add(completed);
             UpdateCurrent();
-            if (Future.Count <= 6)
+            if (Future.Count <= 10)
             {
                 Future.AddRange(MakeFutureWords());
             }
