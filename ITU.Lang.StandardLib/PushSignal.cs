@@ -24,6 +24,7 @@ namespace ITU.Lang.StandardLib
     public interface ForwardablePushSignal<TOutput>
     {
         MapSignal<TOutput, TResult> Map<TResult>(Func<TOutput, TResult> mapper);
+        Map2Signal<TOutput, TResult> Map2<TResult>(Func<TOutput, TOutput, TResult> mapper);
         ReduceSignal<TOutput, TResult> Reduce<TResult>(Func<TResult, TOutput, TResult> reducer, TResult defaultResult = default(TResult));
         FilterSignal<TOutput> Filter(Predicate<TOutput> filter);
         ForEachSignal<TOutput> ForEach(Action<TOutput> func);
@@ -69,6 +70,13 @@ namespace ITU.Lang.StandardLib
             return sig;
         }
 
+        public Map2Signal<TOutput, TResult> Map2<TResult>(Func<TOutput, TOutput, TResult> mapper)
+        {
+            var sig = new Map2Signal<TOutput, TResult>(mapper);
+            AddNext(sig);
+            return sig;
+        }
+
         internal override void Push(TInput value)
         {
             if (!ShouldPush(value)) return;
@@ -104,6 +112,30 @@ namespace ITU.Lang.StandardLib
         }
 
         protected override TOutput GetNextValue(TInput value) => mapper(value);
+    }
+    public class Map2Signal<TInput, TOutput> : ChainablePushSignal<TInput, TOutput>
+    {
+        private Func<TInput, TInput, TOutput> mapper;
+
+        private TInput cache;
+
+        internal Map2Signal(Func<TInput, TInput, TOutput> mapper)
+        {
+            this.mapper = mapper;
+        }
+
+        protected override bool ShouldPush(TInput value)
+        {
+            if (cache == null)
+            {
+                cache = value;
+                return false;
+            }
+
+            return true;
+        }
+
+        protected override TOutput GetNextValue(TInput value) => mapper(cache, value);
     }
 
     public class ReduceSignal<TInput, TOutput> : ChainablePushSignal<TInput, TOutput>
