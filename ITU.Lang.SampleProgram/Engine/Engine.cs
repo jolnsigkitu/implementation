@@ -23,13 +23,17 @@ class Engine
         .Map(word =>
         {
             var metrics = new AccuracyMetrics();
-            foreach (var segment in word.Segments)
+
+            var enumerator = word.Segments.GetEnumerator();
+            while (enumerator.MoveNext())
             {
+                var segment = enumerator.Current;
                 var segLen = segment.Text.Length;
                 metrics.Total += segLen;
                 if (!segment.Incorrect)
                     metrics.Correct += segLen;
             }
+
             return metrics;
         })
         .Reduce((acc, stats) =>
@@ -38,11 +42,9 @@ class Engine
             acc.Correct += stats.Correct;
             return acc;
         }, new AccuracyMetrics())
-        .ForEach(stats =>
-        {
-            var accuracy = ((float)stats.Correct / (float)stats.Total) * 100;
-            Accuracy = accuracy;
-        });
+        .Map(stats => ((float)stats.Correct / (float)stats.Total) * 100)
+        // Assign each new accuracy property in order to reflect it in UI
+        .ForEach((accuracy) => Accuracy = accuracy);
     }
 }
 
@@ -51,8 +53,5 @@ class AccuracyMetrics
     public int Total = 0;
     public int Correct = 0;
 
-    public override string ToString()
-    {
-        return $"(Total: {Total}, Correct: {Correct})";
-    }
+    public override string ToString() => $"(Total: {Total}, Correct: {Correct})";
 }
