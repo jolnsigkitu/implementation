@@ -40,7 +40,7 @@ namespace ITU.Lang.Core.Translator.TypeNodes
 
             if (Handle != null)
             {
-                return new GenericWrapper(result, Handle.Names.ToList());
+                return new GenericFunctionWrapper(result, Handle.Names.ToList());
             }
 
             return result;

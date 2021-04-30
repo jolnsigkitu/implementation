@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 namespace ITU.Lang.Core.Types
 {
-    public class GenericWrapper : IType
+    public abstract class GenericWrapper : IType
     {
         public IDictionary<string, IType> Bindings { get; set; }
         public IType Child { get; set; }
@@ -23,27 +23,78 @@ namespace ITU.Lang.Core.Types
             Handle = handle;
         }
 
-        public virtual IType ResolveByIdentifier(IDictionary<string, IType> resolutions)
+        public abstract IType ResolveByIdentifier(IDictionary<string, IType> resolutions);
+
+        public abstract IType ResolveByPosition(IEnumerable<IType> resolutions);
+
+        // public virtual IType ResolveByPosition(IEnumerable<IType> resolutions)
+        // {
+        //     if (resolutions.Count() != Handle.Count)
+        //     {
+        //         throw new TranspilationException($"Tried to resolve generic with {resolutions.Count()} identifiers, but was provided {Handle.Count}");
+        //     }
+
+        //     throw new System.NotImplementedException("TODO: Resolve by position on generic wrapper");
+        // }
+
+        protected IDictionary<string, IType> ResolveBindingsByIdentifier(IDictionary<string, IType> resolutions)
         {
-            throw new System.NotImplementedException("TODO: Resolve by id on generic wrapper");
-        }
-        public virtual IType ResolveByPosition(IEnumerable<IType> resolutions)
-        {
-            if (resolutions.Count() != Handle.Count)
+            return Bindings.ToDictionary(binding => binding.Key, binding =>
             {
-                throw new TranspilationException($"Tried to resolve generic with {resolutions.Count()} identifiers, but was provided {Handle.Count}");
+                if (!(binding.Value is GenericTypeIdentifier oldValue))
+                {
+                    return binding.Value;
+                }
+
+                // from old Value find new Key
+                if (!resolutions.TryGetValue(oldValue.Identifier, out var val))
+                {
+                    throw new TranspilationException($"Cannot resolve generic '{oldValue.Identifier}'");
+                }
+
+                return val;
+            });
+        }
+
+        protected IType TryResolveType(IType type)
+        {
+            if (type is GenericTypeIdentifier id && Bindings.TryGetValue(id.Identifier, out var result))
+            {
+                return result;
             }
 
-            throw new System.NotImplementedException("TODO: Resolve by position on generic wrapper");
+            if (type is IFunctionType ft)
+            {
+                var func = new FunctionType()
+                {
+                    IsLambda = ft.IsLambda,
+                    ReturnType = TryResolveType(ft.ReturnType),
+                    ParameterNames = ft.ParameterNames,
+                    ParameterTypes = ft.ParameterTypes.Select(TryResolveType).ToList(),
+                };
+                return func;
+            }
+
+            if (type is IClassType ct)
+            {
+                throw new System.NotImplementedException("TODO: Deal with classes in TryResolveType @ GenericWrapper");
+            }
+
+            return type;
         }
 
         public virtual string AsNativeName() => Child.AsNativeName();
 
-        public virtual string AsTranslatedName() => Child.AsTranslatedName();
-
-        public bool Equals(IType other)
+        public virtual string AsTranslatedName()
         {
-            throw new System.NotImplementedException();
+            var handleStr = string.Join(", ", Handle.Select(h => Bindings[h].AsTranslatedName()));
+            return $"{Child.AsTranslatedName()}";
         }
+
+        public override string ToString() => $"(Wrapper - Name: {AsTranslatedName()}, Child: {Child})";
+
+        public abstract bool Equals(IType other);
+
+        public abstract int GetHashCode();
     }
 }

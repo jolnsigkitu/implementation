@@ -22,36 +22,17 @@ namespace ITU.Lang.Core.Types
             Child = child;
         }
 
-        public override string AsNativeName() => Child.AsNativeName();
-
-        public override string AsTranslatedName()
-        {
-            var handleStr = string.Join(", ", Handle.Select(h => Bindings[h].AsTranslatedName()));
-            return $"{Child.AsTranslatedName()}<{handleStr}>";
-        }
-
         public override IClassType ResolveByIdentifier(IDictionary<string, IType> resolutions)
         {
-            var newBindings = Bindings.ToDictionary(binding => binding.Key, binding =>
-            {
-                if (!(binding.Value is GenericTypeIdentifier oldValue))
-                {
-                    return binding.Value;
-                }
-
-                // from old Value find new Key
-                if (!resolutions.TryGetValue(oldValue.Identifier, out var val))
-                {
-                    throw new TranspilationException($"Cannot resolve generic '{oldValue.Identifier}'");
-                }
-
-                return val;
-            });
+            var newBindings = ResolveBindingsByIdentifier(resolutions);
 
             return new GenericClassWrapper(Child, newBindings, Handle);
         }
 
-        public override string ToString() => $"(ClassWrapper - Name: {Name}, Child: {Child})";
+        public override IClassType ResolveByPosition(IEnumerable<IType> resolutions)
+        {
+            throw new System.NotImplementedException("TODO: ResolveByPosition in GenericClassWrapper");
+        }
 
         public bool TryGetMember(string key, out IType member)
         {
@@ -60,19 +41,32 @@ namespace ITU.Lang.Core.Types
                 return false;
             }
 
-            if (member is GenericTypeIdentifier id && Bindings.TryGetValue(id.Identifier, out var result))
-            {
-                member = result;
-            }
-
-            // member = member switch
-            // {
-            //     GenericClassWrapper wrapper => wrapper,
-            //     GenericTypeIdentifier id => id,
-            //     _ => member,
-            // };
+            member = TryResolveType(member);
 
             return true;
         }
+
+        public override string AsNativeName() => Child.AsNativeName();
+
+        public override string AsTranslatedName()
+        {
+            var handleStr = string.Join(", ", Handle.Select(h => Bindings[h].AsTranslatedName()));
+            return $"{Child.AsTranslatedName()}<{handleStr}>";
+        }
+
+        public override string ToString() => $"(ClassWrapper - Name: {Name}, Handle: {Handle}, Child: {Child})";
+
+        public override bool Equals(IType other)
+        {
+            return other is GenericClassWrapper wrapper &&
+                   EqualityComparer<IDictionary<string, IType>>.Default.Equals(Bindings, wrapper.Bindings) &&
+                   EqualityComparer<IType>.Default.Equals(Child, wrapper.Child) &&
+                   EqualityComparer<IList<string>>.Default.Equals(Handle, wrapper.Handle) &&
+                   EqualityComparer<IClassType>.Default.Equals(Child, wrapper.Child) &&
+                   Name == wrapper.Name &&
+                   EqualityComparer<IDictionary<string, IType>>.Default.Equals(Members, wrapper.Members);
+        }
+
+        public override int GetHashCode() => System.HashCode.Combine(Bindings, Child, Handle, Child, Name, Members);
     }
 }

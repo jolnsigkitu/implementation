@@ -60,7 +60,7 @@ namespace ITU.Lang.Core.Translator.Nodes
             {
                 var isConstructor = Name == "constructor";
                 var actualName = isConstructor ? className : Name;
-                var returnType = isConstructor ? "" : $" {((FunctionType)Func.Type).ReturnType.AsTranslatedName()}";
+                var returnType = isConstructor ? "" : $" {((IFunctionType)Func.Type).ReturnType.AsTranslatedName()}";
                 var suffix = Func.IsLambda ? ";" : "";
                 return $"public{returnType} {actualName} {Func.Handle}{Func}{suffix}";
             }

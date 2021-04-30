@@ -4,14 +4,24 @@ using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core.Types
 {
-    public class FunctionType : IType
+    public interface IFunctionType : IType
+    {
+        bool IsLambda { get; set; }
+        IType ReturnType { get; set; }
+        IList<IType> ParameterTypes { get; set; }
+        IEnumerable<string> ParameterNames { get; set; }
+
+        // string GetTranslatedParameterList();
+    }
+
+    public class FunctionType : IFunctionType
     {
         public bool IsLambda { get; set; }
 
         public IType ReturnType { get; set; } = new VoidType();
 
-        public IList<IType> ParameterTypes = new List<IType>();
-        public IEnumerable<string> ParameterNames = new List<string>();
+        public IList<IType> ParameterTypes { get; set; } = new List<IType>();
+        public IEnumerable<string> ParameterNames { get; set; } = new List<string>();
 
         public string AsNativeName()
         {
@@ -33,7 +43,7 @@ namespace ITU.Lang.Core.Types
             return $"Func<{(paramStr != "" ? paramStr + "," : "")}{ReturnType.AsTranslatedName()}>";
         }
 
-        public string GetTranslatedParameterList()
+        public virtual string GetTranslatedParameterList()
         {
             var paramTypes = ParameterTypes.Select((t) => t.AsTranslatedName());
             return string.Join(",", paramTypes);
@@ -42,7 +52,8 @@ namespace ITU.Lang.Core.Types
         public bool Equals(IType other)
         {
             if (other is AnyType) return true;
-            if (!(other is FunctionType f))
+
+            if (!(other is IFunctionType f))
             {
                 return false;
             }

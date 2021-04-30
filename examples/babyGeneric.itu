@@ -5,7 +5,7 @@ type GenericLvl1 = <T> {
 
 // Specification on instantiation
 const lvl1 = new GenericLvl1<int>();
-const val = lvl1.value;
+const val1 = lvl1.value;
 
 // Generic class with member types
 type GenericLvl2 = <T> {
@@ -14,10 +14,34 @@ type GenericLvl2 = <T> {
 };
 
 const lvl2 = new GenericLvl2<int>();
-const val = lvl2.getValue();
+const val2 = lvl2.getValue();
+
+// Define generic functions - invoke with explicit type handle
+const lvl3 = <T>(val: T) => val;
+const val3 = lvl3<int>(3);
+
+// Define generic functions - invoke with inferred types
+const lvl4 = <T>(val: T) => val;
+const val4 = lvl4(4);
+
+// Define generic functions - invoke with inferred complicated types
+const lvl5 = <U, T>(v1: T, v2: U) => v1;
+const val51 = lvl5(6, 7);
+const val52 = lvl5("some", " string");
+
+const lvl5v2 = <T, U>(mapper: (U) => T, val: U) => mapper(val);
+// Currenntly cannot handle <T>(val: T) => val as mapper due to equality and stuff
+const lvl5mapper = (val: int) => val;
+const val53 = lvl5v2(lvl5mapper, 17);
+
+// Define generic functions on normal classes
+type ClassLvl6 = {
+    Map<T, U>(classedMapper: (U) => T, val: U) => classedMapper(val);
+};
+const lvl6 = new ClassLvl6();
+const val6 = lvl6.Map(lvl5mapper, 17);
 
 //TODO:
-// Basic generic function defintion/
 // Generic member defintion
     // Generic object
         // Resolved

@@ -225,8 +225,6 @@ namespace ITU.Lang.Core.Translator
 
             var isLambda = lambdaFunctionBody != null;
 
-            // System.Console.WriteLine($"Defining function with arguments {string.Join(", ", parameterList)} of length {parameterList.NameTypePairs.Count()}");
-
             return new FunctionNode(parameterList, body, handle, isLambda, GetLocation(((ISyntaxTree)blockFun) ?? lambdaFun));
         }
 
@@ -249,7 +247,7 @@ namespace ITU.Lang.Core.Translator
         public override InvokeFunctionNode VisitInvokeFunction([NotNull] InvokeFunctionContext context)
         {
             var name = context.Name().GetText();
-            var arguments = context.arguments()?.expr()?.Select(VisitExpr);
+            var arguments = context.arguments()?.expr()?.Select(VisitExpr)?.ToList();
             var handle = context.genericHandle().Invoke(VisitGenericHandle);
 
             return new InvokeFunctionNode(name, arguments, handle, GetLocation(context));

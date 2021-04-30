@@ -54,7 +54,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                 throw new TranspilationException($"Cannot access undefined member {Function.Name} on class {binding.AsNativeName()}");
             }
 
-            if (!(memberBinding is FunctionType ft))
+            if (!(memberBinding is IFunctionType ft))
             {
                 throw new TranspilationException($"Tried to invoke non-function member on class {binding.AsNativeName()}.");
             }
@@ -67,15 +67,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
             Function.Validate(env);
 
-            return ft.ReturnType;
-
-
-            // return new VariableBinding()
-            // {
-            //     Name = memberBinding.Name,
-            //     IsConst = memberBinding.IsConst,
-            //     Type = ft.ReturnType
-            // };
+            return Function.Type;
         }
 
         public override string ToString() => Function.ToString();
