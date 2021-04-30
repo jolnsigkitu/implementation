@@ -42,7 +42,7 @@ operator:
 
 term: literal | access | function;
 
-literal: integer | bool | stringLiteral | charLiteral;
+literal: number | bool | stringLiteral | charLiteral;
 
 nestedName: Name (Dot Name)*;
 
@@ -61,7 +61,7 @@ assign: nestedName Eq expr;
 
 bool: True | False;
 
-integer: Int;
+number: Double | Int;
 
 stringLiteral: StringLiteral;
 
@@ -96,7 +96,7 @@ typedName: Name typeAnnotation?;
 typeAnnotation: Colon typeExpr;
 
 // Type expressions
-typedec: Type Name Eq (typeExpr | classExpr);
+typedec: Extern? Type Name Eq (typeExpr | classExpr);
 
 typeExpr: typeRef | funcTypeExpr;
 
@@ -197,7 +197,11 @@ New: 'new';
 Type: 'type';
 Void: 'void';
 
+Extern: 'extern';
+
 Int: [0-9]+;
+Double: Int 'd' | Int? Dot Int 'd'?;
+
 // TODO: Investigate viability of using UnicodeChar/UnicodeAlpha here, to allow unicode variable names
 Name: [a-zA-Z_@$][a-zA-Z_@$0-9]*;
 

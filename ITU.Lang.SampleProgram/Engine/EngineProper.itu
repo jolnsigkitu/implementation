@@ -1,67 +1,130 @@
-type Engine = {
-    Wpm: int = 0;
-    Accuracy: double = 0;
+/*
+using System;
+using ITU.Lang.StandardLib;
+using ITU.Lang.SampleProgram.Lib;
+using Microsoft.AspNetCore.Components.Web;
+*/
 
-    StartTime: DateTime;
+extern type StringWithLength = {
+    Length: int;
+};
 
-    WordSignal: ForwardablePushSignal<CompletedWord>;
-    StatsSignal: ForwardablePushSignal<AccuracyMetrics>;
+extern type Segment = {
+    Text: StringWithLength;
+    Incorrect: boolean;
+    Attempted: boolean;
+};
 
-    constructor(wordSignal: ForwardablePushSignal<CompletedWord>)
-    {
-        WordSignal = wordSignal;
+extern type TimeSpan = {
+    ToString: (string) => string;
+};
 
-        initStatsSignal();
-        initWpmSignal();
-        initAccuracySignal();
-    }
-    initStatsSignal()
-    {
-        StatsSignal = WordSignal
-        .Map((word: CompletedWord) {
-            let metrics = new AccuracyMetrics();
+extern type DateTime = {
+    ToString: (string) => string;
+    Duration: () => DateTime;
+    // ToString(format: string) => format;
+};
 
-            let enumerator = word.Segments.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                let segment = enumerator.Current;
-                let segLen = segment.Text.Length;
-                metrics.Total += segLen;
-                if (!segment.Incorrect) {
-                    metrics.Correct += segLen;
-                }
-            }
+extern type SegmentEnumerator = {
+    Current: Segment;
+    MoveNext() => true;
+};
 
-            return metrics;
-        })
-        .Reduce((acc: AccuracyMetrics, stats: AccuracyMetrics) {
-            acc.Total += stats.Total;
-            acc.Correct += stats.Correct;
-            return acc;
-        }, new AccuracyMetrics());
-    }
+extern type EnumerableSegment = {
+    GetEnumerator() => new SegmentEnumerator();
+};
 
-    initWpmSignal()
-    {
-        StatsSignal.ForEach((stats: AccuracyMetrics)
-        {
-            let elapsedTime = (DateTime.Now - StartTime).TotalSeconds;
-            // https://github.com/Miodec/monkeytype/blob/94d2c7ead9b488230bba7b07181e3a3dfcffd2d2/src/js/test/test-logic.js#L834
-            Wpm = Math.Round((stats.Correct * (60 / elapsedTime)) / 5);
-        });
-    }
-
-
-    initAccuracySignal()
-    {
-        StatsSignal
-        .Map((stats: AccuracyMetrics) => (stats.Correct / stats.Total) * 100)
-        // Assign each new accuracy property in order to reflect it in UI
-        .ForEach((accuracy: double) => Accuracy = accuracy);
-    }
+extern type CompletedWord = {
+    CompletedAt: DateTime;
+    Segments: EnumerableSegment;
 };
 
 type AccuracyMetrics = {
     Total = 0;
     Correct = 0;
+};
+
+type Engine = {
+    Wpm = 0;
+    Accuracy: double = 0d;
+    ElapsedTime = "00:00:00";
+
+    StartTime: DateTime;
+
+    WordSignal: ChainablePushSignal<CompletedWord, CompletedWord>;
+    StatsSignal: ChainablePushSignal<CompletedWord, AccuracyMetrics>;
+    TimerSignal: ChainablePushSignal<int, TimeSpan>;
+
+    constructor(wordSignal: ChainablePushSignal<CompletedWord, CompletedWord>)
+    {
+        WordSignal = wordSignal;
+    }
+
+    makeStatsSignal()
+    {
+        return WordSignal
+            .Map((word: CompletedWord) {
+                let metrics = new AccuracyMetrics();
+
+                let enumerator = word.Segments.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    let segment = enumerator.Current;
+                    let segLen = segment.Text.Length;
+                    metrics.Total = metrics.Total + segLen;
+                    if (!segment.Incorrect) {
+                        metrics.Correct = metrics.Correct + segLen;
+                    }
+                }
+
+                return metrics;
+            })
+            .Reduce((acc: AccuracyMetrics, stats: AccuracyMetrics) {
+                acc.Total = acc.Total + stats.Total;
+                acc.Correct = acc.Correct + stats.Correct;
+                return acc;
+            }, new AccuracyMetrics());
+    }
+
+    makeWpmSignal(): PushSignalSource<int>
+    {
+        return StatsSignal
+        .ZipRepeat(TimerSignal)
+        .Map((pair: Pair<Accuracy, int>)
+        {
+            let stats = pair.First;
+            if (stats == null) {
+                return 0;
+            }
+
+            let elapsedTime = (DateTime.Now - StartTime).TotalSeconds;
+            // https://github.com/Miodec/monkeytype/blob/94d2c7ead9b488230bba7b07181e3a3dfcffd2d2/src/js/test/test-logic.js#L834
+            return Math.Round((stats.Correct * (60d / elapsedTime)) / 5d);
+        });
+    }
+
+    makeAccuracySignal() => StatsSignal.Map((stats: AccuracyMetrics) => (stats.Correct / stats.Total) * 100);
+
+    makeTimerSignal() => Signal.Timer(500)
+        .Map((i: int) => (DateTime.Now - StartTime).Duration());
+
+
+    Start(start: DateTime, onUpdate: () => void)
+    {
+        StartTime = start;
+
+        StatsSignal = makeStatsSignal();
+        TimerSignal = makeTimerSignal();
+
+        TimerSignal.ForEach((elapsedTime: TimeSpan) {
+            ElapsedTime = elapsedTime.ToString("hh\\:mm\\:ss");
+            onUpdate();
+        });
+
+        makeWpmSignal()
+            .ForEach((wpm: int) => Wpm = wpm);
+
+        makeAccuracySignal()
+            .ForEach((accuracy: double) => Accuracy = accuracy);
+    }
 };

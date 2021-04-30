@@ -1,4 +1,4 @@
-<span class="inline-block px-1 py-1 @(new ClassNames() {
+<div class="inline-block p-1 @(new ClassNames() {
     ["bg-gray-200"] = IsCurrent,
     ["current"] = IsCurrent,
 })">
@@ -12,7 +12,7 @@
             @segment.Text
         </span>
     }
-</span>
+</div>
 
 @code {
     [Parameter]

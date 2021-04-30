@@ -7,7 +7,7 @@ namespace ITU.Lang.StandardLib
     {
         public static ProducerSignal<int> Timer(int millisecondInterval)
         {
-            return PushSignal<int>.Produce((push) =>
+            return PushSignal.Produce<int>((push) =>
             {
                 var i = 0;
                 var timer = new System.Threading.Timer((_) => push(i++), null, 0, millisecondInterval);
@@ -15,26 +15,37 @@ namespace ITU.Lang.StandardLib
         }
     }
 
-    public abstract class PushSignal<TInput>
+    public static class PushSignal
     {
-        internal abstract void Push(TInput value);
-        public static ProducerSignal<TInput> Produce(Action<Action<TInput>> producer) => new ProducerSignal<TInput>(producer);
+        public static ProducerSignal<TInput> Produce<TInput>(Action<Action<TInput>> producer) => new ProducerSignal<TInput>(producer);
     }
 
-    public interface ForwardablePushSignal<TOutput>
+    public abstract class PushSignalSink<TInput>
+    {
+        internal abstract void Push(TInput value);
+    }
+
+    public class Pair<TFirst, TSecond>
+    {
+        public TFirst First;
+        public TSecond Second;
+    }
+
+    public interface PushSignalSource<TOutput>
     {
         MapSignal<TOutput, TResult> Map<TResult>(Func<TOutput, TResult> mapper);
         Map2Signal<TOutput, TResult> Map2<TResult>(Func<TOutput, TOutput, TResult> mapper);
         ReduceSignal<TOutput, TResult> Reduce<TResult>(Func<TResult, TOutput, TResult> reducer, TResult defaultResult = default(TResult));
         FilterSignal<TOutput> Filter(Predicate<TOutput> filter);
         ForEachSignal<TOutput> ForEach(Action<TOutput> func);
+        ZipRepeatSignal<TOutput, TOther> ZipRepeat<TOther>(PushSignalSource<TOther> otherSignal);
     }
 
-    public abstract class ChainablePushSignal<TInput, TOutput> : PushSignal<TInput>, ForwardablePushSignal<TOutput>
+    public abstract class ChainablePushSignal<TInput, TOutput> : PushSignalSink<TInput>, PushSignalSource<TOutput>
     {
-        protected IList<PushSignal<TOutput>> next = new List<PushSignal<TOutput>>();
+        protected IList<PushSignalSink<TOutput>> next = new List<PushSignalSink<TOutput>>();
 
-        internal void AddNext(PushSignal<TOutput> node) => next.Add(node);
+        internal void AddNext(PushSignalSink<TOutput> node) => next.Add(node);
 
         public MapSignal<TOutput, TResult> Map<TResult>(Func<TOutput, TResult> mapper)
         {
@@ -73,6 +84,13 @@ namespace ITU.Lang.StandardLib
         public Map2Signal<TOutput, TResult> Map2<TResult>(Func<TOutput, TOutput, TResult> mapper)
         {
             var sig = new Map2Signal<TOutput, TResult>(mapper);
+            AddNext(sig);
+            return sig;
+        }
+
+        public ZipRepeatSignal<TOutput, TOther> ZipRepeat<TOther>(PushSignalSource<TOther> otherSignal)
+        {
+            var sig = new ZipRepeatSignal<TOutput, TOther>(otherSignal);
             AddNext(sig);
             return sig;
         }
@@ -171,7 +189,47 @@ namespace ITU.Lang.StandardLib
         protected override TInput GetNextValue(TInput value) => value;
     }
 
-    public class ForEachSignal<TInput> : PushSignal<TInput>
+    public class ZipRepeatSignal<TInput, TOther> : ChainablePushSignal<TInput, Pair<TInput, TOther>>
+    {
+        private PushSignalSource<TOther> OtherSignal;
+
+        private TInput cacheInput;
+        private TOther cacheOther;
+
+        internal ZipRepeatSignal(PushSignalSource<TOther> otherSignal)
+        {
+            OtherSignal = otherSignal;
+
+            otherSignal.ForEach(other =>
+            {
+                cacheOther = other;
+                ActualPush();
+            });
+        }
+
+        internal override void Push(TInput value)
+        {
+            cacheInput = value;
+            ActualPush();
+        }
+
+        private void ActualPush()
+        {
+            var output = new Pair<TInput, TOther>()
+            {
+                First = cacheInput,
+                Second = cacheOther,
+            };
+            foreach (var node in next)
+            {
+                node.Push(output);
+            }
+        }
+
+        protected override Pair<TInput, TOther> GetNextValue(TInput value) => null;
+    }
+
+    public class ForEachSignal<TInput> : PushSignalSink<TInput>
     {
         private Action<TInput> Function;
 

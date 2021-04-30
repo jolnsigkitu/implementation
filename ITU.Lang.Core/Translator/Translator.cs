@@ -94,16 +94,24 @@ namespace ITU.Lang.Core.Translator
         public override ExprNode VisitLiteral([NotNull] LiteralContext context)
         {
             return this.VisitFirstChild<ExprNode, Node>(new ParserRuleContext[] {
-                context.integer(),
+                context.number(),
                 context.@bool(),
                 context.stringLiteral(),
                 context.charLiteral(),
             });
         }
 
-        public override LiteralNode VisitInteger([NotNull] IntegerContext context)
+        public override LiteralNode VisitNumber([NotNull] NumberContext context)
         {
-            return new LiteralNode(context.GetText(), new IntType(), GetLocation(context));
+            var doub = context.Double();
+            var txt = context.GetText();
+            Type typ = new IntType();
+            if (doub != null)
+            {
+                typ = new DoubleType();
+            }
+
+            return new LiteralNode(context.GetText(), typ, GetLocation(context));
         }
 
         public override LiteralNode VisitBool([NotNull] BoolContext context)
@@ -137,6 +145,7 @@ namespace ITU.Lang.Core.Translator
         public override TypeDecNode VisitTypedec([NotNull] TypedecContext context)
         {
             var name = context.Name().GetText();
+            var isExtern = context.Extern() != null;
             var typeDecNode = context.typeExpr().Invoke(typeEvaluator.VisitTypeExpr);
             var classDecNode = context.classExpr().Invoke(VisitClassExpr);
 
@@ -146,7 +155,7 @@ namespace ITU.Lang.Core.Translator
                 classDecNode.Type.Name = name;
             }
 
-            return new TypeDecNode(name, typeDecNode, classDecNode, GetLocation(context));
+            return new TypeDecNode(name, typeDecNode, classDecNode, isExtern, GetLocation(context));
         }
 
         public override AccessNode VisitAccess([NotNull] AccessContext context)

@@ -10,11 +10,15 @@ namespace ITU.Lang.Core.Translator.Nodes
         private TypeNode TypeNode;
         private ClassNode ClassNode;
 
-        public TypeDecNode(string name, TypeNode typeNode, ClassNode classNode, TokenLocation location) : base(location)
+        public bool IsExtern { get; }
+
+        public TypeDecNode(string name, TypeNode typeNode, ClassNode classNode, bool isExtern, TokenLocation location) : base(location)
         {
             Name = name;
             TypeNode = typeNode;
             ClassNode = classNode;
+
+            IsExtern = isExtern;
         }
 
         public override void Validate(Environment env)
@@ -37,7 +41,10 @@ namespace ITU.Lang.Core.Translator.Nodes
             }
             else
             {
-                env.Classes.Add(ClassNode);
+                if (!IsExtern)
+                {
+                    env.Classes.Add(ClassNode);
+                }
                 ClassNode.Validate(env);
             }
         }

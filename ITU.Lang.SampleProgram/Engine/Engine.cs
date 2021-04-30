@@ -7,64 +7,93 @@ class Engine
 {
     public int Wpm = 0;
     public double Accuracy = 0;
+    public string ElapsedTime = "00:00:00";
 
     public DateTime StartTime;
 
-    public ForwardablePushSignal<CompletedWord> WordSignal;
-    public ForwardablePushSignal<AccuracyMetrics> StatsSignal;
+    public PushSignalSource<CompletedWord> WordSignal;
+    public PushSignalSource<AccuracyMetrics> StatsSignal;
+    public PushSignalSource<TimeSpan> TimerSignal;
 
-    public Engine(ForwardablePushSignal<CompletedWord> wordSignal)
+    public Engine(PushSignalSource<CompletedWord> wordSignal)
     {
         WordSignal = wordSignal;
-
-        initStatsSignal();
-        initWpmSignal();
-        initAccuracySignal();
     }
-    private void initStatsSignal()
-    {
-        StatsSignal = WordSignal
-        .Map(word =>
-        {
-            var metrics = new AccuracyMetrics();
 
-            var enumerator = word.Segments.GetEnumerator();
-            while (enumerator.MoveNext())
+    public void Start(DateTime start, Action onUpdate)
+    {
+        StartTime = start;
+
+        StatsSignal = makeStatsSignal();
+        TimerSignal = makeTimerSignal();
+
+        TimerSignal.ForEach((elapsedTime) =>
+        {
+            ElapsedTime = elapsedTime.ToString("hh\\:mm\\:ss");
+            onUpdate();
+        });
+
+        makeWpmSignal()
+            .ForEach((wpm) => Wpm = wpm);
+
+        makeAccuracySignal()
+            .ForEach((accuracy) => Accuracy = accuracy); ;
+
+    }
+
+    private PushSignalSource<AccuracyMetrics> makeStatsSignal()
+    {
+        return WordSignal
+            .Map(word =>
             {
-                var segment = enumerator.Current;
-                var segLen = segment.Text.Length;
-                metrics.Total += segLen;
-                if (!segment.Incorrect)
-                    metrics.Correct += segLen;
-            }
+                var metrics = new AccuracyMetrics();
 
-            return metrics;
-        })
-        .Reduce((acc, stats) =>
-        {
-            acc.Total += stats.Total;
-            acc.Correct += stats.Correct;
-            return acc;
-        }, new AccuracyMetrics());
+                var enumerator = word.Segments.GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    var segment = enumerator.Current;
+                    var segLen = segment.Text.Length;
+                    metrics.Total += segLen;
+                    if (!segment.Incorrect)
+                        metrics.Correct += segLen;
+                }
+
+                return metrics;
+            })
+            .Reduce((acc, stats) =>
+            {
+                acc.Total += stats.Total;
+                acc.Correct += stats.Correct;
+                return acc;
+            }, new AccuracyMetrics());
     }
 
-    private void initWpmSignal()
+    private PushSignalSource<int> makeWpmSignal()
     {
-        StatsSignal.ForEach(stats =>
+        return StatsSignal
+        .ZipRepeat(TimerSignal)
+        .Map(pair =>
         {
+            var stats = pair.First;
+            if (stats == null)
+                return 0;
+
             double elapsedTime = (DateTime.Now - StartTime).TotalSeconds;
             // https://github.com/Miodec/monkeytype/blob/94d2c7ead9b488230bba7b07181e3a3dfcffd2d2/src/js/test/test-logic.js#L834
-            Wpm = (int)Math.Round((stats.Correct * (60d / elapsedTime)) / 5d);
+            return (int)Math.Round((stats.Correct * (60d / elapsedTime)) / 5d);
         });
     }
 
-
-    private void initAccuracySignal()
+    private PushSignalSource<double> makeAccuracySignal()
     {
-        StatsSignal
-        .Map(stats => ((double)stats.Correct / (double)stats.Total) * 100)
-        // Assign each new accuracy property in order to reflect it in UI
-        .ForEach((accuracy) => Accuracy = accuracy);
+        return StatsSignal
+            .Map(stats => ((double)stats.Correct / (double)stats.Total) * 100);
+    }
+
+    private PushSignalSource<TimeSpan> makeTimerSignal()
+    {
+        return Signal.Timer(500)
+            .Map((i) => (DateTime.Now - StartTime).Duration());
     }
 }
 

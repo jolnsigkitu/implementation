@@ -56,6 +56,7 @@ namespace ITU.Lang.Core.Translator
             Push();
 
             Types.Bind("int", new TypeBinding(new IntType()));
+            Types.Bind("double", new TypeBinding(new DoubleType()));
             Types.Bind("boolean", new TypeBinding(new BooleanType()));
             Types.Bind("string", new TypeBinding(new StringType()));
             Types.Bind("char", new TypeBinding(new CharType()));

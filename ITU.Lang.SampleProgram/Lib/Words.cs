@@ -10,17 +10,6 @@ namespace ITU.Lang.SampleProgram.Lib
         public Word Current { get; private set; }
         public List<CompletedWord> Previous { get; private set; }
 
-        public List<Word> Attempted
-        {
-            get
-            {
-                var lst = new List<Word>();
-                lst.AddRange(Previous);
-                lst.Add(Current);
-                return lst;
-            }
-        }
-
         public Words()
         {
             Future = MakeFutureWords();

@@ -1,3 +1,5 @@
+
+/*
 // Lvl 1: Contain generic arguments
 type Wrapper = <T> {
     value: T;
@@ -17,6 +19,8 @@ let b = new List<int>();
 let c = new List<int>().next;
 let a = new List<int>().next.next.next.next;
 
+*/
+
 type list = <T> {
     value: T;
     next: list<T>;
@@ -29,6 +33,13 @@ type list = <T> {
     }
 };
 
-type intList = list<int>;
+//type intList = list<int>;
 
-const listOfInts: list<int> = new intList().Add(6);
+//const listOfInts: list<int> = new intList().Add(6);
+
+type User = {
+    items: list<int>;
+};
+
+const user = new User();
+user.items.Add(5);

@@ -9,7 +9,7 @@ namespace ITU.Lang.SampleProgram.Util
         private Action<TInput> Pusher;
         public SignalSink()
         {
-            Signal = PushSignal<TInput>.Produce(push => Pusher = push);
+            Signal = PushSignal.Produce<TInput>(push => Pusher = push);
         }
 
         public void Push(TInput val) => Pusher(val);

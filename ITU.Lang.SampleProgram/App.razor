@@ -5,8 +5,8 @@
     <div class="text-center">
         <div class="text-6xl">@engine.Wpm wpm</div>
         <div class="flex items-baseline justify-center">
-            <div>@elapsedTime</div>
-            <div>&middot;</div>
+            <div>@engine.ElapsedTime</div>
+            <div>&nbsp;&middot;&nbsp;</div>
             <div>@engine.Accuracy.ToString("0.00") %</div>
         </div>
     </div>
@@ -41,8 +41,6 @@
 
     public string Input { get; set; }
 
-    private Timer timer;
-
 
     protected override void OnInitialized()
     {
@@ -55,7 +53,11 @@
         if (!hasStarted)
         {
             hasStarted = true;
-            StartStats();
+            engine.Start(DateTime.Now, () =>
+            {
+                // Manually call StateHasChanged, since the user did not perform these state updates
+                StateHasChanged();
+            });
         }
 
         Input = evt.Value.ToString();
@@ -71,23 +73,6 @@
         }
 
         words.Current.ComputeSegments(Input);
-    }
-
-    private void StartStats()
-    {
-        var start = DateTime.Now;
-
-        engine.StartTime = start;
-
-        timer = new Timer((o) =>
-        {
-            var now = DateTime.Now;
-            var diff = now - start;
-            elapsedTime = diff.Duration().ToString(@"hh\:mm\:ss");
-
-            // Manually call StateHasChanged, since the user did not perform these state updates
-            StateHasChanged();
-        }, null, 500, 500);
     }
 
     public async Task FocusTextInput() => await textInput.FocusAsync();

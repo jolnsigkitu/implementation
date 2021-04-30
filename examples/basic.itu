@@ -9,6 +9,12 @@ let name = 7;
 name;
 true;
 false;
+
+let d1: double = 1.05;
+let d2: double = .5;
+let d3: double = 1.0d;
+let d4: double = 1d;
+
 // This is a comment. 💩
 /*
 multi
