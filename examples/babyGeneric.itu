@@ -41,6 +41,13 @@ type ClassLvl6 = {
 const lvl6 = new ClassLvl6();
 const val6 = lvl6.Map(lvl5mapper, 17);
 
+// Define generic function within generic class - not so baby anymore, huh?
+type ChainablePushSignal = <In, Out> {
+    Map = <U>(mapper: (Out) => U): ChainablePushSignal<Out, U> => new ChainablePushSignal<Out, U>();
+};
+const lvl7 = new ChainablePushSignal<string, int>();
+const val7 = lvl7.Map((val: int) => val > 4);
+
 //TODO:
 // Generic member defintion
     // Generic object
