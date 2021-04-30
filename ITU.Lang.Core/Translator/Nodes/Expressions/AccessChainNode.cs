@@ -34,7 +34,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
         {
             if (!binding.TryGetMember(Name, out var memberBinding))
             {
-                throw new TranspilationException($"Cannot access undefined member {Name}");
+                throw new TranspilationException($"Cannot access undefined member {Name} on class {binding.AsNativeName()}");
             }
 
             return memberBinding;
@@ -49,54 +49,26 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
         public FunctionAccessChainLink(InvokeFunctionNode function) => Function = function;
         public IType Access(Environment env, IClassType binding)
         {
-            throw new System.NotImplementedException("TODO: Function invocation");
-            // if (!binding.Members.TryGetValue(Function.Name, out var memberBinding))
-            // {
-            //     throw new TranspilationException($"Cannot access undefined member {Function.Name} on type {classType}");
-            // }
+            if (!binding.TryGetMember(Function.Name, out var memberBinding))
+            {
+                throw new TranspilationException($"Cannot access undefined member {Function.Name} on class {binding.AsNativeName()}");
+            }
 
-            // var memberType = memberBinding.Type;
+            if (!(memberBinding is FunctionType ft))
+            {
+                throw new TranspilationException($"Tried to invoke non-function member on class {binding.AsNativeName()}.");
+            }
 
-            // if (Function is InvokeGenericFunctionNode genericFunction && memberType is GenericFunctionType gft)
-            // {
-            //     if (genericFunction.Handle == null)
-            //     {
-            //         throw new TranspilationException($"Invocation of generic function requires {gft.GenericIdentifiers.Count} generic arguments, but got none.", Function.Location);
-            //     }
-            //     genericFunction.Handle
-            //         .ResolveHandleBindings(gft.GenericIdentifiers, env)
-            //         .ForEach(pair => env.Scopes.Types.Bind(pair.Key, pair.Value));
+            Function.Type = ft.ReturnType;
+            Function.Binding = new VariableBinding()
+            {
+                Type = ft,
+            };
 
-            //     // var exprTypes = Function.Exprs.Select(e =>
-            //     // {
-            //     //     e.Validate(env);
-            //     //     return e.Type;
-            //     // });
+            Function.Validate(env);
 
-            //     // System.Console.WriteLine($"Func exprs: {string.Join(", ", exprTypes)}");
-            //     // var resolutions = gft.Resolve(exprTypes);
-            //     // System.Console.WriteLine($"Resolutions ({resolutions.Count}): {string.Join(", ", resolutions)}");
-            //     // memberType = gft.Specify(resolutions);
-            // }
+            return ft.ReturnType;
 
-
-            // if (classType is SpecificClassType sct)
-            // {
-            //     memberType = sct.SpecifyMember(memberType);
-            // }
-
-            // if (!(memberType is FunctionType ft))
-            // {
-            //     throw new TranspilationException($"Tried to invoke non-function member on class '{classType}'");
-            // }
-
-            // Function.Binding = new VariableBinding()
-            // {
-            //     Name = memberBinding.Name,
-            //     Type = ft,
-            // };
-            // Function.Validate(env);
-            // Function.Type = ft.ReturnType;
 
             // return new VariableBinding()
             // {
@@ -105,5 +77,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             //     Type = ft.ReturnType
             // };
         }
+
+        public override string ToString() => Function.ToString();
     }
 }

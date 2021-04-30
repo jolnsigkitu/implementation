@@ -7,6 +7,15 @@ type GenericLvl1 = <T> {
 const lvl1 = new GenericLvl1<int>();
 const val = lvl1.value;
 
+// Generic class with member types
+type GenericLvl2 = <T> {
+    value: T;
+    getValue() => value;
+};
+
+const lvl2 = new GenericLvl2<int>();
+const val = lvl2.getValue();
+
 //TODO:
 // Basic generic function defintion/
 // Generic member defintion
