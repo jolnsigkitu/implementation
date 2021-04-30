@@ -7,7 +7,7 @@ namespace ITU.Lang.Core.Translator
     public class Scopes
     {
         public Scope<VariableBinding> Values { get; } = new Scope<VariableBinding>();
-        public Scope<TypeBinding> Types { get; } = new Scope<TypeBinding>();
+        public Scope<IType> Types { get; } = new Scope<IType>();
 
         public Scopes()
         {
@@ -55,19 +55,19 @@ namespace ITU.Lang.Core.Translator
         {
             Push();
 
-            Types.Bind("int", new TypeBinding(new IntType()));
-            Types.Bind("double", new TypeBinding(new DoubleType()));
-            Types.Bind("boolean", new TypeBinding(new BooleanType()));
-            Types.Bind("string", new TypeBinding(new StringType()));
-            Types.Bind("char", new TypeBinding(new CharType()));
-            Types.Bind("any", new TypeBinding(new AnyType()));
+            Types.Bind("int", new IntType());
+            Types.Bind("double", new DoubleType());
+            Types.Bind("boolean", new BooleanType());
+            Types.Bind("string", new StringType());
+            Types.Bind("char", new CharType());
+            Types.Bind("any", new AnyType());
 
             Values.Bind("println", new VariableBinding()
             {
                 Name = "Console.WriteLine",
                 Type = new FunctionType()
                 {
-                    ParameterTypes = new List<Type>()
+                    ParameterTypes = new List<IType>()
                     {
                         new AnyType(),
                     }
@@ -79,7 +79,7 @@ namespace ITU.Lang.Core.Translator
                 Name = "Console.Write",
                 Type = new FunctionType()
                 {
-                    ParameterTypes = new List<Type>()
+                    ParameterTypes = new List<IType>()
                     {
                         new AnyType(),
                     }
@@ -88,131 +88,127 @@ namespace ITU.Lang.Core.Translator
             });
 
             #region Signals
-            var ChainablePushSignal = new TypeBinding()
-            {
-                Type = new GenericClassType() { Name = "ChainablePushSignal", GenericIdentifiers = new List<string>() { "In", "Out" } },
-                Members = new Dictionary<string, VariableBinding>() {
-                    { "Map", new VariableBinding() {
-                        Name = "Map",
-                        Type = new GenericFunctionType() {
-                            IsLambda = true,
-                            ReturnType = new SpecificClassType() {
-                                Name = "ChainablePushSignal",
-                                GenericIdentifiers = new List<string>() { "In", "Out" },
-                                SpecificTypes = new Dictionary<string, Type>() { }
-                            },
-                            ParameterNames = new List<string>() { "mapper" },
-                            ParameterTypes = new List<Type>() {
-                                new GenericFunctionType() {
-                                    IsLambda = false,
-                                    ReturnType = new GenericTypeIdentifier("U"),
-                                    ParameterNames = new List<string>() { "" },
-                                    ParameterTypes = new List<Type>() { new GenericTypeIdentifier("Out") }
-                                }
-                            },
-                            GenericIdentifiers = new List<string>() { "U" }
-                        },
-                        IsConst = false
-                    }},
-                    { "Reduce", new VariableBinding() {
-                        Name = "Reduce",
-                        Type = new GenericFunctionType() {
-                            IsLambda = true,
-                            ReturnType = new SpecificClassType() {
-                                Name = "ChainablePushSignal",
-                                GenericIdentifiers = new List<string>() { "In", "Out" },
-                                SpecificTypes = new Dictionary<string, Type>() { }
-                            },
-                            ParameterNames = new List<string>() { "reducer", "defaultResult" },
-                            ParameterTypes = new List<Type>() {
-                                new GenericFunctionType() {
-                                    IsLambda = false,
-                                    ReturnType = new GenericTypeIdentifier("U"),
-                                    ParameterNames = new List<string>() { "" },
-                                    ParameterTypes = new List<Type>() { new GenericTypeIdentifier("U"), new GenericTypeIdentifier("Out") }
-                                },
-                                new GenericTypeIdentifier("U")
-                            },
-                            GenericIdentifiers = new List<string>() { "U" }
-                        },
-                        IsConst = false
-                    }},
-                    { "Filter", new VariableBinding() {
-                        Name = "Filter",
-                        Type = new FunctionType() {
-                            IsLambda = true,
-                            ReturnType = new SpecificClassType() {
-                                Name = "ChainablePushSignal",
-                                GenericIdentifiers = new List<string>() { "In", "Out" },
-                                SpecificTypes = new Dictionary<string, Type>() { }
-                            },
-                            ParameterNames = new List<string>() { "filter" },
-                            ParameterTypes = new List<Type>() {
-                                new FunctionType() {
-                                    IsLambda = false,
-                                    ReturnType = new BooleanType(),
-                                    ParameterNames = new List<string>() { "" },
-                                    ParameterTypes = new List<Type>() { new GenericTypeIdentifier("Out") }
-                                }
-                            }
-                        },
-                        IsConst = false
-                    }},
-                    { "ForEach", new VariableBinding() {
-                        Name = "ForEach",
-                        Type = new FunctionType() {
-                            IsLambda = true,
-                            ReturnType = new SpecificClassType() {
-                                Name = "ChainablePushSignal",
-                                GenericIdentifiers = new List<string>() { "In", "Out" },
-                                SpecificTypes = new Dictionary<string, Type>() { }
-                            },
-                            ParameterNames = new List<string>() { "function" },
-                            ParameterTypes = new List<Type>() {
-                                new FunctionType() {
-                                    IsLambda = false,
-                                    ReturnType = new VoidType(),
-                                    ParameterNames = new List<string>() { "" },
-                                    ParameterTypes = new List<Type>() { new GenericTypeIdentifier("Out") }
-                                }
-                            }
-                        },
-                        IsConst = false
-                    }}
-                }
-            };
+            // var ChainablePushSignal = new TypeBinding()
+            // {
+            //     Type = new GenericClassType() { Name = "ChainablePushSignal", GenericIdentifiers = new List<string>() { "In", "Out" } },
+            //     Members = new Dictionary<string, VariableBinding>() {
+            //         { "Map", new VariableBinding() {
+            //             Name = "Map",
+            //             Type = new GenericFunctionType() {
+            //                 IsLambda = true,
+            //                 ReturnType = new SpecificClassType() {
+            //                     Name = "ChainablePushSignal",
+            //                     GenericIdentifiers = new List<string>() { "In", "Out" },
+            //                     SpecificTypes = new Dictionary<string, IType>() { }
+            //                 },
+            //                 ParameterNames = new List<string>() { "mapper" },
+            //                 ParameterTypes = new List<IType>() {
+            //                     new GenericFunctionType() {
+            //                         IsLambda = false,
+            //                         ReturnType = new GenericTypeIdentifier("U"),
+            //                         ParameterNames = new List<string>() { "" },
+            //                         ParameterTypes = new List<IType>() { new GenericTypeIdentifier("Out") }
+            //                     }
+            //                 },
+            //                 GenericIdentifiers = new List<string>() { "U" }
+            //             },
+            //             IsConst = false
+            //         }},
+            //         { "Reduce", new VariableBinding() {
+            //             Name = "Reduce",
+            //             Type = new GenericFunctionType() {
+            //                 IsLambda = true,
+            //                 ReturnType = new SpecificClassType() {
+            //                     Name = "ChainablePushSignal",
+            //                     GenericIdentifiers = new List<string>() { "In", "Out" },
+            //                     SpecificTypes = new Dictionary<string, IType>() { }
+            //                 },
+            //                 ParameterNames = new List<string>() { "reducer", "defaultResult" },
+            //                 ParameterTypes = new List<IType>() {
+            //                     new GenericFunctionType() {
+            //                         IsLambda = false,
+            //                         ReturnType = new GenericTypeIdentifier("U"),
+            //                         ParameterNames = new List<string>() { "" },
+            //                         ParameterTypes = new List<IType>() { new GenericTypeIdentifier("U"), new GenericTypeIdentifier("Out") }
+            //                     },
+            //                     new GenericTypeIdentifier("U")
+            //                 },
+            //                 GenericIdentifiers = new List<string>() { "U" }
+            //             },
+            //             IsConst = false
+            //         }},
+            //         { "Filter", new VariableBinding() {
+            //             Name = "Filter",
+            //             Type = new FunctionType() {
+            //                 IsLambda = true,
+            //                 ReturnType = new SpecificClassType() {
+            //                     Name = "ChainablePushSignal",
+            //                     GenericIdentifiers = new List<string>() { "In", "Out" },
+            //                     SpecificTypes = new Dictionary<string, IType>() { }
+            //                 },
+            //                 ParameterNames = new List<string>() { "filter" },
+            //                 ParameterTypes = new List<IType>() {
+            //                     new FunctionType() {
+            //                         IsLambda = false,
+            //                         ReturnType = new BooleanType(),
+            //                         ParameterNames = new List<string>() { "" },
+            //                         ParameterTypes = new List<IType>() { new GenericTypeIdentifier("Out") }
+            //                     }
+            //                 }
+            //             },
+            //             IsConst = false
+            //         }},
+            //         { "ForEach", new VariableBinding() {
+            //             Name = "ForEach",
+            //             Type = new FunctionType() {
+            //                 IsLambda = true,
+            //                 ReturnType = new SpecificClassType() {
+            //                     Name = "ChainablePushSignal",
+            //                     GenericIdentifiers = new List<string>() { "In", "Out" },
+            //                     SpecificTypes = new Dictionary<string, IType>() { }
+            //                 },
+            //                 ParameterNames = new List<string>() { "function" },
+            //                 ParameterTypes = new List<IType>() {
+            //                     new FunctionType() {
+            //                         IsLambda = false,
+            //                         ReturnType = new VoidType(),
+            //                         ParameterNames = new List<string>() { "" },
+            //                         ParameterTypes = new List<IType>() { new GenericTypeIdentifier("Out") }
+            //                     }
+            //                 }
+            //             },
+            //             IsConst = false
+            //         }}
+            //     }
+            // };
 
-            Types.Bind("ChainablePushSignal", ChainablePushSignal);
+            // Types.Bind("ChainablePushSignal", ChainablePushSignal);
 
-            var SignalGlobal = new TypeBinding()
-            {
-                Type = new ClassType()
-                {
-                    Name = "SignalGlobal",
-                },
-                Members = new Dictionary<string, VariableBinding>(),
-            };
+            // var SignalGlobal = new ClassType()
+            // {
+            //     Name = "SignalGlobal",
+            //     Members = new Dictionary<string, VariableBinding>(),
+            // };
 
-            SignalGlobal.Members.Add("Timer", new VariableBinding()
-            {
-                Name = "Timer",
-                Type = new FunctionType()
-                {
-                    ParameterNames = new List<string>() { "millisecondInterval" },
-                    ParameterTypes = new List<Type>() { new IntType() },
-                    ReturnType = ((GenericClassType)ChainablePushSignal.Type).Specify(new Dictionary<string, Type>() { { "In", new IntType() }, { "Out", new IntType() } }),
-                }
-            });
+            // SignalGlobal.Members.Add("Timer", new VariableBinding()
+            // {
+            //     Name = "Timer",
+            //     Type = new FunctionType()
+            //     {
+            //         ParameterNames = new List<string>() { "millisecondInterval" },
+            //         ParameterTypes = new List<IType>() { new IntType() },
+            //         ReturnType = ((GenericClassType)ChainablePushSignal.Type).Specify(new Dictionary<string, IType>() { { "In", new IntType() }, { "Out", new IntType() } }),
+            //     }
+            // });
 
 
-            Types.Bind("SignalGlobal", SignalGlobal);
+            // Types.Bind("SignalGlobal", SignalGlobal);
 
-            Values.Bind("Signal", new VariableBinding()
-            {
-                Name = "Signal",
-                Type = SignalGlobal.Type,
-                Members = SignalGlobal.Members,
-            });
+            // Values.Bind("Signal", new VariableBinding()
+            // {
+            //     Name = "Signal",
+            //     Type = SignalGlobal.Type
+            // });
 
             #endregion
         }

@@ -9,12 +9,14 @@ namespace ITU.Lang.Core.Translator.Nodes
     {
         public string Name { get; protected set; }
         public IEnumerable<ExprNode> Exprs { get; protected set; }
+        public GenericHandleNode Handle { get; }
         public VariableBinding Binding { get; set; }
 
-        public InvokeFunctionNode(string name, IEnumerable<ExprNode> exprs, TokenLocation location) : base(location)
+        public InvokeFunctionNode(string name, IEnumerable<ExprNode> exprs, GenericHandleNode handle, TokenLocation location) : base(location)
         {
             Name = name;
             Exprs = exprs;
+            Handle = handle;
         }
 
         protected virtual FunctionType EnsureValidBinding(Environment env)
@@ -47,8 +49,10 @@ namespace ITU.Lang.Core.Translator.Nodes
             }
         }
 
-        protected override Type ValidateExpr(Environment env)
+        protected override IType ValidateExpr(Environment env)
         {
+            if (Handle != null)
+                throw new System.NotImplementedException("TODO: No generic resolve in my function invokation");
             var func = EnsureValidBinding(env);
 
             AssertParameterCount(func);

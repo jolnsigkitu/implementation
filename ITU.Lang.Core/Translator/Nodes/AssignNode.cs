@@ -16,7 +16,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Expr = expr;
         }
 
-        protected override Type ValidateExpr(Environment env)
+        protected override IType ValidateExpr(Environment env)
         {
             var name = Names[0];
 
@@ -32,30 +32,27 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                 throw new TranspilationException("Cannot reassign to const variable", Location);
             }
 
+            var type = binding.Type;
+
             if (Names.Count > 1)
             {
                 foreach (var memberName in Names.GetRange(1, Names.Count - 1))
                 {
-                    if (binding.Members == null)
+                    if (!(type is IClassType ct))
                     {
                         throw new TranspilationException("Cannot assign value to nested property on non-object", Location);
                     }
-                    if (!binding.Members.TryGetValue(memberName, out var member))
+                    if (!ct.Members.TryGetValue(memberName, out type))
                     {
                         throw new TranspilationException($"Cannot assign value to undefined member {memberName} on type {binding.Type}", Location);
                     }
-                    binding = member;
                 }
             }
 
-            var typ = binding.Type;
-
             Expr.Validate(env);
-            Expr.AssertType(typ);
+            Expr.AssertType(type);
 
-            binding.Type = Expr.Type;
-
-            return typ;
+            return type;
         }
 
         public override string ToString()

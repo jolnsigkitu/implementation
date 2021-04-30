@@ -2,7 +2,7 @@ using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core.Types
 {
-    public class GenericTypeIdentifier : Type
+    public class GenericTypeIdentifier : IType
     {
         public string Identifier;
 
@@ -15,7 +15,7 @@ namespace ITU.Lang.Core.Types
 
         public string AsTranslatedName() => Identifier;
 
-        public bool Equals(Type other) => other is AnyType || other is GenericTypeIdentifier a && a.Identifier == this.Identifier;
+        public bool Equals(IType other) => other is AnyType || other is GenericTypeIdentifier a && a.Identifier == this.Identifier;
 
         public override int GetHashCode() => 17;
 

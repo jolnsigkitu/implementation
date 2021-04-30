@@ -2,13 +2,13 @@ using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core.Types
 {
-    public class CharType : Type
+    public class CharType : IType
     {
         public string AsNativeName() => "char";
 
         public string AsTranslatedName() => "char";
 
-        public bool Equals(Type other) => other is CharType || other is AnyType;
+        public bool Equals(IType other) => other is CharType || other is AnyType;
 
         public override int GetHashCode() => 7;
 

@@ -12,7 +12,7 @@ namespace ITU.Lang.Core.Translator.Nodes
         private readonly TypeNode TypeAnnotation;
         private readonly bool IsConst;
 
-        private Type DerivedType;
+        private IType DerivedType;
 
         public VarDecNode(string name, bool isConst, ExprNode expr, TypeNode typeAnnotation, TokenLocation loc) : base(loc)
         {
@@ -30,29 +30,30 @@ namespace ITU.Lang.Core.Translator.Nodes
 
             if (TypeAnnotation != null)
             {
-                var typ = TypeAnnotation.EvalType(env);
-                Expr.AssertType(typ);
-                DerivedType = typ;
+                DerivedType = TypeAnnotation.EvalType(env);
+                Expr.AssertType(DerivedType);
             }
 
-            IDictionary<string, VariableBinding> members = null;
-            if (DerivedType is ClassType t)
-            {
-                if (!env.Scopes.Types.HasBinding(t.Name))
-                {
-                    throw new TranspilationException($"Cannot declare variable of unknown type '{t.Name}'.", Location);
-                }
-                var classBinding = env.Scopes.Types.GetBinding(t.Name);
+            System.Console.WriteLine($"Derived type of var '{Name}' is {DerivedType}");
 
-                members = classBinding.Members;
-            }
+            // IDictionary<string, VariableBinding> members = null;
+            // if (DerivedType is ClassType t)
+            // {
+            //     if (!env.Scopes.Types.HasBinding(t.Name))
+            //     {
+            //         throw new TranspilationException($"Cannot declare variable of unknown type '{t.Name}'.", Location);
+            //     }
+            //     var classBinding = env.Scopes.Types.GetBinding(t.Name);
+
+            //     members = classBinding.Members;
+            // }
 
             env.Scopes.Values.Bind(Name, new VariableBinding()
             {
                 Name = Name,
                 Type = DerivedType,
                 IsConst = IsConst,
-                Members = members,
+                // Members = members,
             });
         }
 

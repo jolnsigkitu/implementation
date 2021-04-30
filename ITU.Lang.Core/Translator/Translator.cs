@@ -105,7 +105,7 @@ namespace ITU.Lang.Core.Translator
         {
             var doub = context.Double();
             var txt = context.GetText();
-            Type typ = new IntType();
+            IType typ = new IntType();
             if (doub != null)
             {
                 typ = new DoubleType();
@@ -152,7 +152,7 @@ namespace ITU.Lang.Core.Translator
             // Since name is not available in ClassExprContext we monkey-patch it in here
             if (classDecNode != null)
             {
-                classDecNode.Type.Name = name;
+                classDecNode.ClassName = name;
             }
 
             return new TypeDecNode(name, typeDecNode, classDecNode, isExtern, GetLocation(context));
@@ -252,9 +252,7 @@ namespace ITU.Lang.Core.Translator
             var arguments = context.arguments()?.expr()?.Select(VisitExpr);
             var handle = context.genericHandle().Invoke(VisitGenericHandle);
 
-            var func = new InvokeFunctionNode(name, arguments, GetLocation(context));
-
-            return handle != null ? new InvokeGenericFunctionNode(func, handle) : func;
+            return new InvokeFunctionNode(name, arguments, handle, GetLocation(context));
         }
 
         public override BlockNode VisitBlock([NotNull] BlockContext context)

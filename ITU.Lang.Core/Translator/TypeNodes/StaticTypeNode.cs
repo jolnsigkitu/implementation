@@ -4,13 +4,13 @@ namespace ITU.Lang.Core.Translator.TypeNodes
 {
     public class StaticTypeNode : TypeNode
     {
-        private Type Type;
+        private IType Type;
 
-        public StaticTypeNode(Type type)
+        public StaticTypeNode(IType type)
         {
             Type = type;
         }
 
-        public override Type EvalType(Environment env) => Type;
+        public override IType EvalType(Environment env) => Type;
     }
 }

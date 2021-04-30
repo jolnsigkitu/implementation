@@ -19,6 +19,16 @@ namespace ITU.Lang.Core
             scopes.Pop();
         }
 
+        public TValue RequireBinding(string varName)
+        {
+            if (!HasBinding(varName))
+            {
+                throw new TranspilationException($"Undefined type '{varName}'.");
+            }
+
+            return GetBinding(varName);
+        }
+
         public TValue GetBinding(string varName)
         {
             var scope = GetScope(varName);

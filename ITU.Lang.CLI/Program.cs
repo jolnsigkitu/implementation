@@ -27,7 +27,7 @@ namespace ITU.Lang.CLI
                     string csFileName = Path.ChangeExtension(fileName, ".cs");
                     File.WriteAllText(csFileName, transpiledCode);
                 }
-                catch (TranspilationException ex)
+                catch (Exception ex)
                 {
                     throw new Exception($"An error occured while transpiling {fileName}:\n" + ex.Message, ex);
 

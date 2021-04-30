@@ -23,13 +23,13 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             IsLambda = isLambda;
         }
 
-        protected override Type ValidateExpr(Environment env)
+        protected override IType ValidateExpr(Environment env)
         {
             using var _ = env.Scopes.Use();
 
             if (Handle != null)
             {
-                Handle.Validate(env);
+                Handle.Bind(env);
             }
 
             ParameterList.Validate(env);
@@ -55,7 +55,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                 ParameterNames = ParameterList.EvaluatedNamePairs.Select(x => x.Item1).ToList(),
             };
 
-            return Handle != null ? new GenericFunctionType(result, Handle.Names.ToList()) : result;
+            return Handle != null ? new GenericWrapper(result, Handle.Names.ToList()) : result;
         }
 
         public override string ToString()

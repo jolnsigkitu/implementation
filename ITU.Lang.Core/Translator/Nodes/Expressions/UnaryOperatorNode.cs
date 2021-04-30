@@ -14,7 +14,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Operator = op;
             IsPrefix = isPrefix;
         }
-        protected override Type ValidateExpr(Environment env)
+        protected override IType ValidateExpr(Environment env)
         {
             Expr.Validate(env);
 

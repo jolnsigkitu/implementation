@@ -6,7 +6,8 @@ namespace ITU.Lang.Core.Translator.Nodes
 {
     public class ClassNode : Node
     {
-        public ClassType Type;
+        public string ClassName;
+        public IClassType Type;
         IList<ClassMemberNode> Members;
         GenericHandleNode Handle;
         public ClassNode(IList<ClassMemberNode> members, GenericHandleNode handle, TokenLocation location) : base(location)
@@ -18,46 +19,39 @@ namespace ITU.Lang.Core.Translator.Nodes
 
         public override void Validate(Environment env)
         {
-            var members = new Dictionary<string, VariableBinding>();
-            var binding = new TypeBinding()
+            var classMembers = Type.Members;
+            if (Handle != null)
             {
-                Type = Type,
-                Members = members
-            };
+                var wrapper = new GenericClassWrapper(Type, Handle.Names.ToList());
+                Type = wrapper;
+            }
 
-            env.Scopes.Types.Bind(Type.Name, binding);
+            Type.Name = ClassName;
+
+            env.Scopes.Types.Bind(ClassName, Type);
 
             using var _ = env.Scopes.Use();
 
-            var thisBinding = new VariableBinding()
+            if (Handle != null)
+                Handle.Bind(env);
+
+            env.Scopes.Values.Bind("this", new VariableBinding()
             {
                 Type = Type,
-                Members = members,
-            };
-
-            env.Scopes.Values.Bind("this", thisBinding);
-
-            if (Handle != null)
-            {
-                Handle.Validate(env);
-                var genericType = new GenericClassType(Type, Handle.Names.ToList());
-                Type = genericType;
-                binding.Type = genericType;
-                thisBinding.Type = genericType;
-            }
+            });
 
             foreach (var member in Members)
             {
                 member.Validate(env);
-                members.Add(member.Name, member.Binding);
+                classMembers.Add(member.Name, member.Binding.Type);
                 env.Scopes.Values.Bind(member.Name, member.Binding);
             }
         }
 
         public override string ToString()
         {
-            var memberStrs = Members.Select(m => m.ToString(Type.Name));
-            return $"class {Type.Name} {Handle} {{\n{string.Join("\n", memberStrs)}\n}}";
+            var memberStrs = Members.Select(m => m.ToString(ClassName));
+            return $"class {ClassName} {Handle} {{\n{string.Join("\n", memberStrs)}\n}}";
         }
     }
 }

@@ -16,14 +16,14 @@ namespace ITU.Lang.Core.Translator.TypeNodes
             Handle = handle;
         }
 
-        public override Type EvalType(Environment env)
+        public override IType EvalType(Environment env)
         {
             if (!env.Scopes.Types.HasBinding(Name))
             {
                 throw new TranspilationException($"Found undefined type '{Name}'");
             }
 
-            var typ = env.Scopes.Types.GetBinding(Name).Type;
+            var typ = env.Scopes.Types.GetBinding(Name);
 
             if (Handle == null)
             {
@@ -33,23 +33,19 @@ namespace ITU.Lang.Core.Translator.TypeNodes
             return SpecifyGenericTypeRef(env, typ);
         }
 
-        private Type SpecifyGenericTypeRef(Environment env, Type typ)
+        private IType SpecifyGenericTypeRef(Environment env, IType typ)
         {
-            if (!(typ is IGenericType<Type> gt))
+            if (!(typ is GenericWrapper wrapper))
             {
                 throw new TranspilationException("Cannot specify generic types for non-generic type");
             }
 
-            var identifiers = gt.GenericIdentifiers;
+            // var identifiers = wrapper.Handle;
 
-            if (identifiers.Count != Handle.Names.Count())
-            {
-                throw new TranspilationException($"Tried to resolve generic '{Name}' with {identifiers.Count} identifiers, but was provided {Handle.Names.Count()}");
-            }
 
-            var names = Handle.ResolveHandle(identifiers, env);
+            var bindings = Handle.Names.Select(name => env.Scopes.Types.RequireBinding(name));
 
-            return gt.Specify(names);
+            return wrapper.ResolveByPosition(bindings);
         }
     }
 }

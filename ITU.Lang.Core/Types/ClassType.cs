@@ -5,14 +5,15 @@ using ITU.Lang.Core.Translator.Nodes;
 
 namespace ITU.Lang.Core.Types
 {
-    public class ClassType : Type
+    public class ClassType : IClassType
     {
         public string Name { get; set; }
+        public IDictionary<string, IType> Members { get; set; } = new Dictionary<string, IType>();
 
         public virtual string AsNativeName() => Name;
         public virtual string AsTranslatedName() => Name;
 
-        public bool Equals(Type other)
+        public bool Equals(IType other)
         {
             if (other is AnyType) return true;
             if (other is ClassType t)
@@ -32,6 +33,6 @@ namespace ITU.Lang.Core.Types
             }
         }
 
-        public override string ToString() => AsNativeName();
+        public override string ToString() => $"(Class {Name}: {AsNativeName()})";
     }
 }

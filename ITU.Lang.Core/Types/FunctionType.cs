@@ -4,13 +4,13 @@ using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core.Types
 {
-    public class FunctionType : Type
+    public class FunctionType : IType
     {
         public bool IsLambda { get; set; }
 
-        public Type ReturnType { get; set; } = new VoidType();
+        public IType ReturnType { get; set; } = new VoidType();
 
-        public IList<Type> ParameterTypes = new List<Type>();
+        public IList<IType> ParameterTypes = new List<IType>();
         public IEnumerable<string> ParameterNames = new List<string>();
 
         public string AsNativeName()
@@ -39,7 +39,7 @@ namespace ITU.Lang.Core.Types
             return string.Join(",", paramTypes);
         }
 
-        public bool Equals(Type other)
+        public bool Equals(IType other)
         {
             if (other is AnyType) return true;
             if (!(other is FunctionType f))

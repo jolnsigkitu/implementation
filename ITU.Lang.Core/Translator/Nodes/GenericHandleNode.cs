@@ -12,49 +12,40 @@ namespace ITU.Lang.Core.Translator.Nodes
         {
             Names = names;
         }
-        public override void Validate(Environment env)
+        public void Bind(Environment env)
         {
             foreach (var name in Names)
             {
-                env.Scopes.Types.Bind(name, new TypeBinding()
-                {
-                    Type = new GenericTypeIdentifier(name),
-                });
+                env.Scopes.Types.Bind(name, new GenericTypeIdentifier(name));
             }
         }
 
-        public IDictionary<string, TypeBinding> ResolveHandleBindings(IList<string> identifiers, Environment env)
-        {
-            var resolvedBindings = new Dictionary<string, TypeBinding>();
-            foreach (var (n, id) in Names.Zip(identifiers))
-            {
-                if (!env.Scopes.Types.HasBinding(n))
-                    throw new TranspilationException($"Undefined type '{n}'", Location);
-
-                var binding = env.Scopes.Types.GetBinding(n);
-                resolvedBindings.Add(id, binding);
-            }
-            return resolvedBindings;
-        }
+        public override void Validate(Environment env) { }
 
         /// <summary>
         /// Resolve the parameter list of identifiers to the types contained within this handle.
         /// </summary>
         /// <param name="identifiers">
-        /// List of specific types which are resolved 1-to-1 with the typess within this handle.
+        /// List of specific types which are resolved 1-to-1 with the types within this handle.
         /// </param>
         /// <param name="env">
         /// Environment which should be used to lookup the names in this handle.
         /// </param>
         /// <returns>A dictionary mapping from the generic identifiers to the resolved types.</returns>
-        public IDictionary<string, Type> ResolveHandle(IList<string> identifiers, Environment env)
+        public IDictionary<string, IType> ResolveByIdentifier(IList<string> identifiers, Environment env)
         {
-            return ResolveHandleBindings(identifiers, env).ToDictionary(pair => pair.Key, pair => pair.Value.Type);
+            var resolvedTypes = new Dictionary<string, IType>();
+            foreach (var (n, id) in Names.Zip(identifiers))
+            {
+                if (!env.Scopes.Types.HasBinding(n))
+                    throw new TranspilationException($"Undefined type '{n}'", Location);
+
+                var typ = env.Scopes.Types.GetBinding(n);
+                resolvedTypes.Add(id, typ);
+            }
+            return resolvedTypes;
         }
 
-        public override string ToString()
-        {
-            return $"<{string.Join(", ", Names)}>";
-        }
+        public override string ToString() => $"<{string.Join(", ", Names)}>";
     }
 }

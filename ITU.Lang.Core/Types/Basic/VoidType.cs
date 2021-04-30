@@ -1,12 +1,12 @@
 namespace ITU.Lang.Core.Types
 {
-    public class VoidType : Type
+    public class VoidType : IType
     {
         public string AsNativeName() => "void";
 
         public string AsTranslatedName() => "void";
 
-        public bool Equals(Type other) => other is VoidType;
+        public bool Equals(IType other) => other is VoidType;
 
         public override int GetHashCode() => 2;
 

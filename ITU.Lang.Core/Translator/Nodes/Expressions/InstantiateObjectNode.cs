@@ -18,7 +18,7 @@ namespace ITU.Lang.Core.Translator.Nodes
             Handle = handle;
         }
 
-        protected override Type ValidateExpr(Environment env)
+        protected override IType ValidateExpr(Environment env)
         {
             if (Names.Count > 1)
             {
@@ -32,34 +32,27 @@ namespace ITU.Lang.Core.Translator.Nodes
                 throw new TranspilationException($"Cannot instantiate object of undefined type '{name}'", Location);
             }
 
-            var typeBinding = env.Scopes.Types.GetBinding(name);
-            var hasConstructor = typeBinding.Members.TryGetValue("constructor", out var constructor);
-            var constructorType = hasConstructor ? constructor.Type : null;
+            var type = env.Scopes.Types.GetBinding(name);
 
-
-            if (!(typeBinding.Type is ClassType classType))
+            if (!(type is IClassType classType))
             {
                 throw new TranspilationException($"Cannot instantiate non-class value '{name}'", Location);
             }
 
-            var typ = typeBinding.Type;
 
             if (Handle != null)
             {
-                if (!(typ is GenericClassType ct))
+                if (!(type is GenericClassWrapper wrapper))
                 {
                     throw new TranspilationException($"Cannot specify generic identifiers for non-generic class '{name}'", Location);
                 }
 
-                var resolution = Handle.ResolveHandle(ct.GenericIdentifiers, env);
-
-                var specClass = new SpecificClassType(ct, resolution);
-                typ = specClass;
-                if (hasConstructor)
-                {
-                    constructorType = specClass.SpecifyMember(constructor.Type);
-                }
+                var resolutions = Handle.ResolveByIdentifier(wrapper.Handle, env);
+                classType = wrapper.ResolveByIdentifier(resolutions);
             }
+
+            var hasConstructor = classType.Members.TryGetValue("constructor", out var constructor);
+            var constructorType = constructor;
 
             foreach (var expr in Exprs)
             {
@@ -71,7 +64,7 @@ namespace ITU.Lang.Core.Translator.Nodes
                 AssertExprsMatchesConstructor((FunctionType)constructorType);
             }
 
-            return typ;
+            return classType;
         }
 
         private void AssertExprsMatchesConstructor(FunctionType funcType)

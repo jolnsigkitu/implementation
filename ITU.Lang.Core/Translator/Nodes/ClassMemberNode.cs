@@ -12,7 +12,7 @@ namespace ITU.Lang.Core.Translator.Nodes
         public TypeNode Annotation { get; }
         public VariableBinding Binding { get; } = new VariableBinding();
 
-        public Type DerivedType { get; private set; }
+        public IType DerivedType { get; private set; }
 
         public ClassMemberNode(string name, ExprNode expr, FunctionNode func, TypeNode annotation, TokenLocation location) : base(location)
         {
@@ -27,7 +27,7 @@ namespace ITU.Lang.Core.Translator.Nodes
 
         public override void Validate(Environment env)
         {
-            Type memberType = null;
+            IType memberType = null;
             if (Annotation != null)
             {
                 memberType = Annotation.EvalType(env);
@@ -62,7 +62,6 @@ namespace ITU.Lang.Core.Translator.Nodes
                 var actualName = isConstructor ? className : Name;
                 var returnType = isConstructor ? "" : $" {((FunctionType)Func.Type).ReturnType.AsTranslatedName()}";
                 var suffix = Func.IsLambda ? ";" : "";
-                //var handle
                 return $"public{returnType} {actualName} {Func.Handle}{Func}{suffix}";
             }
 

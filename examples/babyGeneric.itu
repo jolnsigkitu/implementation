@@ -1,0 +1,17 @@
+// Basic generic class defintion
+type GenericLvl1 = <T> {
+    value: T;
+};
+
+// Specification on instantiation
+const lvl1 = new GenericLvl1<int>();
+const val = lvl1.value;
+
+//TODO:
+// Basic generic function defintion/
+// Generic member defintion
+    // Generic object
+        // Resolved
+        // Specified
+    // Generic function
+// Specification on invocation

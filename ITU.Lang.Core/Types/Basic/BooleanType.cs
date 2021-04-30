@@ -2,13 +2,13 @@ using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core.Types
 {
-    public class BooleanType : Type
+    public class BooleanType : IType
     {
         public string AsNativeName() => "boolean";
 
         public string AsTranslatedName() => "bool";
 
-        public bool Equals(Type other) => other is BooleanType || other is AnyType;
+        public bool Equals(IType other) => other is BooleanType || other is AnyType;
 
         // We just choose a unique prime for our base types, probably shouldn't bring us many problems
         public override int GetHashCode() => 11;

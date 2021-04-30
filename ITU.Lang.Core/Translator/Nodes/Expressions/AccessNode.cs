@@ -8,11 +8,10 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
     public class AccessNode : ExprNode
     {
         public string Name { get; }
+        // We don't care about the type of the underlying ExprNode, as we get and validate later
         public ExprNode FirstExpr { get; }
         public AccessChainNode Chain { get; }
-
         public bool HasParens { get; }
-        // We don't care about the type of the underlying ExprNode, as we get and validate later
         public AccessNode(string name, ExprNode firstExpr, AccessChainNode chain, bool hasParens, TokenLocation location) : base(location)
         {
             Name = name;
@@ -21,13 +20,13 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             HasParens = hasParens;
         }
 
-        protected override Type ValidateExpr(Environment env)
+        protected override IType ValidateExpr(Environment env)
         {
             // We use a scope to temporarily assign generic identifiers to resolved types for digging deeper
             using var _ = env.Scopes.Use();
 
             FirstExpr?.Validate(env);
-            Type typ = FirstExpr?.Type;
+            IType typ = FirstExpr?.Type;
 
             if (Name != null)
             {
@@ -39,49 +38,27 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                 typ = binding.Type;
             }
 
-            if (Chain == null)
+            if (Chain != null)
             {
-                return typ;
+                return ValidateChain(env, typ);
             }
 
-            return ValidateChain(env, typ);
+            return typ;
         }
 
-        private Type ValidateChain(Environment env, Type typ)
+        private IType ValidateChain(Environment env, IType type)
         {
-            if (!(typ is ClassType ct))
-            {
-                throw new TranspilationException("Cannot access member on non-object", Location);
-            }
-
-            if (!env.Scopes.Types.HasBinding(ct.Name))
-            {
-                throw new TranspilationException($"Cannot access member on undefined type '{ct.Name}'", Location);
-            }
-
-            IBinding binding = env.Scopes.Types.GetBinding(ct.Name);
-
             foreach (var link in Chain.Chain)
             {
-                if (!(binding.Type is ClassType) || binding.Members == null)
+                if (!(type is IClassType classType))
                 {
                     throw new TranspilationException("Cannot access member on non-object");
                 }
 
-                binding = link.Access(env, binding, ct);
-
-                if (binding.Type is ClassType classType)
-                {
-                    if (!env.Scopes.Types.HasBinding(classType.Name))
-                    {
-                        throw new TranspilationException($"Unknown type {classType.Name}.");
-                    }
-
-                    binding = env.Scopes.Types.GetBinding(classType.Name);
-                }
+                type = link.Access(env, classType);
             }
 
-            return typ;
+            return type;
         }
 
         public override string ToString()
