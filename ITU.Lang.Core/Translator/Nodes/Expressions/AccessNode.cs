@@ -26,7 +26,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             using var _ = env.Scopes.Use();
 
             FirstExpr?.Validate(env);
-            IType typ = FirstExpr?.Type;
+            IType type = FirstExpr?.Type;
 
             if (Name != null)
             {
@@ -35,15 +35,15 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
                     throw new TranspilationException($"Cannot access undeclared value '{Name}'", Location);
                 }
                 var binding = env.Scopes.Values.GetBinding(Name);
-                typ = binding.Type;
+                type = binding.Type;
             }
 
             if (Chain != null)
             {
-                return ValidateChain(env, typ);
+                return ValidateChain(env, type);
             }
 
-            return typ;
+            return type;
         }
 
         private IType ValidateChain(Environment env, IType type)

@@ -34,5 +34,7 @@ namespace ITU.Lang.Core.Types
         }
 
         public override string ToString() => $"(Class {Name}: {AsNativeName()})";
+
+        public bool TryGetMember(string key, out IType member) => Members.TryGetValue(key, out member);
     }
 }

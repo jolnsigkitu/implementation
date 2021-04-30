@@ -6,5 +6,6 @@ namespace ITU.Lang.Core.Types
     {
         string Name { get; set; }
         IDictionary<string, IType> Members { get; set; }
+        bool TryGetMember(string key, out IType member);
     }
 }

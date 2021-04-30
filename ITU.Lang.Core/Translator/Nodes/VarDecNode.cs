@@ -34,26 +34,11 @@ namespace ITU.Lang.Core.Translator.Nodes
                 Expr.AssertType(DerivedType);
             }
 
-            System.Console.WriteLine($"Derived type of var '{Name}' is {DerivedType}");
-
-            // IDictionary<string, VariableBinding> members = null;
-            // if (DerivedType is ClassType t)
-            // {
-            //     if (!env.Scopes.Types.HasBinding(t.Name))
-            //     {
-            //         throw new TranspilationException($"Cannot declare variable of unknown type '{t.Name}'.", Location);
-            //     }
-            //     var classBinding = env.Scopes.Types.GetBinding(t.Name);
-
-            //     members = classBinding.Members;
-            // }
-
             env.Scopes.Values.Bind(Name, new VariableBinding()
             {
                 Name = Name,
                 Type = DerivedType,
                 IsConst = IsConst,
-                // Members = members,
             });
         }
 

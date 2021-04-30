@@ -7,6 +7,11 @@ namespace ITU.Lang.Core.Types
     {
         public new IClassType Child { get; set; }
         public string Name { get => Child.Name; set => Child.Name = value; }
+        public IDictionary<string, IType> Members
+        {
+            get => this.Child.Members;
+            set => this.Child.Members = value;
+        }
         public GenericClassWrapper(IClassType child, IEnumerable<string> bindings) : base(child, bindings)
         {
             Child = child;
@@ -46,15 +51,28 @@ namespace ITU.Lang.Core.Types
             return new GenericClassWrapper(Child, newBindings, Handle);
         }
 
-        public IDictionary<string, IType> Members
-        {
-            get => this.Child.Members;
-            set => this.Child.Members = value;
-        }
+        public override string ToString() => $"(ClassWrapper - Name: {Name}, Child: {Child})";
 
-        public override string ToString()
+        public bool TryGetMember(string key, out IType member)
         {
-            return $"Name: {Name}, Child: {Child}, ";
+            if (!Members.TryGetValue(key, out member))
+            {
+                return false;
+            }
+
+            if (member is GenericTypeIdentifier id && Bindings.TryGetValue(id.Identifier, out var result))
+            {
+                member = result;
+            }
+
+            // member = member switch
+            // {
+            //     GenericClassWrapper wrapper => wrapper,
+            //     GenericTypeIdentifier id => id,
+            //     _ => member,
+            // };
+
+            return true;
         }
     }
 }

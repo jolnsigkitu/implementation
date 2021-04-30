@@ -32,7 +32,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
         public NameAccessChainLink(string name) => Name = name;
         public IType Access(Environment env, IClassType binding)
         {
-            if (!binding.Members.TryGetValue(Name, out var memberBinding))
+            if (!binding.TryGetMember(Name, out var memberBinding))
             {
                 throw new TranspilationException($"Cannot access undefined member {Name}");
             }
