@@ -64,12 +64,20 @@ namespace ITU.Lang.Core.Translator
 
         public override ExprNode VisitExpr([NotNull] ExprContext context)
         {
+            var exprs = context.expr()?.Select(VisitExpr).ToArray();
+
+            var qMark = context.QuestionMark();
+            // ternary
+            if (qMark != null)
+            {
+                return new TernaryExprNode(exprs[0], exprs[1], exprs[2], GetLocation(context));
+            }
+
             var op = context.@operator()?.GetText();
 
             if (op == null) return VisitTerm(context.term());
 
             // operator-variant
-            var exprs = context.expr().Select(VisitExpr).ToArray();
             var children = context.children;
 
             if (exprs.Length == 1)

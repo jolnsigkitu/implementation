@@ -22,7 +22,12 @@ semiStatement: inlineStatement Semi;
 returnStatement: Return expr Semi;
 
 // Value Expressions
-expr: term | expr operator expr | operator expr | expr operator;
+expr:
+	term
+	| expr QuestionMark expr Colon expr
+	| expr operator expr
+	| operator expr
+	| expr operator;
 
 operator:
 	(
@@ -149,6 +154,8 @@ Comma: ',';
 Dot: '.';
 
 Eq: '=';
+
+QuestionMark: '?';
 
 Plus: '+'; // Operators
 Minus: '-';
