@@ -1,0 +1,22 @@
+const id = <T>(arg: T): T => arg;
+
+const val = id<int>(2);
+//const val2 = id(3);
+
+const invoke = <T>(inp: T, callback: (T) => void) {
+    callback(inp);
+};
+
+invoke(2, print);
+/*
+type callback = <T>(T) => void;
+
+const intInvoke = (inp: int, callback: callback<int>) {
+    callback(inp);
+};
+*/
+
+//type funny = <T, T1, T2>(T, T1, T2) => void;
+
+//const yeeee: funny<int, boolean, boolean> = (a: int, b: boolean, c: boolean) {};
+//const yeeee2 = (a: int, b: boolean, c: boolean) {};

@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/ITU.Lang.CLI/ITU.Lang.CLI.csproj",
+                "${workspaceFolder}/Pipe.Lang.CLI/Pipe.Lang.CLI.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/ITU.Lang.CLI/ITU.Lang.CLI.csproj",
+                "${workspaceFolder}/Pipe.Lang.CLI/Pipe.Lang.CLI.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -32,7 +32,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/ITU.Lang.CLI/ITU.Lang.CLI.csproj",
+                "${workspaceFolder}/Pipe.Lang.CLI/Pipe.Lang.CLI.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],

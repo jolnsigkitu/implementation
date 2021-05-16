@@ -3,15 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITU.Lang.Core", "ITU.Lang.Core\ITU.Lang.Core.csproj", "{7BF8EA34-2D45-447B-ACA7-49FD22004D66}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pipe.Lang.Core", "Pipe.Lang.Core\Pipe.Lang.Core.csproj", "{7BF8EA34-2D45-447B-ACA7-49FD22004D66}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITU.Lang.CLI", "ITU.Lang.CLI\ITU.Lang.CLI.csproj", "{E0CEAA6C-CCDC-4EFE-831B-2CEF94863253}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pipe.Lang.CLI", "Pipe.Lang.CLI\Pipe.Lang.CLI.csproj", "{E0CEAA6C-CCDC-4EFE-831B-2CEF94863253}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITU.Lang.StandardLib", "ITU.Lang.StandardLib\ITU.Lang.StandardLib.csproj", "{E72B9C37-8056-42E0-B53C-93B3BB03334A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pipe.Lang.StandardLib", "Pipe.Lang.StandardLib\Pipe.Lang.StandardLib.csproj", "{E72B9C37-8056-42E0-B53C-93B3BB03334A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITU.Lang.Tests", "ITU.Lang.Tests\ITU.Lang.Tests.csproj", "{444E18C7-9E77-4831-994F-AFCFF23D2DDA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pipe.Lang.Tests", "Pipe.Lang.Tests\Pipe.Lang.Tests.csproj", "{444E18C7-9E77-4831-994F-AFCFF23D2DDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITU.Lang.SampleProgram", "ITU.Lang.SampleProgram\ITU.Lang.SampleProgram.csproj", "{270B57EC-4C1C-4F47-8C67-5D7259EF73D4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pipe.Lang.SampleProgram", "Pipe.Lang.SampleProgram\Pipe.Lang.SampleProgram.csproj", "{270B57EC-4C1C-4F47-8C67-5D7259EF73D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
