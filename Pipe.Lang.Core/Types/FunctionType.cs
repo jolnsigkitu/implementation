@@ -10,8 +10,6 @@ namespace Pipe.Lang.Core.Types
         IType ReturnType { get; set; }
         IList<IType> ParameterTypes { get; set; }
         IEnumerable<string> ParameterNames { get; set; }
-
-        // string GetTranslatedParameterList();
     }
 
     public class FunctionType : IFunctionType
@@ -81,7 +79,6 @@ namespace Pipe.Lang.Core.Types
             }
         }
 
-        // public override string ToString() => $"new FunctionType(){{\n\t IsLambda = {(IsLambda ? "true" : "false")},\n\t ReturnType = {ReturnType},\n\t ParameterNames = new List<string>() {{ \"{string.Join("\", \"", ParameterNames)}\" }},\n\t ParameterTypes = new List<Type>() {{ {string.Join(", ", ParameterTypes)} }}\n}}";
         public override string ToString()
         {
             var returnType = ReturnType is IClassType ? ReturnType.GetType().ToString() : ReturnType.ToString();

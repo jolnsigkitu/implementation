@@ -31,11 +31,6 @@ namespace Pipe.Lang.CLI
                 {
                     throw new Exception($"An error occured while transpiling {fileName}:\n" + ex.Message, ex);
 
-                    // System.Console.Error.WriteLine(ex.Message);
-                    // var lines = ex.StackTrace.Split('\n');
-                    // System.Console.Error.WriteLine(string.Join("\n", lines[0..5]));
-                    // if (lines.Length - 5 > 0) System.Console.Error.WriteLine($"   ... {lines.Length - 5} more lines");
-                    // System.Environment.Exit(1);
                 }
             }
         }

@@ -1,5 +1,3 @@
-
-
 let f = (yeet: int) => 3;
 let g = (): int => 3;
 let h = (yeet: int,yote: int,wonk: boolean): int => 3;

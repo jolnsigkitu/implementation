@@ -46,3 +46,5 @@ AntlrDebug
 .ionide
 
 /**/examples/**/*.cs
+
+.vscode

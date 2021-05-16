@@ -23,7 +23,6 @@ extern type DateTime = {
     ToString: (string) => string;
     Subtract: (DateTime) => TimeSpan;
     Now: DateTime;
-    // ToString(format: string) => format;
 };
 
 extern const DateTime = new DateTime();
@@ -51,7 +50,6 @@ extern const Numbers = new Numbers();
 type AccuracyMetrics = {
     Total = 0;
     Correct = 0;
-    ToString() => "(Total: " + Total + ", Correct: " + Correct + ")";
 };
 
 type Engine = {

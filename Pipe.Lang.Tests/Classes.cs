@@ -78,15 +78,5 @@ namespace Pipe.Lang.Tests
             var prog = Util.GetConstructedTree(progCode);
             prog.Validate(new Environment());
         }
-
-        /*
-        type Account = <T> {  };
-
-        type User = <T> {
-            GetAccount<U>() => new Account<U>();
-        };
-
-        let a: Account<int> = new User<boolean>().GetAccount<int>();
-        */
     }
 }

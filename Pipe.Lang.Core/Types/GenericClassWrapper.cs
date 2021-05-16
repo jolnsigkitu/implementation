@@ -61,19 +61,7 @@ namespace Pipe.Lang.Core.Types
             return $"{Child.AsTranslatedName()}<{handleStr}>";
         }
 
-        // public override string ToString() => $"(\n\tClassWrapper - Name: {Name},\n\tHandle: {{{string.Join(", ", Handle)}}},\n\tBindings: {{{string.Join(", ", Bindings)}}},\n\tChild: {Child}\n)";
         public override string ToString() => $"new GenericClassWrapper({Child}, new Dictionary<string, IType>() {{ {string.Join(", ", Bindings.Select(pair => $"{{ \"{pair.Key}\", {pair.Value} }}"))} }}, new List<string>(){{ \"{string.Join("\", \"", Handle)}\" }})";
-
-        // public override bool Equals(IType other)
-        // {
-        //     return other is GenericClassWrapper wrapper &&
-        //            EqualityComparer<IDictionary<string, IType>>.Default.Equals(Bindings, wrapper.Bindings) &&
-        //            EqualityComparer<IType>.Default.Equals(Child, wrapper.Child) &&
-        //            EqualityComparer<IList<string>>.Default.Equals(Handle, wrapper.Handle) &&
-        //            EqualityComparer<IClassType>.Default.Equals(Child, wrapper.Child) &&
-        //            Name == wrapper.Name &&
-        //            EqualityComparer<IDictionary<string, IType>>.Default.Equals(Members, wrapper.Members);
-        // }
 
         public override bool Equals(IType other)
         {

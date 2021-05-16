@@ -10,9 +10,8 @@ namespace Pipe.Lang.Tests
     public class FullRunTests
     {
         [Theory]
-        [InlineData("baby.pipe")]
         [InlineData("basic.pipe")]
-        [InlineData("babyLoop.pipe")]
+        [InlineData("basicLoop.pipe")]
         [InlineData("loop.pipe")]
         [InlineData("if-else.pipe")]
         [InlineData("operators.pipe")]
@@ -21,6 +20,7 @@ namespace Pipe.Lang.Tests
         [InlineData("genericFunctions.pipe")]
         [InlineData("classes.pipe")]
         [InlineData("genericClasses.pipe")]
+        [InlineData("genericIteration.pipe")]
         public void CanDoFile(string filePath)
         {
             string fileContent = File.ReadAllText("../../../../examples/" + filePath);

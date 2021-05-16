@@ -216,7 +216,6 @@ Using: 'using';
 Int: [0-9]+;
 Double: Int 'd' | Int? Dot Int 'd'?;
 
-// TODO: Investigate viability of using UnicodeChar/UnicodeAlpha here, to allow unicode variable names
 Name: [a-zA-Z_@$][a-zA-Z_@$0-9]*;
 
 CharLiteral:

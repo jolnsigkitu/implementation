@@ -7,8 +7,13 @@ let name = 7;
 1*(1+2);
 1*2+3;
 name;
+
 true;
+!true;
 false;
+
+"hello world";
+let memes = "dreams";
 
 let d1: double = 1.05;
 let d2: double = .5;

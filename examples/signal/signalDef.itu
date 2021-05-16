@@ -1,6 +1,0 @@
-type ChainablePushSignal = <In, Out> {
-    Map = <U>(mapper: (Out) => U): ChainablePushSignal<Out, U> => new ChainablePushSignal<Out, U>();
-    Reduce = <U>(reducer: (U, Out) => U, defaultResult: U): ChainablePushSignal<Out, U> => new ChainablePushSignal<Out, U>();
-    Filter = (filter: (Out) => boolean): ChainablePushSignal<In, Out> => new ChainablePushSignal<In,Out>();
-    ForEach = (function: (Out) => void): ChainablePushSignal<In, Out> => new ChainablePushSignal<In, Out>();
-};

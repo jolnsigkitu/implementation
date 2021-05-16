@@ -31,7 +31,6 @@ namespace Pipe.Lang.SampleProgram.Lib
 
         private void UpdateCurrent()
         {
-            // See if there is a method like shift
             Current = Future[0];
             Future.RemoveAt(0);
         }

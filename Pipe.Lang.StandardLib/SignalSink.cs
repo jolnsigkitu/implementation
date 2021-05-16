@@ -1,9 +1,8 @@
 using System;
-using Pipe.Lang.StandardLib;
 
-namespace Pipe.Lang.SampleProgram.Util
+namespace Pipe.Lang.StandardLib
 {
-    class SignalSink<TInput>
+    public class SignalSink<TInput>
     {
         public ProducerSignal<TInput> Signal { get; private set; }
         private Action<TInput> Pusher;

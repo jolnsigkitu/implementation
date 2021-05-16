@@ -61,7 +61,6 @@ namespace Pipe.Lang.Tests
             var expectedType = new ClassType()
             {
                 Name = "a",
-                // Members = New Dictionary()
             };
             var progCode = "type a = {  };";
 

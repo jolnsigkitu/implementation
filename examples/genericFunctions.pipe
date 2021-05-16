@@ -1,7 +1,7 @@
 const id = <T>(arg: T): T => arg;
 
 const val = id<int>(2);
-//const val2 = id(3);
+const val2 = id(3);
 
 const invoke = <T>(inp: T, callback: (T) => void) {
     callback(inp);
