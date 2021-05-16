@@ -5,15 +5,15 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 {
     public abstract class ExprNode : Node
     {
-        public Type Type { get; set; }
-        protected ExprNode(Type type, TokenLocation location) : base(location)
+        public IType Type { get; set; }
+        protected ExprNode(IType type, TokenLocation location) : base(location)
         {
             Type = type;
         }
 
         protected ExprNode(TokenLocation location) : base(location) { }
 
-        public bool IsType(Type v)
+        public bool IsType(IType v)
         {
             return Type.Equals(v);
         }
@@ -23,7 +23,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             return IsType(n.Type);
         }
 
-        public void AssertType(Type v)
+        public void AssertType(IType v)
         {
             if (IsType(v)) return;
 
@@ -35,6 +35,6 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Type = ValidateExpr(env);
         }
 
-        protected abstract Type ValidateExpr(Environment env);
+        protected abstract IType ValidateExpr(Environment env);
     }
 }

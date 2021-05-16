@@ -19,13 +19,13 @@ namespace ITU.Lang.Core.Translator.TypeNodes
         }
 
 
-        public override Type EvalType(Environment env)
+        public override IType EvalType(Environment env)
         {
             using var _ = env.Scopes.Use();
 
             if (Handle != null)
             {
-                Handle.Validate(env);
+                Handle.Bind(env);
             }
 
             var exprTypes = Exprs.Select(expr => expr.EvalType(env)).ToList();
@@ -38,7 +38,12 @@ namespace ITU.Lang.Core.Translator.TypeNodes
                 ParameterTypes = exprTypes,
             };
 
-            return Handle != null ? new GenericFunctionType(result, Handle.Names.ToList()) : result;
+            if (Handle != null)
+            {
+                return new GenericFunctionWrapper(result, Handle.Names.ToList());
+            }
+
+            return result;
         }
     }
 }

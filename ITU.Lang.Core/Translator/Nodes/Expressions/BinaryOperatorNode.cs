@@ -14,7 +14,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Expr2 = expr2;
             Operator = op;
         }
-        protected override Type ValidateExpr(Environment env)
+        protected override IType ValidateExpr(Environment env)
         {
             Expr1.Validate(env);
             Expr2.Validate(env);

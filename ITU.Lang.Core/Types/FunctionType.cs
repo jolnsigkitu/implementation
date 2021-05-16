@@ -4,14 +4,24 @@ using ITU.Lang.Core.Translator;
 
 namespace ITU.Lang.Core.Types
 {
-    public class FunctionType : Type
+    public interface IFunctionType : IType
+    {
+        bool IsLambda { get; set; }
+        IType ReturnType { get; set; }
+        IList<IType> ParameterTypes { get; set; }
+        IEnumerable<string> ParameterNames { get; set; }
+
+        // string GetTranslatedParameterList();
+    }
+
+    public class FunctionType : IFunctionType
     {
         public bool IsLambda { get; set; }
 
-        public Type ReturnType { get; set; } = new VoidType();
+        public IType ReturnType { get; set; } = new VoidType();
 
-        public IList<Type> ParameterTypes = new List<Type>();
-        public IEnumerable<string> ParameterNames = new List<string>();
+        public IList<IType> ParameterTypes { get; set; } = new List<IType>();
+        public IEnumerable<string> ParameterNames { get; set; } = new List<string>();
 
         public string AsNativeName()
         {
@@ -33,16 +43,17 @@ namespace ITU.Lang.Core.Types
             return $"Func<{(paramStr != "" ? paramStr + "," : "")}{ReturnType.AsTranslatedName()}>";
         }
 
-        public string GetTranslatedParameterList()
+        public virtual string GetTranslatedParameterList()
         {
             var paramTypes = ParameterTypes.Select((t) => t.AsTranslatedName());
             return string.Join(",", paramTypes);
         }
 
-        public bool Equals(Type other)
+        public bool Equals(IType other)
         {
             if (other is AnyType) return true;
-            if (!(other is FunctionType f))
+
+            if (!(other is IFunctionType f))
             {
                 return false;
             }
@@ -70,6 +81,11 @@ namespace ITU.Lang.Core.Types
             }
         }
 
-        public override string ToString() => $"new FunctionType(){{ IsLambda = {(IsLambda ? "true" : "false")}, ReturnType = {ReturnType}, ParameterNames = new List<string>() {{ \"{string.Join("\", \"", ParameterNames)}\" }}, ParameterTypes = new List<Type>() {{ {string.Join(", ", ParameterTypes)} }} }}";
+        // public override string ToString() => $"new FunctionType(){{\n\t IsLambda = {(IsLambda ? "true" : "false")},\n\t ReturnType = {ReturnType},\n\t ParameterNames = new List<string>() {{ \"{string.Join("\", \"", ParameterNames)}\" }},\n\t ParameterTypes = new List<Type>() {{ {string.Join(", ", ParameterTypes)} }}\n}}";
+        public override string ToString()
+        {
+            var returnType = ReturnType is IClassType ? ReturnType.GetType().ToString() : ReturnType.ToString();
+            return $"new FunctionType(){{\n\t IsLambda = {(IsLambda ? "true" : "false")},\n\t ReturnType = {returnType},\n\t ParameterNames = new List<string>() {{ \"{string.Join("\", \"", ParameterNames)}\" }},\n\t ParameterTypes = new List<Type>() {{ {string.Join(", ", ParameterTypes)} }}\n}}";
+        }
     }
 }

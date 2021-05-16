@@ -13,7 +13,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
             Chain = chain;
         }
 
-        protected override Type ValidateExpr(Environment env)
+        protected override IType ValidateExpr(Environment env)
         {
             return null;
         }
@@ -23,85 +23,53 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
 
     public interface AccessChainLink
     {
-        IBinding Access(Environment env, IBinding binding, ClassType classType);
+        IType Access(Environment env, IClassType binding);
     }
 
     public class NameAccessChainLink : AccessChainLink
     {
         public string Name;
         public NameAccessChainLink(string name) => Name = name;
-        public IBinding Access(Environment env, IBinding binding, ClassType classType)
+        public IType Access(Environment env, IClassType binding)
         {
-            if (!binding.Members.TryGetValue(Name, out var memberBinding))
+            if (!binding.TryGetMember(Name, out var memberBinding))
             {
-                throw new TranspilationException($"Cannot access undefined member {Name} on type {classType}");
+                throw new TranspilationException($"Cannot access undefined member {Name} on class {binding.AsNativeName()}");
             }
 
             return memberBinding;
         }
+
+        public override string ToString() => Name;
     }
 
     public class FunctionAccessChainLink : AccessChainLink
     {
         public InvokeFunctionNode Function;
         public FunctionAccessChainLink(InvokeFunctionNode function) => Function = function;
-        public IBinding Access(Environment env, IBinding binding, ClassType classType)
+        public IType Access(Environment env, IClassType binding)
         {
-            if (!binding.Members.TryGetValue(Function.Name, out var memberBinding))
+            if (!binding.TryGetMember(Function.Name, out var memberBinding))
             {
-                throw new TranspilationException($"Cannot access undefined member {Function.Name} on type {classType}");
+                throw new TranspilationException($"Cannot access undefined member {Function.Name} on class {binding.AsNativeName()}");
             }
 
-            var memberType = memberBinding.Type;
-
-            if (Function is InvokeGenericFunctionNode genericFunction && memberType is GenericFunctionType gft)
+            if (!(memberBinding is IFunctionType ft))
             {
-                if (genericFunction.Handle == null)
-                {
-                    throw new TranspilationException($"Invocation of generic function requires {gft.GenericIdentifiers.Count} generic arguments, but got none.", Function.Location);
-                }
-                genericFunction.Handle
-                    .ResolveHandleBindings(gft.GenericIdentifiers, env)
-                    .ForEach(pair => env.Scopes.Types.Bind(pair.Key, pair.Value));
-
-                // var exprTypes = Function.Exprs.Select(e =>
-                // {
-                //     e.Validate(env);
-                //     return e.Type;
-                // });
-
-                // System.Console.WriteLine($"Func exprs: {string.Join(", ", exprTypes)}");
-                // var resolutions = gft.Resolve(exprTypes);
-                // System.Console.WriteLine($"Resolutions ({resolutions.Count}): {string.Join(", ", resolutions)}");
-                // memberType = gft.Specify(resolutions);
+                throw new TranspilationException($"Tried to invoke non-function member on class {binding.AsNativeName()}.");
             }
 
-
-            if (classType is SpecificClassType sct)
-            {
-                memberType = sct.SpecifyMember(memberType);
-            }
-
-            if (!(memberType is FunctionType ft))
-            {
-                throw new TranspilationException($"Tried to invoke non-function member on class '{classType}'");
-            }
-
+            Function.Type = ft.ReturnType;
             Function.Binding = new VariableBinding()
             {
-                Name = memberBinding.Name,
                 Type = ft,
             };
-            Function.Validate(env);
-            Function.Type = ft.ReturnType;
 
-            return new VariableBinding()
-            {
-                Name = memberBinding.Name,
-                Members = memberBinding.Members,
-                IsConst = memberBinding.IsConst,
-                Type = ft.ReturnType
-            };
+            Function.Validate(env);
+
+            return Function.Type;
         }
+
+        public override string ToString() => Function.ToString();
     }
 }

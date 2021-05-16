@@ -9,7 +9,7 @@ namespace ITU.Lang.Core.Translator.Nodes.Expressions
         {
         }
 
-        protected override Type ValidateExpr(Environment env)
+        protected override IType ValidateExpr(Environment env)
         {
             throw new System.NotImplementedException();
         }

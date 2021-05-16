@@ -1,13 +1,20 @@
 
 /*
 // Lvl 1: Contain generic arguments
-type Wrapper = <T> {
+type Simple = <T> {
     value: T;
 };
 
-const wrapper = new Wrapper<int>();
+const simple = new Simple<int>();
 
-const val = wrapper.value;
+const val = simple.value;
+
+type SimpleConsumer = {
+    simple: Simple<int>;
+};
+
+const consumer = new SimpleConsumer;
+consumer.simple = simple;
 
 // Lvl 2: Recursive type definitions
 type List = <T> {
@@ -43,3 +50,106 @@ type User = {
 
 const user = new User();
 user.items.Add(5);
+
+/*
+
+Types "Simple" => GenericWrappper {
+    Bindings = {{"T", GenericIdentifier("T")}},
+    Handle = { GenericIdentifier("T") },
+    Child = ClassType
+    {
+        Members = {
+            {"value", GenericIdentifier("T")}
+        }
+    }
+};
+
+Values "simple" => GenericWrappper {
+    Bindings = {"T", IntType},
+    Handle = { GenericIdentifier("T") },
+    Child = ClassType
+    {
+        Members = {
+            {"value", GenericIdentifier("T")}
+        }
+    }
+}
+
+Resolve -> ClassType
+{
+    Members = {
+        {"value", GenericWrapper {
+
+        }}
+    }
+}
+
+type Other = <T> {
+    func: <P>(P) => T;
+    funcSwapped: <P>(T) => Other<P>;
+}
+
+Types "Other" => GenericWrapper {
+    Bindings = {{"T", GenericIdentifier("T")}},
+    Handle = { "T" },
+    Child = ClassType {
+        Members = {
+            {"func", GenericWrapper {
+                Bindings = {{"P", GenericIdentifier("P")}},
+                Child = FunctionType {
+                    ReturnType = GenericIdentifier("T"),
+                    ParameterTypes = [GenericIdentifier("P")]
+                }
+            }},
+            {"funcSwapped", GenericWrapper {
+                Bindings = {{"P", GenericIdentifier("P")}},
+                Handle = { "P" },
+                Child = FunctionType {
+                    ReturnType = GenericWrapper {
+                        Bindings = {{"T", GenericIdentifier("P")}},
+                        Handle = { "T" },
+                        Child = "Other".Child,
+                    },
+                    ParameterTypes = [GenericIdentifier("T")]
+                }
+            }},
+        }
+    }
+}
+
+Types "List" => GenericWrapper {
+    Bindings = {{"T", GenericIdentifier("T")}},
+    Handle = { GenericIdentifier("T") },
+    Child = ClassType {
+        Members = {
+            {"value", GenericIdentifier("T")},
+            {"next", GenericWrapper {
+                Bindings = {{"T", GenericIdentifier("T")}},
+                Child = "List".Child
+            }},
+            {"Add", GenericWrapper {
+                Bindings = {{"P", GenericIdentifier("P")}},
+                Child = FunctionType {
+                    ReturnType = GenericWrapper {
+                        Bindings = {{"T", GenericIdentifier("T")}},
+                        Child = "List".Child
+                    },
+                    ParameterTypes = [GenericIdentifier("T")]
+                    ParameterNames = ["item"]
+                }
+            }}
+        }
+    }
+}
+
+const intList = new List<int>();
+intList.Add(5);
+
+Values "intList" => GenericWrapper {
+    Bindings = {{"T", IntType}},
+    Child = "List".Child
+}
+
+// Specification -> Binding of an identifier to a concrete type ("T" -> int)
+// Resolution -> Get a concrete version of the type with all identifiers replaced with their specified counterpart
+*/

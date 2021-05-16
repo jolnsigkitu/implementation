@@ -7,7 +7,7 @@ namespace ITU.Lang.Core.Translator.Nodes
     public class ReturnStatementNode : StatementNode
     {
         private ExprNode Expr;
-        public Type ReturnType;
+        public IType ReturnType;
         public ReturnStatementNode(ExprNode expr, TokenLocation location) : base(location)
         {
             Expr = expr;

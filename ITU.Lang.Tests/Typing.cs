@@ -9,7 +9,7 @@ namespace ITU.Lang.Tests
 {
     public class Typing
     {
-        private void AssertTypeFromCode(string code, string identifier, Type type)
+        private void AssertTypeFromCode(string code, string identifier, IType type)
         {
             var prog = Util.GetConstructedTree(code);
 
@@ -17,7 +17,7 @@ namespace ITU.Lang.Tests
 
             prog.Validate(env);
 
-            Assert.Equal(type, env.Scopes.Types.GetBinding(identifier).Type);
+            Assert.Equal(type, env.Scopes.Types.GetBinding(identifier));
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace ITU.Lang.Tests
             var expectedType = new FunctionType()
             {
                 ReturnType = new IntType(),
-                ParameterTypes = new List<Type>()
+                ParameterTypes = new List<IType>()
                 {
                     new IntType(),
                     new IntType(),

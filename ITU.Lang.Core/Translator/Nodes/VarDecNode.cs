@@ -11,15 +11,17 @@ namespace ITU.Lang.Core.Translator.Nodes
         private readonly ExprNode Expr;
         private readonly TypeNode TypeAnnotation;
         private readonly bool IsConst;
+        private readonly bool IsExtern;
 
-        private Type DerivedType;
+        private IType DerivedType;
 
-        public VarDecNode(string name, bool isConst, ExprNode expr, TypeNode typeAnnotation, TokenLocation loc) : base(loc)
+        public VarDecNode(string name, bool isConst, ExprNode expr, TypeNode typeAnnotation, bool isExtern, TokenLocation loc) : base(loc)
         {
             Name = name;
             Expr = expr;
             TypeAnnotation = typeAnnotation;
             IsConst = isConst;
+            IsExtern = isExtern;
         }
 
         public override void Validate(Environment env)
@@ -30,21 +32,8 @@ namespace ITU.Lang.Core.Translator.Nodes
 
             if (TypeAnnotation != null)
             {
-                var typ = TypeAnnotation.EvalType(env);
-                Expr.AssertType(typ);
-                DerivedType = typ;
-            }
-
-            IDictionary<string, VariableBinding> members = null;
-            if (DerivedType is ClassType t)
-            {
-                if (!env.Scopes.Types.HasBinding(t.Name))
-                {
-                    throw new TranspilationException($"Cannot declare variable of unknown type '{t.Name}'.", Location);
-                }
-                var classBinding = env.Scopes.Types.GetBinding(t.Name);
-
-                members = classBinding.Members;
+                DerivedType = TypeAnnotation.EvalType(env);
+                Expr.AssertType(DerivedType);
             }
 
             env.Scopes.Values.Bind(Name, new VariableBinding()
@@ -52,10 +41,13 @@ namespace ITU.Lang.Core.Translator.Nodes
                 Name = Name,
                 Type = DerivedType,
                 IsConst = IsConst,
-                Members = members,
             });
         }
 
-        public override string ToString() => $"{DerivedType.AsTranslatedName()} {Name} = {Expr}";
+        public override string ToString()
+        {
+            if (IsExtern) return "";
+            return $"{DerivedType.AsTranslatedName()} {Name} = {Expr}";
+        }
     }
 }

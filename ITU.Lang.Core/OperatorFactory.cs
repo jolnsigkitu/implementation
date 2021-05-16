@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using ITU.Lang.Core.Types;
-using Type = ITU.Lang.Core.Types.Type;
+using IType = ITU.Lang.Core.Types.IType;
 
 namespace ITU.Lang.Core.Operators
 {
@@ -15,14 +15,14 @@ namespace ITU.Lang.Core.Operators
         public class OperatorDictionary<TKey, TVal> : Dictionary<string, Dictionary<TKey, TVal>> { }
         public class UnaryOperatorCollection
         {
-            private OperatorDictionary<Type, Type> dict = new OperatorDictionary<Type, Type>();
+            private OperatorDictionary<IType, IType> dict = new OperatorDictionary<IType, IType>();
 
-            public void Bind(string op, Type returnType, Type inputType)
+            public void Bind(string op, IType returnType, IType inputType)
             {
                 dict.TryGetValue(op, out var innerDict);
                 if (innerDict == null)
                 {
-                    innerDict = new Dictionary<Type, Type>();
+                    innerDict = new Dictionary<IType, IType>();
                     dict.Add(op, innerDict);
                 }
                 innerDict.TryGetValue(returnType, out var value);
@@ -33,7 +33,7 @@ namespace ITU.Lang.Core.Operators
                 innerDict[returnType] = inputType;
             }
 
-            public Type Get(string op, Type inputType, TokenLocation loc = null)
+            public IType Get(string op, IType inputType, TokenLocation loc = null)
             {
                 dict.TryGetValue(op, out var innerDict);
                 if (innerDict == null)
@@ -60,14 +60,14 @@ namespace ITU.Lang.Core.Operators
 
         public class BinaryOperatorCollection
         {
-            private OperatorDictionary<(Type, Type), Type> dict = new OperatorDictionary<(Type, Type), Type>();
+            private OperatorDictionary<(IType, IType), IType> dict = new OperatorDictionary<(IType, IType), IType>();
 
-            public void Bind(string op, (Type, Type) inputTypes, Type returnType)
+            public void Bind(string op, (IType, IType) inputTypes, IType returnType)
             {
                 dict.TryGetValue(op, out var innerDict);
                 if (innerDict == null)
                 {
-                    innerDict = new Dictionary<(Type, Type), Type>();
+                    innerDict = new Dictionary<(IType, IType), IType>();
                     dict.Add(op, innerDict);
                 }
                 innerDict.TryGetValue(inputTypes, out var value);
@@ -78,7 +78,7 @@ namespace ITU.Lang.Core.Operators
                 innerDict[inputTypes] = returnType;
             }
 
-            public Type Get(string op, Type inputType1, Type inputType2, TokenLocation loc = null)
+            public IType Get(string op, IType inputType1, IType inputType2, TokenLocation loc = null)
             {
                 dict.TryGetValue(op, out var innerDict);
                 if (innerDict == null)
@@ -107,6 +107,7 @@ namespace ITU.Lang.Core.Operators
         {
             var boolean = new BooleanType();
             var integer = new IntType();
+            var @double = new DoubleType();
             var str = new StringType();
 
             #region Unary boolean
@@ -123,13 +124,30 @@ namespace ITU.Lang.Core.Operators
             factory.UnaryPostfix.Bind("--", integer, integer);
             #endregion
 
-            #region Binary algebraic
+            #region Binary String
             factory.Binary.Bind("+", (str, str), str);
+            factory.Binary.Bind("+", (str, integer), str);
+            factory.Binary.Bind("+", (integer, str), str);
+            #endregion
+
+            #region Binary algebraic
+            // Integer operators
             factory.Binary.Bind("+", (integer, integer), integer);
             factory.Binary.Bind("-", (integer, integer), integer);
             factory.Binary.Bind("*", (integer, integer), integer);
             factory.Binary.Bind("/", (integer, integer), integer);
             factory.Binary.Bind("%", (integer, integer), integer);
+
+            // Double operators
+            factory.Binary.Bind("+", (@double, @double), @double);
+            factory.Binary.Bind("-", (@double, @double), @double);
+            factory.Binary.Bind("*", (@double, @double), @double);
+            factory.Binary.Bind("/", (@double, @double), @double);
+
+            // Integer/double operators
+            factory.Binary.Bind("/", (@double, integer), @double);
+            factory.Binary.Bind("*", (integer, @double), @double);
+            factory.Binary.Bind("*", (@double, integer), @double);
             #endregion
 
             #region Binary Boolean
@@ -143,6 +161,12 @@ namespace ITU.Lang.Core.Operators
             factory.Binary.Bind(">", (integer, integer), boolean);
             factory.Binary.Bind("<=", (integer, integer), boolean);
             factory.Binary.Bind(">=", (integer, integer), boolean);
+
+            factory.Binary.Bind("==", (@double, @double), boolean);
+            factory.Binary.Bind("<", (@double, @double), boolean);
+            factory.Binary.Bind(">", (@double, @double), boolean);
+            factory.Binary.Bind("<=", (@double, @double), boolean);
+            factory.Binary.Bind(">=", (@double, @double), boolean);
             #endregion
 
             return factory;

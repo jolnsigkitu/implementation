@@ -28,7 +28,8 @@ namespace ITU.Lang.Core.Translator
 
         public override ProgNode VisitProg([NotNull] ProgContext context)
         {
-            var statements = VisitStatements(context.statements());
+            var statements = context.statements().Invoke(VisitStatements);
+            statements ??= new List<StatementNode>();
             return new ProgNode(statements, GetLocation(context));
         }
 
@@ -47,6 +48,7 @@ namespace ITU.Lang.Core.Translator
                 context.doWhileStatement(),
                 context.loopStatement(),
                 context.returnStatement(),
+                context.usingStatement(),
             });
         }
 
@@ -113,7 +115,7 @@ namespace ITU.Lang.Core.Translator
         {
             var doub = context.Double();
             var txt = context.GetText();
-            Type typ = new IntType();
+            IType typ = new IntType();
             if (doub != null)
             {
                 typ = new DoubleType();
@@ -143,11 +145,12 @@ namespace ITU.Lang.Core.Translator
             var typedName = context.typedName();
 
             var name = typedName.Name().GetText();
+            var isExtern = context.Extern() != null;
             var expr = VisitExpr(context.expr());
             var isConst = context.Const() != null;
             var typeAnnotation = typedName.typeAnnotation().Invoke(typeEvaluator.VisitTypeAnnotation);
 
-            return new VarDecNode(name, isConst, expr, typeAnnotation, GetLocation(context));
+            return new VarDecNode(name, isConst, expr, typeAnnotation, isExtern, GetLocation(context));
         }
 
         public override TypeDecNode VisitTypedec([NotNull] TypedecContext context)
@@ -160,7 +163,7 @@ namespace ITU.Lang.Core.Translator
             // Since name is not available in ClassExprContext we monkey-patch it in here
             if (classDecNode != null)
             {
-                classDecNode.Type.Name = name;
+                classDecNode.ClassName = name;
             }
 
             return new TypeDecNode(name, typeDecNode, classDecNode, isExtern, GetLocation(context));
@@ -233,8 +236,6 @@ namespace ITU.Lang.Core.Translator
 
             var isLambda = lambdaFunctionBody != null;
 
-            // System.Console.WriteLine($"Defining function with arguments {string.Join(", ", parameterList)} of length {parameterList.NameTypePairs.Count()}");
-
             return new FunctionNode(parameterList, body, handle, isLambda, GetLocation(((ISyntaxTree)blockFun) ?? lambdaFun));
         }
 
@@ -257,12 +258,10 @@ namespace ITU.Lang.Core.Translator
         public override InvokeFunctionNode VisitInvokeFunction([NotNull] InvokeFunctionContext context)
         {
             var name = context.Name().GetText();
-            var arguments = context.arguments()?.expr()?.Select(VisitExpr);
+            var arguments = context.arguments()?.expr()?.Select(VisitExpr)?.ToList();
             var handle = context.genericHandle().Invoke(VisitGenericHandle);
 
-            var func = new InvokeFunctionNode(name, arguments, GetLocation(context));
-
-            return handle != null ? new InvokeGenericFunctionNode(func, handle) : func;
+            return new InvokeFunctionNode(name, arguments, handle, GetLocation(context));
         }
 
         public override BlockNode VisitBlock([NotNull] BlockContext context)
@@ -276,6 +275,11 @@ namespace ITU.Lang.Core.Translator
             var expr = VisitExpr(context.expr());
 
             return new ReturnStatementNode(expr, GetLocation(context));
+        }
+
+        public override UsingStatementNode VisitUsingStatement([NotNull] UsingStatementContext context)
+        {
+            return new UsingStatementNode(context.nestedName().GetText(), GetLocation(context));
         }
 
         public override GenericHandleNode VisitGenericHandle([NotNull] GenericHandleContext context)
@@ -386,6 +390,10 @@ namespace ITU.Lang.Core.Translator
         private TokenLocation GetLocation(ISyntaxTree node)
         {
             var interval = node.SourceInterval;
+            if (interval.Length == 0)
+            {
+                return new TokenLocation(tokenStream.Get(0), tokenStream.Get(0));
+            }
             var start = tokenStream.Get(interval.a);
             var end = tokenStream.Get(interval.b);
             return new TokenLocation(start, end);

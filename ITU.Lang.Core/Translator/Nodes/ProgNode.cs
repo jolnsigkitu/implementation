@@ -34,7 +34,7 @@ namespace ITU.Lang.Core.Translator.Nodes
 
             var classes = string.Join("\n", Classes);
 
-            return $"{namespaces}\n\n{statements}\n{classes}";
+            return $"{namespaces}\n\n{statements}\n\n{classes}";
         }
     }
 }

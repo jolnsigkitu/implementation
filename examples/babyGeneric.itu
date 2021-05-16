@@ -1,0 +1,71 @@
+// Basic generic class defintion
+type GenericLvl1 = <T> {
+    value: T;
+};
+
+// Specification on instantiation
+const lvl1 = new GenericLvl1<int>();
+const val1 = lvl1.value;
+
+// Generic class with member types
+type GenericLvl2 = <T> {
+    value: T;
+    getValue() => value;
+};
+
+const lvl2 = new GenericLvl2<int>();
+const val2 = lvl2.getValue();
+
+// Define generic functions - invoke with explicit type handle
+const lvl3 = <T>(val: T) => val;
+const val3 = lvl3<int>(3);
+
+// Define generic functions - invoke with inferred types
+const lvl4 = <T>(val: T) => val;
+const val4 = lvl4(4);
+
+// Define generic functions - invoke with inferred complicated types
+const lvl5 = <U, T>(v1: T, v2: U) => v1;
+const val51 = lvl5(6, 7);
+const val52 = lvl5("some", " string");
+
+const lvl5v2 = <T, U>(mapper: (U) => T, val: U) => mapper(val);
+// Currenntly cannot handle <T>(val: T) => val as mapper due to equality and stuff
+const lvl5mapper = (val: int) => val;
+const val53 = lvl5v2(lvl5mapper, 17);
+
+// Define generic functions on normal classes
+type ClassLvl6 = {
+    Map<T, U>(classedMapper: (U) => T, val: U) => classedMapper(val);
+};
+const lvl6 = new ClassLvl6();
+const val6 = lvl6.Map(lvl5mapper, 17);
+
+//
+type ClassALvl7 = <TFoo, TBar> {
+    foo: TFoo;
+    bar: TBar;
+};
+type ClassBLvl7 = <T>{
+    makeA<TBaz>() => new ClassALvl7<T, TBaz>();
+};
+
+const lvl7 = new ClassBLvl7<int>();
+const val7 = lvl7.makeA<string>();
+
+
+// Define generic function within generic class - not so baby anymore, huh?
+type Sig = <In, Out> {
+    Map = <U>(mapper: (Out) => U): Sig<Out, U> => new Sig<Out, U>();
+};
+const lvl8 = new Sig<string, int>();
+const val8 = lvl8.Map((val: int) => val > 4);
+
+
+//TODO:
+// Generic member defintion
+    // Generic object
+        // Resolved
+        // Specified
+    // Generic function
+// Specification on invocation

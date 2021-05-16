@@ -8,16 +8,47 @@ namespace ITU.Lang.Core.Translator.Nodes
     public class InvokeFunctionNode : ExprNode
     {
         public string Name { get; protected set; }
-        public IEnumerable<ExprNode> Exprs { get; protected set; }
+        public IList<ExprNode> Exprs { get; protected set; }
+        public GenericHandleNode Handle { get; }
         public VariableBinding Binding { get; set; }
 
-        public InvokeFunctionNode(string name, IEnumerable<ExprNode> exprs, TokenLocation location) : base(location)
+        public InvokeFunctionNode(string name, IList<ExprNode> exprs, GenericHandleNode handle, TokenLocation location) : base(location)
         {
             Name = name;
             Exprs = exprs;
+            Handle = handle;
         }
 
-        protected virtual FunctionType EnsureValidBinding(Environment env)
+        protected override IType ValidateExpr(Environment env)
+        {
+            EnsureValidBinding(env);
+
+            if (!(Binding.Type is IFunctionType func))
+            {
+                throw new TranspilationException($"Cannot invoke non-invokable '{Name}'", Location);
+            }
+
+            AssertParameterCount(func);
+
+            Exprs.ForEach(expr => expr.Validate(env));
+
+            if (func is GenericFunctionWrapper wrapper)
+                func = SpecifyFunc(wrapper, env);
+            else if (Handle != null)
+                throw new TranspilationException($"Cannot specify generic types for non-generic function '{Name}'.", Location);
+
+            foreach (var (expr, type) in Exprs.Zip(func.ParameterTypes))
+            {
+                expr.AssertType(type);
+            }
+
+            // We re-assign the name such that it will be converted properly
+            Name = Binding?.Name ?? Name;
+
+            return func.ReturnType;
+        }
+
+        private void EnsureValidBinding(Environment env)
         {
             if (Binding == null)
             {
@@ -28,16 +59,21 @@ namespace ITU.Lang.Core.Translator.Nodes
 
                 Binding = env.Scopes.Values.GetBinding(Name);
             }
-
-            if (!(Binding.Type is FunctionType ft))
-            {
-                throw new TranspilationException($"Cannot invoke non-invokable '{Name}'", Location);
-            }
-
-            return ft;
         }
 
-        protected void AssertParameterCount(FunctionType ft)
+        private IFunctionType SpecifyFunc(GenericFunctionWrapper wrapper, Environment env)
+        {
+            if (Handle == null)
+            {
+                var exprTypes = Exprs.Select(expr => expr.Type);
+                return wrapper.ResolveByParameterPosition(exprTypes);
+            }
+
+            var resolutions = Handle.ResolveByIdentifier(wrapper.Handle, env);
+            return wrapper.ResolveByIdentifier(resolutions);
+        }
+
+        private void AssertParameterCount(IFunctionType ft)
         {
             var paramTypes = ft.ParameterTypes;
 
@@ -47,24 +83,9 @@ namespace ITU.Lang.Core.Translator.Nodes
             }
         }
 
-        protected override Type ValidateExpr(Environment env)
+        public override string ToString()
         {
-            var func = EnsureValidBinding(env);
-
-            AssertParameterCount(func);
-
-            foreach (var (expr, type) in Exprs.Zip(func.ParameterTypes))
-            {
-                expr.Validate(env);
-                expr.AssertType(type);
-            }
-
-            // We re-assign the name such that it will be converted properly
-            Name = Binding.Name;
-
-            return func.ReturnType;
+            return $"{Name}({string.Join(", ", Exprs)})";
         }
-
-        public override string ToString() => $"{Name}({string.Join(", ", Exprs)})";
     }
 }
