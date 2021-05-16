@@ -1,4 +1,5 @@
-﻿using Antlr4.Runtime;
+﻿using System.IO;
+using Antlr4.Runtime;
 using ITU.Lang.Core.Grammar;
 using ITU.Lang.Core.Translator;
 
@@ -6,8 +7,17 @@ namespace ITU.Lang.Core
 {
     public class Transpiler
     {
+        private string Stubs;
+
+        public Transpiler()
+        {
+            Stubs = File.ReadAllText("../ITU.Lang.Core/stubs/signal.pipe").Replace('\n', ' ');
+        }
+
         public string fromString(string input)
         {
+            input = Stubs + input;
+
             ICharStream stream = CharStreams.fromString(input);
 
             ITokenSource lexer = new LangLexer(stream);
@@ -24,8 +34,6 @@ namespace ITU.Lang.Core
 
             var env = new Environment();
             prog.Validate(env);
-
-            // System.Console.WriteLine(env.Scopes.Types);
 
             return prog.ToString();
         }

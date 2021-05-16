@@ -1,9 +1,7 @@
-/*
-using System;
-using ITU.Lang.StandardLib;
+using System.Collections.Generic;
 using ITU.Lang.SampleProgram.Lib;
+using ITU.Lang.SampleProgram.Util;
 using Microsoft.AspNetCore.Components.Web;
-*/
 
 extern type StringWithLength = {
     Length: int;
@@ -17,47 +15,57 @@ extern type Segment = {
 
 extern type TimeSpan = {
     ToString: (string) => string;
-    TotalSeconds: int;
+    TotalSeconds: double;
+    Duration: () => TimeSpan;
 };
 
 extern type DateTime = {
     ToString: (string) => string;
-    Duration: () => DateTime;
     Subtract: (DateTime) => TimeSpan;
+    Now: DateTime;
     // ToString(format: string) => format;
 };
 
-extern type SegmentEnumerator = {
-    Current: Segment;
+extern const DateTime = new DateTime();
+
+extern type IEnumerator = <T> {
+    Current: T;
     MoveNext() => true;
 };
 
-extern type EnumerableSegment = {
-    GetEnumerator() => new SegmentEnumerator();
+extern type IEnumerable = <T> {
+    GetEnumerator() => new IEnumerator<T>();
 };
 
 extern type CompletedWord = {
     CompletedAt: DateTime;
-    Segments: EnumerableSegment;
+    Segments: IEnumerable<Segment>;
 };
+
+extern type Numbers = {
+    ToDouble: (int) => double;
+    Round: (double) => int;
+};
+extern const Numbers = new Numbers();
 
 type AccuracyMetrics = {
     Total = 0;
     Correct = 0;
+    ToString() => "(Total: " + Total + ", Correct: " + Correct + ")";
 };
 
 type Engine = {
     Wpm = 0;
-    Accuracy: double = 0d;
+    Accuracy = 0d;
     ElapsedTime = "00:00:00";
 
     StartTime: DateTime;
 
-    WordSignal: ChainablePushSignal<CompletedWord, CompletedWord>;
-    StatsSignal: ChainablePushSignal<CompletedWord, AccuracyMetrics>;
-    TimerSignal: ChainablePushSignal<int, TimeSpan>;
+    WordSignal: PushSignalSource<CompletedWord>;
+    StatsSignal: PushSignalSource<AccuracyMetrics>;
+    TimerSignal: PushSignalSource<TimeSpan>;
 
-    constructor(wordSignal: ChainablePushSignal<CompletedWord, CompletedWord>)
+    constructor(wordSignal: PushSignalSource<CompletedWord>)
     {
         WordSignal = wordSignal;
     }
@@ -65,9 +73,7 @@ type Engine = {
     makeStatsSignal()
     {
         return WordSignal
-            .Map((word: CompletedWord) {
-                let metrics = new AccuracyMetrics();
-
+            .Reduce((metrics: AccuracyMetrics, word: CompletedWord) {
                 let enumerator = word.Segments.GetEnumerator();
                 while (enumerator.MoveNext())
                 {
@@ -80,11 +86,6 @@ type Engine = {
                 }
 
                 return metrics;
-            })
-            .Reduce((acc: AccuracyMetrics, stats: AccuracyMetrics) {
-                acc.Total = acc.Total + stats.Total;
-                acc.Correct = acc.Correct + stats.Correct;
-                return acc;
             }, new AccuracyMetrics());
     }
 
@@ -92,23 +93,22 @@ type Engine = {
     {
         return StatsSignal
         .ZipRepeat(TimerSignal)
-        .Map((pair: Pair<Accuracy, int>)
+        .Map((pair: Pair<AccuracyMetrics, TimeSpan>)
         {
             let stats = pair.First;
-            if (stats == null) {
-                return 0;
-            }
 
             let elapsedTime = (DateTime.Now.Subtract(StartTime)).TotalSeconds;
             // https://github.com/Miodec/monkeytype/blob/94d2c7ead9b488230bba7b07181e3a3dfcffd2d2/src/js/test/test-logic.js#L834
-            return Math.Round((stats.Correct * (60d / elapsedTime)) / 5d);
+            return Numbers.Round((stats.Correct * (60d / elapsedTime)) / 5d);
         });
     }
 
-    makeAccuracySignal() => StatsSignal.Map((stats: AccuracyMetrics) => (stats.Correct / stats.Total) * 100);
+    makeAccuracySignal() => StatsSignal.Map((stats: AccuracyMetrics) {
+        return (Numbers.ToDouble(stats.Correct) / Numbers.ToDouble(stats.Total)) * 100d;
+    });
 
     makeTimerSignal() => Signal.Timer(500)
-        .Map((i: int) => (DateTime.Now - StartTime).Duration());
+        .Map((i: int) => DateTime.Now.Subtract(StartTime).Duration());
 
 
     Start(start: DateTime, onUpdate: () => void)
@@ -124,9 +124,9 @@ type Engine = {
         });
 
         makeWpmSignal()
-            .ForEach((wpm: int) => Wpm = wpm);
+            .ForEach((wpm: int) { Wpm = wpm; });
 
         makeAccuracySignal()
-            .ForEach((accuracy: double) => Accuracy = accuracy);
+            .ForEach((accuracy: double) { Accuracy = accuracy; });
     }
 };

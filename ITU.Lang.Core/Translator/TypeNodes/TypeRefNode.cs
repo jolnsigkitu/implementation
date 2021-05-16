@@ -8,9 +8,9 @@ namespace ITU.Lang.Core.Translator.TypeNodes
     public class TypeRefNode : TypeNode
     {
         private string Name;
-        private GenericHandleNode Handle;
+        private GenericTypeHandleNode Handle;
 
-        public TypeRefNode(string name, GenericHandleNode handle)
+        public TypeRefNode(string name, GenericTypeHandleNode handle)
         {
             Name = name;
             Handle = handle;
@@ -30,19 +30,8 @@ namespace ITU.Lang.Core.Translator.TypeNodes
                 return typ;
             }
 
-            return SpecifyGenericTypeRef(env, typ);
-        }
-
-        private IType SpecifyGenericTypeRef(Environment env, IType typ)
-        {
-            if (!(typ is GenericWrapper wrapper))
-            {
-                throw new TranspilationException("Cannot specify generic types for non-generic type");
-            }
-
-            var bindings = Handle.Names.Select(name => env.Scopes.Types.RequireBinding(name));
-
-            return wrapper.ResolveByPosition(bindings);
+            Handle.ParentType = typ;
+            return Handle.EvalType(env);
         }
     }
 }

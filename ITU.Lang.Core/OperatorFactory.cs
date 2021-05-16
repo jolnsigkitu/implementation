@@ -107,6 +107,7 @@ namespace ITU.Lang.Core.Operators
         {
             var boolean = new BooleanType();
             var integer = new IntType();
+            var @double = new DoubleType();
             var str = new StringType();
 
             #region Unary boolean
@@ -123,13 +124,30 @@ namespace ITU.Lang.Core.Operators
             factory.UnaryPostfix.Bind("--", integer, integer);
             #endregion
 
-            #region Binary algebraic
+            #region Binary String
             factory.Binary.Bind("+", (str, str), str);
+            factory.Binary.Bind("+", (str, integer), str);
+            factory.Binary.Bind("+", (integer, str), str);
+            #endregion
+
+            #region Binary algebraic
+            // Integer operators
             factory.Binary.Bind("+", (integer, integer), integer);
             factory.Binary.Bind("-", (integer, integer), integer);
             factory.Binary.Bind("*", (integer, integer), integer);
             factory.Binary.Bind("/", (integer, integer), integer);
             factory.Binary.Bind("%", (integer, integer), integer);
+
+            // Double operators
+            factory.Binary.Bind("+", (@double, @double), @double);
+            factory.Binary.Bind("-", (@double, @double), @double);
+            factory.Binary.Bind("*", (@double, @double), @double);
+            factory.Binary.Bind("/", (@double, @double), @double);
+
+            // Integer/double operators
+            factory.Binary.Bind("/", (@double, integer), @double);
+            factory.Binary.Bind("*", (integer, @double), @double);
+            factory.Binary.Bind("*", (@double, integer), @double);
             #endregion
 
             #region Binary Boolean
@@ -143,6 +161,12 @@ namespace ITU.Lang.Core.Operators
             factory.Binary.Bind(">", (integer, integer), boolean);
             factory.Binary.Bind("<=", (integer, integer), boolean);
             factory.Binary.Bind(">=", (integer, integer), boolean);
+
+            factory.Binary.Bind("==", (@double, @double), boolean);
+            factory.Binary.Bind("<", (@double, @double), boolean);
+            factory.Binary.Bind(">", (@double, @double), boolean);
+            factory.Binary.Bind("<=", (@double, @double), boolean);
+            factory.Binary.Bind(">=", (@double, @double), boolean);
             #endregion
 
             return factory;

@@ -11,15 +11,17 @@ namespace ITU.Lang.Core.Translator.Nodes
         private readonly ExprNode Expr;
         private readonly TypeNode TypeAnnotation;
         private readonly bool IsConst;
+        private readonly bool IsExtern;
 
         private IType DerivedType;
 
-        public VarDecNode(string name, bool isConst, ExprNode expr, TypeNode typeAnnotation, TokenLocation loc) : base(loc)
+        public VarDecNode(string name, bool isConst, ExprNode expr, TypeNode typeAnnotation, bool isExtern, TokenLocation loc) : base(loc)
         {
             Name = name;
             Expr = expr;
             TypeAnnotation = typeAnnotation;
             IsConst = isConst;
+            IsExtern = isExtern;
         }
 
         public override void Validate(Environment env)
@@ -42,6 +44,10 @@ namespace ITU.Lang.Core.Translator.Nodes
             });
         }
 
-        public override string ToString() => $"{DerivedType.AsTranslatedName()} {Name} = {Expr}";
+        public override string ToString()
+        {
+            if (IsExtern) return "";
+            return $"{DerivedType.AsTranslatedName()} {Name} = {Expr}";
+        }
     }
 }

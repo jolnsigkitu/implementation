@@ -48,6 +48,7 @@ namespace ITU.Lang.Core.Translator
                 context.doWhileStatement(),
                 context.loopStatement(),
                 context.returnStatement(),
+                context.usingStatement(),
             });
         }
 
@@ -136,11 +137,12 @@ namespace ITU.Lang.Core.Translator
             var typedName = context.typedName();
 
             var name = typedName.Name().GetText();
+            var isExtern = context.Extern() != null;
             var expr = VisitExpr(context.expr());
             var isConst = context.Const() != null;
             var typeAnnotation = typedName.typeAnnotation().Invoke(typeEvaluator.VisitTypeAnnotation);
 
-            return new VarDecNode(name, isConst, expr, typeAnnotation, GetLocation(context));
+            return new VarDecNode(name, isConst, expr, typeAnnotation, isExtern, GetLocation(context));
         }
 
         public override TypeDecNode VisitTypedec([NotNull] TypedecContext context)
@@ -265,6 +267,11 @@ namespace ITU.Lang.Core.Translator
             var expr = VisitExpr(context.expr());
 
             return new ReturnStatementNode(expr, GetLocation(context));
+        }
+
+        public override UsingStatementNode VisitUsingStatement([NotNull] UsingStatementContext context)
+        {
+            return new UsingStatementNode(context.nestedName().GetText(), GetLocation(context));
         }
 
         public override GenericHandleNode VisitGenericHandle([NotNull] GenericHandleContext context)

@@ -14,12 +14,15 @@ statement:
 	| whileStatement
 	| doWhileStatement
 	| loopStatement
-	| returnStatement;
+	| returnStatement
+	| usingStatement;
 
 inlineStatement: assign | vardec | typedec | expr;
 semiStatement: inlineStatement Semi;
 
 returnStatement: Return expr Semi;
+
+usingStatement: Using nestedName Semi;
 
 // Value Expressions
 expr: term | expr operator expr | operator expr | expr operator;
@@ -55,7 +58,7 @@ access: (
 
 accessChain: Dot (invokeFunction | Name) accessChain?;
 
-vardec: (Const | Let) typedName Eq expr;
+vardec: Extern? (Const | Let) typedName Eq expr;
 
 assign: nestedName Eq expr;
 
@@ -100,7 +103,10 @@ typedec: Extern? Type Name Eq (typeExpr | classExpr);
 
 typeExpr: typeRef | funcTypeExpr;
 
-typeRef: Name genericHandle?;
+genericTypeHandle:
+	LessThan (typeRef Comma)* typeRef GreaterThan;
+
+typeRef: Name genericTypeHandle?;
 
 classExpr: genericHandle? LeftBrace classMember* RightBrace;
 
@@ -198,6 +204,7 @@ Type: 'type';
 Void: 'void';
 
 Extern: 'extern';
+Using: 'using';
 
 Int: [0-9]+;
 Double: Int 'd' | Int? Dot Int 'd'?;

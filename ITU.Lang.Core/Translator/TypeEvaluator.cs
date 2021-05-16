@@ -34,8 +34,13 @@ namespace ITU.Lang.Core.Translator
         public override TypeRefNode VisitTypeRef([NotNull] TypeRefContext context)
         {
             var name = context.Name().GetText();
-            var handle = context.genericHandle().Invoke(translator.VisitGenericHandle);
+            var handle = context.genericTypeHandle().Invoke(VisitGenericTypeHandle);
             return new TypeRefNode(name, handle);
+        }
+
+        public override GenericTypeHandleNode VisitGenericTypeHandle([NotNull] GenericTypeHandleContext context)
+        {
+            return new GenericTypeHandleNode(context.typeRef().Select(typeRef => VisitTypeRef(typeRef)));
         }
 
         public override FuncTypeNode VisitFuncTypeExpr([NotNull] FuncTypeExprContext context)

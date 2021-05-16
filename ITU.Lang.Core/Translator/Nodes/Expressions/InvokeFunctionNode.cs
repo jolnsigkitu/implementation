@@ -83,6 +83,9 @@ namespace ITU.Lang.Core.Translator.Nodes
             }
         }
 
-        public override string ToString() => $"{Name}({string.Join(", ", Exprs)})";
+        public override string ToString()
+        {
+            return $"{Name}({string.Join(", ", Exprs)})";
+        }
     }
 }

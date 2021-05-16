@@ -23,7 +23,7 @@ namespace ITU.Lang.Core.Types
             return this.Identifier == id.Identifier;
         }
 
-        public override int GetHashCode() => 17;
+        public override int GetHashCode() => Identifier.GetHashCode();
 
         public override string ToString() => $"new GenericTypeIdentifier(\"{Identifier}\")";
     }

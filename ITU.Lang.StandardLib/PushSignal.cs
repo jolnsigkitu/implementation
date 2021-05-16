@@ -215,6 +215,7 @@ namespace ITU.Lang.StandardLib
 
         private void ActualPush()
         {
+            if (cacheInput == null || cacheOther == null) return;
             var output = new Pair<TInput, TOther>()
             {
                 First = cacheInput,
