@@ -25,7 +25,7 @@ namespace ITU.Lang.Core
             var env = new Environment();
             prog.Validate(env);
 
-            //System.Console.WriteLine(env.Scopes.Types);
+            // System.Console.WriteLine(env.Scopes.Types);
 
             return prog.ToString();
         }

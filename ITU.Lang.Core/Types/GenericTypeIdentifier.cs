@@ -15,7 +15,13 @@ namespace ITU.Lang.Core.Types
 
         public string AsTranslatedName() => Identifier;
 
-        public bool Equals(IType other) => other is AnyType || other is GenericTypeIdentifier a && a.Identifier == this.Identifier;
+        public bool Equals(IType other)
+        {
+            if (other is AnyType) return true;
+            if (!(other is GenericTypeIdentifier id)) return false;
+
+            return this.Identifier == id.Identifier;
+        }
 
         public override int GetHashCode() => 17;
 

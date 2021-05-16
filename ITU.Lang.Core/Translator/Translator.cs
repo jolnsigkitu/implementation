@@ -28,7 +28,8 @@ namespace ITU.Lang.Core.Translator
 
         public override ProgNode VisitProg([NotNull] ProgContext context)
         {
-            var statements = VisitStatements(context.statements());
+            var statements = context.statements().Invoke(VisitStatements);
+            statements ??= new List<StatementNode>();
             return new ProgNode(statements, GetLocation(context));
         }
 
@@ -374,6 +375,10 @@ namespace ITU.Lang.Core.Translator
         private TokenLocation GetLocation(ISyntaxTree node)
         {
             var interval = node.SourceInterval;
+            if (interval.Length == 0)
+            {
+                return new TokenLocation(tokenStream.Get(0), tokenStream.Get(0));
+            }
             var start = tokenStream.Get(interval.a);
             var end = tokenStream.Get(interval.b);
             return new TokenLocation(start, end);

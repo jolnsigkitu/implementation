@@ -81,6 +81,11 @@ namespace ITU.Lang.Core.Types
             }
         }
 
-        public override string ToString() => $"new FunctionType(){{ IsLambda = {(IsLambda ? "true" : "false")}, ReturnType = {ReturnType}, ParameterNames = new List<string>() {{ \"{string.Join("\", \"", ParameterNames)}\" }}, ParameterTypes = new List<Type>() {{ {string.Join(", ", ParameterTypes)} }} }}";
+        // public override string ToString() => $"new FunctionType(){{\n\t IsLambda = {(IsLambda ? "true" : "false")},\n\t ReturnType = {ReturnType},\n\t ParameterNames = new List<string>() {{ \"{string.Join("\", \"", ParameterNames)}\" }},\n\t ParameterTypes = new List<Type>() {{ {string.Join(", ", ParameterTypes)} }}\n}}";
+        public override string ToString()
+        {
+            var returnType = ReturnType is IClassType ? ReturnType.GetType().ToString() : ReturnType.ToString();
+            return $"new FunctionType(){{\n\t IsLambda = {(IsLambda ? "true" : "false")},\n\t ReturnType = {returnType},\n\t ParameterNames = new List<string>() {{ \"{string.Join("\", \"", ParameterNames)}\" }},\n\t ParameterTypes = new List<Type>() {{ {string.Join(", ", ParameterTypes)} }}\n}}";
+        }
     }
 }

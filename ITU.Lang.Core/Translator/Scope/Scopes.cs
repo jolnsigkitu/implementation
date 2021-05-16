@@ -88,6 +88,117 @@ namespace ITU.Lang.Core.Translator
             });
 
             #region Signals
+            var members = new Dictionary<string, IType>();
+
+            var ChainablePushSignal = new GenericClassWrapper(
+                new ClassType()
+                {
+                    Name = "ChainablePushSignal",
+                    Members = members,
+                },
+                new Dictionary<string, IType>() {
+                    { "In", new GenericTypeIdentifier("In") },
+                    { "Out", new GenericTypeIdentifier("Out") }
+                },
+                new List<string>() { "In", "Out" }
+            );
+
+            members.Add("Map", new GenericFunctionWrapper(
+                new FunctionType()
+                {
+                    IsLambda = true,
+                    ReturnType = ChainablePushSignal,
+                    ParameterNames = new List<string>() { "mapper" },
+                    ParameterTypes = new List<IType>() {
+                        new FunctionType()
+                        {
+                            IsLambda = false,
+                            ReturnType = new GenericTypeIdentifier("U"),
+                            ParameterNames = new List<string>() { "" },
+                            ParameterTypes = new List<IType>() { new GenericTypeIdentifier("Out") }
+                        }
+                    }
+                },
+                new Dictionary<string, IType>() { { "U", new GenericTypeIdentifier("U") } },
+                new List<string>() { "U" }
+            ));
+
+            members.Add("Reduce", new GenericFunctionWrapper(
+                new FunctionType()
+                {
+                    IsLambda = true,
+                    ReturnType = ChainablePushSignal,
+                    ParameterNames = new List<string>() { "reducer", "defaultResult" },
+                    ParameterTypes = new List<IType>() {
+                        new FunctionType(){
+                            IsLambda = false,
+                            ReturnType = new GenericTypeIdentifier("U"),
+                            ParameterNames = new List<string>() { "" },
+                            ParameterTypes = new List<IType>() { new GenericTypeIdentifier("U"), new GenericTypeIdentifier("Out") }
+                        },
+                        new GenericTypeIdentifier("U")
+                    }
+                },
+                new Dictionary<string, IType>() {
+                    { "U", new GenericTypeIdentifier("U") }
+                },
+                new List<string>() { "U" }
+            ));
+            members.Add("Filter", new FunctionType()
+            {
+                IsLambda = true,
+                ReturnType = ChainablePushSignal,
+                ParameterNames = new List<string>() { "filter" },
+                ParameterTypes = new List<IType>() {
+                        new FunctionType(){
+                            IsLambda = false,
+                            ReturnType = new BooleanType(),
+                            ParameterNames = new List<string>() { "" },
+                            ParameterTypes = new List<IType>() { new GenericTypeIdentifier("Out") }
+                        }
+                    }
+            });
+
+            members.Add("ForEach", new FunctionType()
+            {
+                IsLambda = true,
+                ReturnType = ChainablePushSignal,
+                ParameterNames = new List<string>() { "function" },
+                ParameterTypes = new List<IType>() { new FunctionType(){
+                    IsLambda = false,
+                    ReturnType = new VoidType(),
+                    ParameterNames = new List<string>() { "" },
+                    ParameterTypes = new List<IType>() { new GenericTypeIdentifier("Out") }
+                }}
+            });
+
+            Types.Bind("ChainablePushSignal", ChainablePushSignal);
+
+            var SignalGlobal = new ClassType()
+            {
+                Name = "SignalGlobal",
+                Members = new Dictionary<string, IType>(),
+            };
+
+            SignalGlobal.Members.Add("Timer", new FunctionType()
+            {
+                ParameterNames = new List<string>() { "millisecondInterval" },
+                ParameterTypes = new List<IType>() { new IntType() },
+                ReturnType = ChainablePushSignal.ResolveByIdentifier(new Dictionary<string, IType>() {
+                    { "In", new IntType() },
+                    { "Out", new IntType() }
+                }),
+            });
+
+
+            Types.Bind("SignalGlobal", SignalGlobal);
+
+            Values.Bind("Signal", new VariableBinding()
+            {
+                Name = "Signal",
+                Type = SignalGlobal
+            });
+
             // var ChainablePushSignal = new TypeBinding()
             // {
             //     Type = new GenericClassType() { Name = "ChainablePushSignal", GenericIdentifiers = new List<string>() { "In", "Out" } },

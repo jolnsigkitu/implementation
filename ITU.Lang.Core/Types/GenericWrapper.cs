@@ -27,33 +27,23 @@ namespace ITU.Lang.Core.Types
 
         public abstract IType ResolveByPosition(IEnumerable<IType> resolutions);
 
-        // public virtual IType ResolveByPosition(IEnumerable<IType> resolutions)
-        // {
-        //     if (resolutions.Count() != Handle.Count)
-        //     {
-        //         throw new TranspilationException($"Tried to resolve generic with {resolutions.Count()} identifiers, but was provided {Handle.Count}");
-        //     }
-
-        //     throw new System.NotImplementedException("TODO: Resolve by position on generic wrapper");
-        // }
-
         protected IDictionary<string, IType> ResolveBindingsByIdentifier(IDictionary<string, IType> resolutions)
         {
-            return Bindings.ToDictionary(binding => binding.Key, binding =>
+            var resolvedBindings = Bindings.ToDictionary(binding => binding.Key, binding =>
             {
                 if (!(binding.Value is GenericTypeIdentifier oldValue))
                 {
                     return binding.Value;
                 }
 
-                // from old Value find new Key
-                if (!resolutions.TryGetValue(oldValue.Identifier, out var val))
-                {
-                    throw new TranspilationException($"Cannot resolve generic '{oldValue.Identifier}'");
-                }
+                resolutions.TryGetValue(oldValue.Identifier, out var val);
 
-                return val;
+                return val ?? oldValue;
             });
+
+            return resolvedBindings.Concat(
+                resolutions.Where(pair => !Bindings.ContainsKey(pair.Key))
+            ).ToDictionary(a => a.Key, a => a.Value);
         }
 
         protected IType TryResolveType(IType type)
@@ -63,21 +53,20 @@ namespace ITU.Lang.Core.Types
                 return result;
             }
 
+            if (type is GenericWrapper wrapper)
+            {
+                return wrapper.ResolveByIdentifier(Bindings);
+            }
+
             if (type is IFunctionType ft)
             {
-                var func = new FunctionType()
+                return new FunctionType()
                 {
                     IsLambda = ft.IsLambda,
                     ReturnType = TryResolveType(ft.ReturnType),
                     ParameterNames = ft.ParameterNames,
                     ParameterTypes = ft.ParameterTypes.Select(TryResolveType).ToList(),
                 };
-                return func;
-            }
-
-            if (type is IClassType ct)
-            {
-                throw new System.NotImplementedException("TODO: Deal with classes in TryResolveType @ GenericWrapper");
             }
 
             return type;
@@ -95,6 +84,6 @@ namespace ITU.Lang.Core.Types
 
         public abstract bool Equals(IType other);
 
-        public abstract int GetHashCode();
+        public abstract override int GetHashCode();
     }
 }

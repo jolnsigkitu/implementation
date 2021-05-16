@@ -34,7 +34,6 @@ namespace ITU.Lang.Core.Translator.Nodes
 
             if (func is GenericFunctionWrapper wrapper)
                 func = SpecifyFunc(wrapper, env);
-
             else if (Handle != null)
                 throw new TranspilationException($"Cannot specify generic types for non-generic function '{Name}'.", Location);
 

@@ -31,7 +31,10 @@ namespace ITU.Lang.Core.Types
 
         public override IClassType ResolveByPosition(IEnumerable<IType> resolutions)
         {
-            throw new System.NotImplementedException("TODO: ResolveByPosition in GenericClassWrapper");
+            var bindings = Handle.Zip(resolutions)
+                                 .ToDictionary(pair => pair.First, pair => pair.Second);
+
+            return new GenericClassWrapper(Child, bindings, Handle);
         }
 
         public bool TryGetMember(string key, out IType member)
@@ -46,7 +49,11 @@ namespace ITU.Lang.Core.Types
             return true;
         }
 
-        public override string AsNativeName() => Child.AsNativeName();
+        public override string AsNativeName()
+        {
+            var handleStr = string.Join(", ", Handle.Select(h => Bindings[h].AsNativeName()));
+            return $"{Child.AsNativeName()}<{handleStr}>";
+        }
 
         public override string AsTranslatedName()
         {
@@ -54,17 +61,36 @@ namespace ITU.Lang.Core.Types
             return $"{Child.AsTranslatedName()}<{handleStr}>";
         }
 
-        public override string ToString() => $"(ClassWrapper - Name: {Name}, Handle: {Handle}, Child: {Child})";
+        // public override string ToString() => $"(\n\tClassWrapper - Name: {Name},\n\tHandle: {{{string.Join(", ", Handle)}}},\n\tBindings: {{{string.Join(", ", Bindings)}}},\n\tChild: {Child}\n)";
+        public override string ToString() => $"new GenericClassWrapper({Child}, new Dictionary<string, IType>() {{ {string.Join(", ", Bindings.Select(pair => $"{{ \"{pair.Key}\", {pair.Value} }}"))} }}, new List<string>(){{ \"{string.Join("\", \"", Handle)}\" }})";
+
+        // public override bool Equals(IType other)
+        // {
+        //     return other is GenericClassWrapper wrapper &&
+        //            EqualityComparer<IDictionary<string, IType>>.Default.Equals(Bindings, wrapper.Bindings) &&
+        //            EqualityComparer<IType>.Default.Equals(Child, wrapper.Child) &&
+        //            EqualityComparer<IList<string>>.Default.Equals(Handle, wrapper.Handle) &&
+        //            EqualityComparer<IClassType>.Default.Equals(Child, wrapper.Child) &&
+        //            Name == wrapper.Name &&
+        //            EqualityComparer<IDictionary<string, IType>>.Default.Equals(Members, wrapper.Members);
+        // }
 
         public override bool Equals(IType other)
         {
-            return other is GenericClassWrapper wrapper &&
-                   EqualityComparer<IDictionary<string, IType>>.Default.Equals(Bindings, wrapper.Bindings) &&
-                   EqualityComparer<IType>.Default.Equals(Child, wrapper.Child) &&
-                   EqualityComparer<IList<string>>.Default.Equals(Handle, wrapper.Handle) &&
-                   EqualityComparer<IClassType>.Default.Equals(Child, wrapper.Child) &&
-                   Name == wrapper.Name &&
-                   EqualityComparer<IDictionary<string, IType>>.Default.Equals(Members, wrapper.Members);
+            if (other is AnyType) return true;
+
+            if (!(other is GenericClassWrapper wrapper)) return false;
+
+            var hasName = Name == wrapper.Name;
+
+            var hasHandle =
+                Handle.Count() == wrapper.Handle.Count()
+                && Handle.Zip(wrapper.Handle)
+                                 .All(p => p.First.Equals(p.Second));
+
+            var hasChild = Child.Equals(wrapper.Child);
+
+            return hasName && hasHandle && hasChild;
         }
 
         public override int GetHashCode() => System.HashCode.Combine(Bindings, Child, Handle, Child, Name, Members);

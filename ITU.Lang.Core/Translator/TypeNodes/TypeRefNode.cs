@@ -40,9 +40,6 @@ namespace ITU.Lang.Core.Translator.TypeNodes
                 throw new TranspilationException("Cannot specify generic types for non-generic type");
             }
 
-            // var identifiers = wrapper.Handle;
-
-
             var bindings = Handle.Names.Select(name => env.Scopes.Types.RequireBinding(name));
 
             return wrapper.ResolveByPosition(bindings);

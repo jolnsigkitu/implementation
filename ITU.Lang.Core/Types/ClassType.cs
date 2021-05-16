@@ -40,7 +40,8 @@ namespace ITU.Lang.Core.Types
             }
         }
 
-        public override string ToString() => $"(Class {Name}: {AsNativeName()})";
+        // public override string ToString() => $"(Class, Name: {Name})";
+        public override string ToString() => $"new ClassType() {{ Name = \"{Name}\", Members = new Dictionary<string, IType>(){{ {string.Join(", ", Members.Select(pair => $"{{ \"{pair.Key}\", {pair.Value} }}"))} }} }}";
 
         public bool TryGetMember(string key, out IType member) => Members.TryGetValue(key, out member);
     }

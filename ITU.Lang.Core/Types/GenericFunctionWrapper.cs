@@ -28,7 +28,6 @@ namespace ITU.Lang.Core.Types
         public override IType ResolveByPosition(IEnumerable<IType> resolutions)
         {
             throw new System.NotImplementedException("ResolveByPosition in GenericFunctionWrapper");
-            // return base.ResolveByPosition(resolutions);
         }
 
         public IFunctionType ResolveByParameterPosition(IEnumerable<IType> expressions)
@@ -42,7 +41,6 @@ namespace ITU.Lang.Core.Types
 
             return ResolveByIdentifier(resolutions);
             throw new System.NotImplementedException("ResolveByParameterPosition in GenericFunctionWrapper");
-            // return base.ResolveByPosition(resolutions);
         }
 
         private IList<(string Key, IType Value)> MatchTypes(
@@ -68,7 +66,13 @@ namespace ITU.Lang.Core.Types
 
         public override string AsTranslatedName() => Child.AsTranslatedName();
 
-        public override string ToString() => $"(FunctionWrapper - Handle: {Handle}, Child: {Child})";
+        public override string ToString()
+        {
+            var bindingElems = string.Join(", ", Bindings.Select(pair => $"{{ \"{pair.Key}\", {pair.Value} }}"));
+            var bindings = $"new Dictionary<string, IType>() {{ {bindingElems} }}";
+            var handle = $"new List<string>(){{ \"{string.Join("\", \"", Handle)}\" }}";
+            return $"new GenericFunctionWrapper({Child}, {bindings}, {handle})";
+        }
 
         #region Equality
         public override bool Equals(IType other)
