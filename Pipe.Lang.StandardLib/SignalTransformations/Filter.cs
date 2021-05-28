@@ -2,6 +2,11 @@ using System;
 
 namespace Pipe.Lang.StandardLib
 {
+    public partial interface PushSignalSource<TOutput>
+    {
+        FilterSignal<TOutput> Filter(Predicate<TOutput> filter);
+    }
+
     public abstract partial class ChainablePushSignal<TInput, TOutput>
     {
         public FilterSignal<TOutput> Filter(Predicate<TOutput> filter)
