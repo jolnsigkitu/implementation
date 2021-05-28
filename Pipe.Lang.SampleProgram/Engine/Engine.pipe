@@ -37,6 +37,7 @@ extern type IEnumerable = <T> {
 };
 
 extern type CompletedWord = {
+    FullContent: StringWithLength;
     CompletedAt: DateTime;
     Segments: IEnumerable<Segment>;
 };
@@ -56,6 +57,7 @@ type Engine = {
     Wpm = 0;
     Accuracy = 0d;
     ElapsedTime = "00:00:00";
+    WordCount = 0;
 
     StartTime: DateTime;
 
@@ -108,6 +110,9 @@ type Engine = {
     makeTimerSignal() => Signal.Timer(500)
         .Map((i: int) => DateTime.Now.Subtract(StartTime).Duration());
 
+    makeWordCountSignal() => WordSignal
+        .Filter((word: CompletedWord) => word.FullContent.Length >= 5)
+        .Reduce((count: int, word: CompletedWord) => count + 1, 0);
 
     Start(start: DateTime, onUpdate: () => void)
     {
@@ -126,5 +131,8 @@ type Engine = {
 
         makeAccuracySignal()
             .ForEach((accuracy: double) { Accuracy = accuracy; });
+
+        makeWordCountSignal()
+            .ForEach((count: int) { WordCount = count; });
     }
 };
