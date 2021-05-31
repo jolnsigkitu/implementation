@@ -7,16 +7,9 @@ namespace Pipe.Lang.Core
 {
     public class Transpiler
     {
-        private string Stubs;
-
-        public Transpiler()
-        {
-            Stubs = File.ReadAllText("../Pipe.Lang.Core/stubs/signal.pipe").Replace('\n', ' ');
-        }
-
         public string fromString(string input)
         {
-            input = Stubs + input;
+            input = new Stubs() + input;
 
             ICharStream stream = CharStreams.fromString(input);
 
