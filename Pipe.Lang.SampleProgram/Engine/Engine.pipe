@@ -56,6 +56,7 @@ type Engine = {
     Wpm = 0;
     Accuracy = 0d;
     ElapsedTime = "00:00:00";
+    WordCount = 0;
 
     StartTime: DateTime;
 
@@ -107,6 +108,8 @@ type Engine = {
 
     makeTimerSignal() => Signal.Timer(500)
         .Map((i: int) => DateTime.Now.Subtract(StartTime).Duration());
+    
+    makeWordCountSignal() => WordSignal.Reduce((sum: int, word: CompletedWord) => sum + 1, 0);
 
 
     Start(start: DateTime, onUpdate: () => void)
@@ -126,5 +129,7 @@ type Engine = {
 
         makeAccuracySignal()
             .ForEach((accuracy: double) { Accuracy = accuracy; });
+
+        makeWordCountSignal().ForEach((wordCount: int) {WordCount = wordCount;});
     }
 };
