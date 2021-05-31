@@ -9,12 +9,12 @@ using Microsoft.AspNetCore.Components.Web;
 class AccuracyMetrics  {
 public int Total = 0;
 public int Correct = 0;
-public string ToString () => "(Total: " + Total + ", Correct: " + Correct + ")";
 }
 class Engine  {
 public int Wpm = 0;
 public double Accuracy = 0d;
 public string ElapsedTime = "00:00:00";
+public int WordCount = 0;
 public DateTime StartTime;
 public PushSignalSource<CompletedWord> WordSignal;
 public PushSignalSource<AccuracyMetrics> StatsSignal;
@@ -48,6 +48,7 @@ public PushSignalSource<double> makeAccuracySignal () => StatsSignal.Map((Accura
 return (Numbers.ToDouble(stats.Correct) / Numbers.ToDouble(stats.Total)) * 100d;
 });
 public PushSignalSource<TimeSpan> makeTimerSignal () => Signal.Timer(500).Map((int i) => DateTime.Now.Subtract(StartTime).Duration());
+public PushSignalSource<int> makeWordCountSignal () => WordSignal.Reduce((int sum, CompletedWord word) => sum + 1, 0);
 public void Start (DateTime start, Action onUpdate) {
 StartTime = start;
 StatsSignal = makeStatsSignal();
@@ -61,6 +62,9 @@ Wpm = wpm;
 });
 makeAccuracySignal().ForEach((double accuracy) => {
 Accuracy = accuracy;
+});
+makeWordCountSignal().ForEach((int wordCount) => {
+WordCount = wordCount;
 });
 }
 }
